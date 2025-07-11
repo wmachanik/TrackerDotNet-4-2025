@@ -1,0 +1,41 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="MobileSite.Master.cs" Inherits="TrackerDotNet.MobileSiteMaster" %>
+
+<%@ Register assembly="AjaxControlToolkit" namespace="AjaxControlToolkit" tagprefix="cc1" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head runat="server">
+  <title></title>
+  <link href="~/Styles/Site.css" rel="stylesheet" type="text/css" />
+  <link rel="icon" type="image/ico" href="~/images/icon/QonTIcon.ico" />
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=yes" />
+  <meta name="MobileOptimized" content="width" />
+  <meta name="HandheldFriendly" content="true" />
+  <asp:ContentPlaceHolder ID="HeadContent" runat="server">
+  </asp:ContentPlaceHolder>
+
+<script type="text/javascript">
+  function showAppMessage(thisMessage) {
+    alert(thisMessage);
+  }
+</script>
+
+</head>
+<body>
+  <form id="frmMiniMain" runat="server">
+  <div class="miniheader" >
+     <b style="margin-bottom: 10px; font-size: large">Quaffee QonT</b><br />
+     <asp:HyperLink ID="hlHome" NavigateUrl="~/Default.aspx" Text="home" runat="server" />&nbsp;&nbsp;&nbsp;
+     <asp:HyperLink ID="hlDeliveries" NavigateUrl="~/Pages/DeliverySheet.aspx" Text="deliveries" runat="server" />&nbsp;&nbsp;&nbsp;
+     <asp:HyperLink ID="hlRepairs" NavigateUrl="~/Pages/Repairs.aspx" Text="repairs" runat="server" />
+  </div>
+  <div class="minipage">
+    <div class="minimain small">
+      <asp:ContentPlaceHolder ID="MainContent" runat="server" />
+    </div>
+  </div>
+  <div class="clear">
+  </div>
+  </form>
+</body>
+</html>
