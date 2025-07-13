@@ -1,0 +1,4 @@
+/Volumes/GoogleDrive/Other computers/My laptop/SRC/Apps/TrackerDotNet/obj/Debug/TrackerDotNet.csproj.AssemblyReference.cache
+/Volumes/GoogleDrive/Other computers/My laptop/SRC/Apps/TrackerDotNet/obj/Debug/TrackerDotNet.csproj.CoreCompileInputs.cache
+C:\SRC\Apps\TrackerDotNet\obj\Debug\TrackerDotNet.csproj.AssemblyReference.cache
+C:\SRC\Apps\TrackerDotNet\obj\Debug\TrackerDotNet.csproj.CoreCompileInputs.cache

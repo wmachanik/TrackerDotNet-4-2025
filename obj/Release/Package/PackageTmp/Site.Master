@@ -1,0 +1,115 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.master.cs" Inherits="TrackerDotNet.SiteMaster" %>
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head runat="server">
+  <title></title>
+  <link href="~/Styles/Site.css" rel="stylesheet" type="text/css" />
+  <link rel="icon" type="image/ico" href="~/images/icon/QonTIcon.ico" />
+  <asp:ContentPlaceHolder ID="HeadContent" runat="server">
+  </asp:ContentPlaceHolder>
+<script type="text/javascript">
+  function showAppMessage(thisMessage) {
+    alert(thisMessage);
+  }
+</script>
+
+</head>
+<body>
+  <form id="frmMain" runat="server">
+  <div class="header">
+    <table border="0" cellpadding="0" cellspacing="0" style="width: 100%">
+      <tr>
+        <td style="text-align: left">
+          <h1>Quaffee Orders and Tracker.NET</h1></td>
+        <td class="loginDisplay" align="right">
+          <asp:LoginView ID="HeadLoginView" runat="server" EnableViewState="false">
+            <AnonymousTemplate>
+              [ <a href="~/Account/Login.aspx" id="HeadLoginStatus" runat="server">Log In</a>
+              ]
+            </AnonymousTemplate>
+            <LoggedInTemplate>
+              Welcome <span class="bold">
+                <asp:LoginName ID="HeadLoginName" runat="server" />
+              </span>! [
+              <asp:LoginStatus ID="HeadLoginStatus" runat="server" LogoutAction="Redirect" LogoutText="Log Out"
+                LogoutPageUrl="~/" /> ]
+            </LoggedInTemplate>
+          </asp:LoginView>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <div class="clear menuBG">
+    <asp:Menu ID="NavigationMenu" runat="server" CssClass="menu" EnableViewState="False"
+      IncludeStyleBlock="False" Orientation="Horizontal" ToolTip="Please select menu option" BackColor="#F7F6F3" 
+      DynamicHorizontalOffset="2" Font-Names="Verdana" Font-Size="0.8em" 
+      ForeColor="#7C6F57" StaticSubMenuIndent="10px">
+      <StaticHoverStyle BackColor="#7C6F57" ForeColor="White" />
+      <StaticMenuItemStyle HorizontalPadding="5px" VerticalPadding="2px" />
+      <StaticSelectedStyle BackColor="#5D7B9D" CssClass="menuSelected" 
+        Font-Bold="True" />
+      <DynamicHoverStyle BackColor="#7C6F57" ForeColor="White" />
+      <DynamicMenuItemStyle HorizontalPadding="5px" VerticalPadding="2px" />
+      <DynamicMenuStyle BackColor="#F7F6F3" />
+      <DynamicSelectedStyle CssClass="menuSelected" BackColor="#5D7B9D" />
+      <Items>
+        <asp:MenuItem NavigateUrl="~/Default.aspx" Text="Home">
+          <asp:MenuItem NavigateUrl="~/About.aspx" Text="About" Value="About"></asp:MenuItem>
+        </asp:MenuItem>
+        <asp:MenuItem NavigateUrl="~/Pages/Customers.aspx" Text="Contacts" ToolTip="Contact List"
+          Value="Contacts" >
+          <asp:MenuItem NavigateUrl="~/Pages/Customers.aspx" Text="Customers" 
+            Value="Customer List" />
+          <asp:MenuItem NavigateUrl="~/Pages/CustomerDetails.aspx" Text="New Customer" 
+            Value="New Customers" />
+        </asp:MenuItem>
+        <asp:MenuItem Selectable="False" Text="Orders" Value="Orders">
+          <asp:MenuItem NavigateUrl="~/Pages/NewOrderDetail.aspx" Text="New Order" 
+            Value="New Order" ToolTip="New Order"></asp:MenuItem>
+          <asp:MenuItem NavigateUrl="~/Pages/OrdersEdit.aspx" Text="View/Edit Orders" 
+            Value="View/Edit Orders"></asp:MenuItem>
+          <asp:MenuItem NavigateUrl="~/Pages/OrderSheet.aspx" Text="Order Sheet" 
+            Value="Order Sheet"></asp:MenuItem>
+        </asp:MenuItem>
+        <asp:MenuItem Selectable="False" Text="Preperation" Value="Prep">
+          <asp:MenuItem NavigateUrl="~/Pages/CoffeeRequired.aspx" Text="Required Sheet" 
+            Value="Required Sheet"></asp:MenuItem>
+          <asp:MenuItem NavigateUrl="~/Pages/DeliverySheet.aspx" Text="Delivery Sheet" 
+            Value="Delivery Sheet"></asp:MenuItem>
+          <asp:MenuItem NavigateUrl="~/Pages/PreperationSummary.aspx" Text="Preperation Summary" 
+            Value="Preperation Summary"></asp:MenuItem>
+        </asp:MenuItem>
+        <asp:MenuItem NavigateUrl="~/Pages/Lookups.aspx" Text="Lookups" Value="Lookups">
+        </asp:MenuItem>
+        <asp:MenuItem Text="User" Value="User">
+          <asp:MenuItem NavigateUrl="~/Account/Login.aspx" Text="Login" Value="Login">
+          </asp:MenuItem>
+          <asp:MenuItem NavigateUrl="~/Account/RecoverPassword.aspx" 
+            Text="Recover Password" Value="Recover Password"></asp:MenuItem>
+          <asp:MenuItem NavigateUrl="~/Account/ChangePassword.aspx" 
+            Text="Change Password" Value="Change Password"></asp:MenuItem>
+          <asp:MenuItem NavigateUrl="~/Account/Register.aspx" Text="Register" 
+            Value="Register"></asp:MenuItem>
+          <asp:MenuItem NavigateUrl="~/Administration/ManageUsers.aspx" 
+            Text="Manager Users" Value="Manager Users"></asp:MenuItem>
+        </asp:MenuItem>
+      </Items>
+      <StaticItemTemplate>
+        <%# Eval("Text") %>
+      </StaticItemTemplate>
+    </asp:Menu>
+  </div>
+  <div class="page">
+    <div class="main">
+      <asp:ContentPlaceHolder ID="MainContent" runat="server" />
+    </div>
+  </div>
+  <div class="clear">
+  </div>
+  <div class="footer">
+  </div>
+  </form>
+</body>
+</html>

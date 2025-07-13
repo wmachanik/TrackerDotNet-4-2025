@@ -1,0 +1,315 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="CustomersDataSet" targetNamespace="http://tempuri.org/CustomersDataSet.xsd" xmlns:mstns="http://tempuri.org/CustomersDataSet.xsd" xmlns="http://tempuri.org/CustomersDataSet.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections>
+          <Connection AppSettingsObjectName="Web.config" AppSettingsPropertyName="Tracker08ConnectionString" ConnectionStringObject="" IsAppSettingsProperty="true" Modifier="Assembly" Name="Tracker08ConnectionString (Web.config)" PropertyReference="AppConfig.System.Configuration.ConfigurationManager.0.ConnectionStrings.Tracker08ConnectionString.ConnectionString" Provider="System.Data.OleDb" />
+        </Connections>
+        <Tables>
+          <TableAdapter BaseClass="System.ComponentModel.Component" DataAccessorModifier="AutoLayout, AnsiClass, Class, Public" DataAccessorName="CustomersTableAdapter" GeneratorDataComponentClassName="CustomersTableAdapter" Name="Customers" UserDataComponentName="CustomersTableAdapter">
+            <MainSource>
+              <DbSource ConnectionRef="Tracker08ConnectionString (Web.config)" DbObjectType="Unknown" FillMethodModifier="Public" FillMethodName="Fill" GenerateMethods="Both" GenerateShortCommands="false" GeneratorGetMethodName="GetData" GeneratorSourceName="Fill" GetMethodModifier="Public" GetMethodName="GetData" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="true" UserGetMethodName="GetData" UserSourceName="Fill">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="true">
+                    <CommandText>SELECT        CustomersTbl.CompanyName, CustomersTbl.CustomerID, CustomersTbl.ContactTitle, CustomersTbl.ContactFirstName, CustomersTbl.ContactLastName, 
+                         CustomersTbl.ContactAltFirstName, CustomersTbl.ContactAltLastName, CustomersTbl.Department, CustomersTbl.BillingAddress, CustomersTbl.StateOrProvince, 
+                         CustomersTbl.PostalCode, CustomersTbl.PhoneNumber, CustomersTbl.Extension, CustomersTbl.FaxNumber, CustomersTbl.CellNumber, 
+                         CustomersTbl.EmailAddress, CustomersTbl.AltEmailAddress, CustomersTbl.CustomerType, EquipTypeTbl.EquipTypeName, CustomersTbl.CoffeePreference, 
+                         CityTbl.City, ItemTypeTbl.ItemDesc, CustomersTbl.PriPrefQty, PersonsTbl.Abreviation, CustomersTbl.MachineSN, CustomersTbl.UsesFilter, CustomersTbl.autofulfill, 
+                         CustomersTbl.enabled, CustomersTbl.PredictionDisabled, CustomersTbl.AlwaysSendChkUp, CustomersTbl.NormallyResponds, CustomersTbl.Notes
+FROM            ((((CityTbl INNER JOIN
+                         CustomersTbl ON CityTbl.ID = CustomersTbl.City) INNER JOIN
+                         EquipTypeTbl ON CustomersTbl.EquipType = EquipTypeTbl.EquipTypeId) INNER JOIN
+                         ItemTypeTbl ON CustomersTbl.CoffeePreference = ItemTypeTbl.ItemTypeID) INNER JOIN
+                         PersonsTbl ON CustomersTbl.PreferedAgent = PersonsTbl.PersonID)
+ORDER BY CustomersTbl.CompanyName</CommandText>
+                    <Parameters />
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+            </MainSource>
+            <Mappings>
+              <Mapping SourceColumn="CompanyName" DataSetColumn="CompanyName" />
+              <Mapping SourceColumn="CustomerID" DataSetColumn="CustomerID" />
+              <Mapping SourceColumn="ContactTitle" DataSetColumn="ContactTitle" />
+              <Mapping SourceColumn="ContactFirstName" DataSetColumn="ContactFirstName" />
+              <Mapping SourceColumn="ContactLastName" DataSetColumn="ContactLastName" />
+              <Mapping SourceColumn="ContactAltFirstName" DataSetColumn="ContactAltFirstName" />
+              <Mapping SourceColumn="ContactAltLastName" DataSetColumn="ContactAltLastName" />
+              <Mapping SourceColumn="Department" DataSetColumn="Department" />
+              <Mapping SourceColumn="BillingAddress" DataSetColumn="BillingAddress" />
+              <Mapping SourceColumn="StateOrProvince" DataSetColumn="StateOrProvince" />
+              <Mapping SourceColumn="PostalCode" DataSetColumn="PostalCode" />
+              <Mapping SourceColumn="PhoneNumber" DataSetColumn="PhoneNumber" />
+              <Mapping SourceColumn="Extension" DataSetColumn="Extension" />
+              <Mapping SourceColumn="FaxNumber" DataSetColumn="FaxNumber" />
+              <Mapping SourceColumn="CellNumber" DataSetColumn="CellNumber" />
+              <Mapping SourceColumn="EmailAddress" DataSetColumn="EmailAddress" />
+              <Mapping SourceColumn="AltEmailAddress" DataSetColumn="AltEmailAddress" />
+              <Mapping SourceColumn="CustomerType" DataSetColumn="CustomerType" />
+              <Mapping SourceColumn="EquipTypeName" DataSetColumn="EquipTypeName" />
+              <Mapping SourceColumn="CoffeePreference" DataSetColumn="CoffeePreference" />
+              <Mapping SourceColumn="City" DataSetColumn="City" />
+              <Mapping SourceColumn="ItemDesc" DataSetColumn="ItemDesc" />
+              <Mapping SourceColumn="PriPrefQty" DataSetColumn="PriPrefQty" />
+              <Mapping SourceColumn="Abreviation" DataSetColumn="Abreviation" />
+              <Mapping SourceColumn="MachineSN" DataSetColumn="MachineSN" />
+              <Mapping SourceColumn="UsesFilter" DataSetColumn="UsesFilter" />
+              <Mapping SourceColumn="autofulfill" DataSetColumn="autofulfill" />
+              <Mapping SourceColumn="enabled" DataSetColumn="enabled" />
+              <Mapping SourceColumn="PredictionDisabled" DataSetColumn="PredictionDisabled" />
+              <Mapping SourceColumn="AlwaysSendChkUp" DataSetColumn="AlwaysSendChkUp" />
+              <Mapping SourceColumn="NormallyResponds" DataSetColumn="NormallyResponds" />
+              <Mapping SourceColumn="Notes" DataSetColumn="Notes" />
+            </Mappings>
+            <Sources>
+              <DbSource ConnectionRef="Tracker08ConnectionString (Web.config)" DbObjectType="Unknown" GenerateMethods="Get" GenerateShortCommands="true" GeneratorGetMethodName="GetCustomersByEnabled" GetMethodModifier="Public" GetMethodName="GetCustomersByEnabled" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="true" UserGetMethodName="GetCustomersByEnabled" UserSourceName="GetCustomersByEnabled">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="true">
+                    <CommandText>SELECT        CustomersTbl.CompanyName, CustomersTbl.CustomerID, CustomersTbl.ContactTitle, CustomersTbl.ContactFirstName, CustomersTbl.ContactLastName, 
+                         CustomersTbl.ContactAltFirstName, CustomersTbl.ContactAltLastName, CustomersTbl.Department, CustomersTbl.BillingAddress, CustomersTbl.StateOrProvince, 
+                         CustomersTbl.PostalCode, CustomersTbl.PhoneNumber, CustomersTbl.Extension, CustomersTbl.FaxNumber, CustomersTbl.CellNumber, 
+                         CustomersTbl.EmailAddress, CustomersTbl.AltEmailAddress, CustomersTbl.CustomerType, EquipTypeTbl.EquipTypeName, CustomersTbl.CoffeePreference, 
+                         CityTbl.City, ItemTypeTbl.ItemDesc, CustomersTbl.PriPrefQty, PersonsTbl.Abreviation, CustomersTbl.MachineSN, CustomersTbl.UsesFilter, CustomersTbl.autofulfill, 
+                         CustomersTbl.enabled, CustomersTbl.PredictionDisabled, CustomersTbl.AlwaysSendChkUp, CustomersTbl.NormallyResponds, CustomersTbl.Notes
+FROM            ((((CityTbl INNER JOIN
+                         CustomersTbl ON CityTbl.ID = CustomersTbl.City) INNER JOIN
+                         EquipTypeTbl ON CustomersTbl.EquipType = EquipTypeTbl.EquipTypeId) INNER JOIN
+                         ItemTypeTbl ON CustomersTbl.CoffeePreference = ItemTypeTbl.ItemTypeID) INNER JOIN
+                         PersonsTbl ON CustomersTbl.PreferedAgent = PersonsTbl.PersonID)
+WHERE        (CustomersTbl.enabled = ?)
+ORDER BY CustomersTbl.CompanyName</CommandText>
+                    <Parameters>
+                      <Parameter AllowDbNull="true" AutogeneratedName="Param1" ColumnName="enabled" DataSourceName="CustomersTbl" DataTypeServer="DbType.Boolean(2)" DbType="Boolean" Direction="Input" ParameterName="enabled" Precision="0" ProviderType="Boolean" Scale="0" Size="2" SourceColumn="enabled" SourceColumnNullMapping="false" SourceVersion="Current" />
+                    </Parameters>
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+              <DbSource ConnectionRef="Tracker08ConnectionString (Web.config)" DbObjectType="Unknown" GenerateMethods="Get" GenerateShortCommands="true" GeneratorGetMethodName="GetDataByCustId" GeneratorSourceName="FillByCustId" GetMethodModifier="Public" GetMethodName="GetDataByCustId" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="true" UserGetMethodName="GetDataByCustId" UserSourceName="GetDataByCustId">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="true">
+                    <CommandText>SELECT        CustomersTbl.CompanyName, CustomersTbl.CustomerID, CustomersTbl.ContactTitle, CustomersTbl.ContactFirstName, CustomersTbl.ContactLastName, 
+                         CustomersTbl.ContactAltFirstName, CustomersTbl.ContactAltLastName, CustomersTbl.Department, CustomersTbl.BillingAddress, CustomersTbl.StateOrProvince, 
+                         CustomersTbl.PostalCode, CustomersTbl.PhoneNumber, CustomersTbl.Extension, CustomersTbl.FaxNumber, CustomersTbl.CellNumber, 
+                         CustomersTbl.EmailAddress, CustomersTbl.AltEmailAddress, CustomersTbl.CustomerType, EquipTypeTbl.EquipTypeName, CustomersTbl.CoffeePreference, 
+                         CityTbl.City, ItemTypeTbl.ItemDesc, CustomersTbl.PriPrefQty, PersonsTbl.Abreviation, CustomersTbl.MachineSN, CustomersTbl.UsesFilter, CustomersTbl.autofulfill, 
+                         CustomersTbl.enabled, CustomersTbl.PredictionDisabled, CustomersTbl.AlwaysSendChkUp, CustomersTbl.NormallyResponds, CustomersTbl.Notes
+FROM            ((((CityTbl INNER JOIN
+                         CustomersTbl ON CityTbl.ID = CustomersTbl.City) INNER JOIN
+                         EquipTypeTbl ON CustomersTbl.EquipType = EquipTypeTbl.EquipTypeId) INNER JOIN
+                         ItemTypeTbl ON CustomersTbl.CoffeePreference = ItemTypeTbl.ItemTypeID) INNER JOIN
+                         PersonsTbl ON CustomersTbl.PreferedAgent = PersonsTbl.PersonID)
+WHERE        (CustomersTbl.CustomerID = ?)
+ORDER BY CustomersTbl.CompanyName</CommandText>
+                    <Parameters>
+                      <Parameter AllowDbNull="false" AutogeneratedName="Param1" ColumnName="CustomerID" DataSourceName="CustomersTbl" DataTypeServer="DbType.Int32" DbType="Int32" Direction="Input" ParameterName="CustomerID" Precision="0" ProviderType="Integer" Scale="0" Size="0" SourceColumn="CustomerID" SourceColumnNullMapping="false" SourceVersion="Current" />
+                    </Parameters>
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+              <DbSource ConnectionRef="Tracker08ConnectionString (Web.config)" DbObjectName="" DbObjectType="Unknown" GenerateShortCommands="true" GeneratorSourceName="UpdateCustomerByID" Modifier="Public" Name="UpdateCustomerByID" QueryType="NoData" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="true" UserGetMethodName="GetDataBy" UserSourceName="UpdateCustomerByID">
+                <UpdateCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="true">
+                    <CommandText>UPDATE       CustomersTbl
+SET                CompanyName =, ContactTitle =, ContactFirstName =, ContactLastName =, ContactAltFirstName =, ContactAltLastName =, Department =, BillingAddress =, City =, 
+                         StateOrProvince =, PostalCode =, [Country/Region] =, PhoneNumber =, Extension =, FaxNumber =, CellNumber =, EmailAddress =, AltEmailAddress =, ContractNo =, 
+                         CustomerType =, EquipType =, CoffeePreference =, PriPrefQty =, SecondaryPreference =, SecPrefQty =, TypicallySecToo =, PreferedAgent =, MachineSN =, 
+                         UsesFilter =, autofulfill =, enabled =, PredictionDisabled =, AlwaysSendChkUp =, NormallyResponds =, Notes =
+WHERE        (CustomerID = ?)</CommandText>
+                    <Parameters>
+                      <Parameter AllowDbNull="false" AutogeneratedName="Param1" ColumnName="CustomerID" DataSourceName="CustomersTbl" DataTypeServer="DbType.Int32" DbType="Int32" Direction="Input" ParameterName="Original_CustomerID" Precision="0" ProviderType="Integer" Scale="0" Size="0" SourceColumn="CustomerID" SourceColumnNullMapping="false" SourceVersion="Original" />
+                    </Parameters>
+                  </DbCommand>
+                </UpdateCommand>
+              </DbSource>
+            </Sources>
+          </TableAdapter>
+        </Tables>
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="CustomersDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="CustomersDataSet" msprop:Generator_UserDSName="CustomersDataSet">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="Customers" msprop:Generator_TableClassName="CustomersDataTable" msprop:Generator_TableVarName="tableCustomers" msprop:Generator_TablePropName="Customers" msprop:Generator_RowDeletingName="CustomersRowDeleting" msprop:Generator_UserTableName="Customers" msprop:Generator_RowChangingName="CustomersRowChanging" msprop:Generator_RowEvHandlerName="CustomersRowChangeEventHandler" msprop:Generator_RowDeletedName="CustomersRowDeleted" msprop:Generator_RowEvArgName="CustomersRowChangeEvent" msprop:Generator_RowChangedName="CustomersRowChanged" msprop:Generator_RowClassName="CustomersRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="CompanyName" msprop:Generator_ColumnVarNameInTable="columnCompanyName" msprop:Generator_ColumnPropNameInRow="CompanyName" msprop:Generator_ColumnPropNameInTable="CompanyNameColumn" msprop:Generator_UserColumnName="CompanyName" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="CustomerID" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnCustomerID" msprop:Generator_ColumnPropNameInRow="CustomerID" msprop:Generator_ColumnPropNameInTable="CustomerIDColumn" msprop:Generator_UserColumnName="CustomerID" type="xs:int" minOccurs="0" />
+              <xs:element name="ContactTitle" msprop:Generator_ColumnVarNameInTable="columnContactTitle" msprop:Generator_ColumnPropNameInRow="ContactTitle" msprop:Generator_ColumnPropNameInTable="ContactTitleColumn" msprop:Generator_UserColumnName="ContactTitle" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="ContactFirstName" msprop:Generator_ColumnVarNameInTable="columnContactFirstName" msprop:Generator_ColumnPropNameInRow="ContactFirstName" msprop:Generator_ColumnPropNameInTable="ContactFirstNameColumn" msprop:Generator_UserColumnName="ContactFirstName" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="30" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="ContactLastName" msprop:Generator_ColumnVarNameInTable="columnContactLastName" msprop:Generator_ColumnPropNameInRow="ContactLastName" msprop:Generator_ColumnPropNameInTable="ContactLastNameColumn" msprop:Generator_UserColumnName="ContactLastName" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="ContactAltFirstName" msprop:Generator_ColumnVarNameInTable="columnContactAltFirstName" msprop:Generator_ColumnPropNameInRow="ContactAltFirstName" msprop:Generator_ColumnPropNameInTable="ContactAltFirstNameColumn" msprop:Generator_UserColumnName="ContactAltFirstName" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="ContactAltLastName" msprop:Generator_ColumnVarNameInTable="columnContactAltLastName" msprop:Generator_ColumnPropNameInRow="ContactAltLastName" msprop:Generator_ColumnPropNameInTable="ContactAltLastNameColumn" msprop:Generator_UserColumnName="ContactAltLastName" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="Department" msprop:Generator_ColumnVarNameInTable="columnDepartment" msprop:Generator_ColumnPropNameInRow="Department" msprop:Generator_ColumnPropNameInTable="DepartmentColumn" msprop:Generator_UserColumnName="Department" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="BillingAddress" msprop:Generator_ColumnVarNameInTable="columnBillingAddress" msprop:Generator_ColumnPropNameInRow="BillingAddress" msprop:Generator_ColumnPropNameInTable="BillingAddressColumn" msprop:Generator_UserColumnName="BillingAddress" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="255" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="StateOrProvince" msprop:Generator_ColumnVarNameInTable="columnStateOrProvince" msprop:Generator_ColumnPropNameInRow="StateOrProvince" msprop:Generator_ColumnPropNameInTable="StateOrProvinceColumn" msprop:Generator_UserColumnName="StateOrProvince" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="20" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="PostalCode" msprop:Generator_ColumnVarNameInTable="columnPostalCode" msprop:Generator_ColumnPropNameInRow="PostalCode" msprop:Generator_ColumnPropNameInTable="PostalCodeColumn" msprop:Generator_UserColumnName="PostalCode" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="20" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="PhoneNumber" msprop:Generator_ColumnVarNameInTable="columnPhoneNumber" msprop:Generator_ColumnPropNameInRow="PhoneNumber" msprop:Generator_ColumnPropNameInTable="PhoneNumberColumn" msprop:Generator_UserColumnName="PhoneNumber" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="30" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="Extension" msprop:Generator_ColumnVarNameInTable="columnExtension" msprop:Generator_ColumnPropNameInRow="Extension" msprop:Generator_ColumnPropNameInTable="ExtensionColumn" msprop:Generator_UserColumnName="Extension" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="30" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="FaxNumber" msprop:Generator_ColumnVarNameInTable="columnFaxNumber" msprop:Generator_ColumnPropNameInRow="FaxNumber" msprop:Generator_ColumnPropNameInTable="FaxNumberColumn" msprop:Generator_UserColumnName="FaxNumber" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="30" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="CellNumber" msprop:Generator_ColumnVarNameInTable="columnCellNumber" msprop:Generator_ColumnPropNameInRow="CellNumber" msprop:Generator_ColumnPropNameInTable="CellNumberColumn" msprop:Generator_UserColumnName="CellNumber" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="EmailAddress" msprop:Generator_ColumnVarNameInTable="columnEmailAddress" msprop:Generator_ColumnPropNameInRow="EmailAddress" msprop:Generator_ColumnPropNameInTable="EmailAddressColumn" msprop:Generator_UserColumnName="EmailAddress" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="AltEmailAddress" msprop:Generator_ColumnVarNameInTable="columnAltEmailAddress" msprop:Generator_ColumnPropNameInRow="AltEmailAddress" msprop:Generator_ColumnPropNameInTable="AltEmailAddressColumn" msprop:Generator_UserColumnName="AltEmailAddress" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="255" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="CustomerType" msprop:Generator_ColumnVarNameInTable="columnCustomerType" msprop:Generator_ColumnPropNameInRow="CustomerType" msprop:Generator_ColumnPropNameInTable="CustomerTypeColumn" msprop:Generator_UserColumnName="CustomerType" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="30" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="EquipTypeName" msprop:Generator_ColumnVarNameInTable="columnEquipTypeName" msprop:Generator_ColumnPropNameInRow="EquipTypeName" msprop:Generator_ColumnPropNameInTable="EquipTypeNameColumn" msprop:Generator_UserColumnName="EquipTypeName" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="CoffeePreference" msprop:Generator_ColumnVarNameInTable="columnCoffeePreference" msprop:Generator_ColumnPropNameInRow="CoffeePreference" msprop:Generator_ColumnPropNameInTable="CoffeePreferenceColumn" msprop:Generator_UserColumnName="CoffeePreference" type="xs:int" minOccurs="0" />
+              <xs:element name="City" msprop:Generator_ColumnVarNameInTable="columnCity" msprop:Generator_ColumnPropNameInRow="City" msprop:Generator_ColumnPropNameInTable="CityColumn" msprop:Generator_UserColumnName="City" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="255" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="ItemDesc" msprop:Generator_ColumnVarNameInTable="columnItemDesc" msprop:Generator_ColumnPropNameInRow="ItemDesc" msprop:Generator_ColumnPropNameInTable="ItemDescColumn" msprop:Generator_UserColumnName="ItemDesc" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="PriPrefQty" msprop:Generator_ColumnVarNameInTable="columnPriPrefQty" msprop:Generator_ColumnPropNameInRow="PriPrefQty" msprop:Generator_ColumnPropNameInTable="PriPrefQtyColumn" msprop:Generator_UserColumnName="PriPrefQty" type="xs:float" minOccurs="0" />
+              <xs:element name="Abreviation" msprop:Generator_ColumnVarNameInTable="columnAbreviation" msprop:Generator_ColumnPropNameInRow="Abreviation" msprop:Generator_ColumnPropNameInTable="AbreviationColumn" msprop:Generator_UserColumnName="Abreviation" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="5" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="MachineSN" msprop:Generator_ColumnVarNameInTable="columnMachineSN" msprop:Generator_ColumnPropNameInRow="MachineSN" msprop:Generator_ColumnPropNameInTable="MachineSNColumn" msprop:Generator_UserColumnName="MachineSN" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="UsesFilter" msprop:Generator_ColumnVarNameInTable="columnUsesFilter" msprop:Generator_ColumnPropNameInRow="UsesFilter" msprop:Generator_ColumnPropNameInTable="UsesFilterColumn" msprop:Generator_UserColumnName="UsesFilter" type="xs:boolean" minOccurs="0" />
+              <xs:element name="autofulfill" msprop:Generator_ColumnVarNameInTable="columnautofulfill" msprop:Generator_ColumnPropNameInRow="autofulfill" msprop:Generator_ColumnPropNameInTable="autofulfillColumn" msprop:Generator_UserColumnName="autofulfill" type="xs:boolean" minOccurs="0" />
+              <xs:element name="enabled" msprop:Generator_ColumnVarNameInTable="columnenabled" msprop:Generator_ColumnPropNameInRow="enabled" msprop:Generator_ColumnPropNameInTable="enabledColumn" msprop:Generator_UserColumnName="enabled" type="xs:boolean" minOccurs="0" />
+              <xs:element name="PredictionDisabled" msprop:Generator_ColumnVarNameInTable="columnPredictionDisabled" msprop:Generator_ColumnPropNameInRow="PredictionDisabled" msprop:Generator_ColumnPropNameInTable="PredictionDisabledColumn" msprop:Generator_UserColumnName="PredictionDisabled" type="xs:boolean" minOccurs="0" />
+              <xs:element name="AlwaysSendChkUp" msprop:Generator_ColumnVarNameInTable="columnAlwaysSendChkUp" msprop:Generator_ColumnPropNameInRow="AlwaysSendChkUp" msprop:Generator_ColumnPropNameInTable="AlwaysSendChkUpColumn" msprop:Generator_UserColumnName="AlwaysSendChkUp" type="xs:boolean" minOccurs="0" />
+              <xs:element name="NormallyResponds" msprop:Generator_ColumnVarNameInTable="columnNormallyResponds" msprop:Generator_ColumnPropNameInRow="NormallyResponds" msprop:Generator_ColumnPropNameInTable="NormallyRespondsColumn" msprop:Generator_UserColumnName="NormallyResponds" type="xs:boolean" minOccurs="0" />
+              <xs:element name="Notes" msprop:Generator_ColumnVarNameInTable="columnNotes" msprop:Generator_ColumnPropNameInRow="Notes" msprop:Generator_ColumnPropNameInTable="NotesColumn" msprop:Generator_UserColumnName="Notes" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="536870910" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
