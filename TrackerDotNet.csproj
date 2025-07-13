@@ -1,0 +1,463 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Project was exported from assembly: C:\SRC\Apps\qtracker\bin\TrackerDotNet.dll-->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9E550F88-23EC-4FFD-99EE-8AF06681EB20}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>TrackerDotNet</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+    <FileAlignment>512</FileAlignment>
+    <Nullable>disable</Nullable>
+    <!-- to prevent nullable errors -->
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AjaxControlToolkit, Version=20.1.0.0, Culture=neutral, PublicKeyToken=28f01b0e84b6d53e, processorArchitecture=MSIL">
+      <HintPath>packages\AjaxControlToolkit.20.1.0\lib\net40\AjaxControlToolkit.dll</HintPath>
+    </Reference>
+    <Reference Include="AjaxMin">
+      <HintPath>..\qtracker\bin\AjaxMin.dll</HintPath>
+    </Reference>
+    <Reference Include="DataGridExtensions">
+      <HintPath>..\qtracker\bin\DataGridExtensions.dll</HintPath>
+    </Reference>
+    <Reference Include="HtmlAgilityPack, Version=1.12.1.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>packages\HtmlAgilityPack.1.12.1\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Edm, Version=5.8.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Data.Edm.5.8.4\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData, Version=5.8.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Data.OData.5.8.4\lib\net40\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Configuration">
+      <HintPath>..\qtracker\bin\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage">
+      <HintPath>..\qtracker\bin\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Spatial, Version=5.8.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\System.Spatial.5.8.4\lib\net40\System.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="GroupEvent.cs" />
+    <Compile Include="GridViewGroup.cs" />
+    <Compile Include="GridViewGroupList.cs" />
+    <Compile Include="FooterEvent.cs" />
+    <Compile Include="GridViewHelper.cs" />
+    <Compile Include="SummaryOperation.cs" />
+    <Compile Include="CustomSummaryOperation.cs" />
+    <Compile Include="SummaryResultMethod.cs" />
+    <Compile Include="GridViewSummary.cs" />
+    <Compile Include="GridViewSummaryList.cs" />
+    <Compile Include="TrackerDotNet\classes\EmailCls.cs" />
+    <Compile Include="PrintMasterPage.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\control\ClientsToReceiveReminderQry.cs" />
+    <Compile Include="TrackerDotNet\DataSets\ActiveDeliveriesDataSet.cs" />
+    <Compile Include="TrackerDotNet\DataSets\ActiveDeliveriesDataSet.Designer.cs" />
+    <Compile Include="TrackerDotNet\DataSets\BaseDAL.cs" />
+    <Compile Include="TrackerDotNet\DataSets\CoffeeCheckupDataSet.Designer.cs" />
+    <Compile Include="TrackerDotNet\DataSets\CustomerDAL.cs" />
+    <Compile Include="TrackerDotNet\DataSets\Customers.cs" />
+    <Compile Include="TrackerDotNet\DataSets\Customers.Designer.cs" />
+    <None Include="TrackerDotNet\DataSets\CustomersDataSet.cs.old" />
+    <Compile Include="TrackerDotNet\Default.aspx.cs">
+      <DependentUpon>Default.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Default.aspx.designer.cs">
+      <DependentUpon>Default.aspx.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\DisableClient.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\MobileSite.Master.cs">
+      <DependentUpon>MobileSite.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\MobileSite.Master.designer.cs">
+      <DependentUpon>MobileSite.Master.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\MobileSiteMaster.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\About.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\Customers.aspx.cs">
+      <DependentUpon>Customers.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\OrderEntry.aspx.cs">
+      <DependentUpon>OrderEntry.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Site.Master.cs">
+      <DependentUpon>Site.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\_Default.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Global.cs" />
+    <Compile Include="TrackerDotNet\Administration\ManageRoles.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Administration\ManageUsers.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Administration\UserInformation.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\classes\CheckBrowser.cs" />
+    <Compile Include="TrackerDotNet\classes\LogFile.cs" />
+    <Compile Include="TrackerDotNet\classes\DateTimeExtensions.cs" />
+    <Compile Include="TrackerDotNet\classes\GeneralTrackerDbTools.cs" />
+    <Compile Include="TrackerDotNet\classes\showMessageBox.cs" />
+    <Compile Include="TrackerDotNet\classes\DBParameter.cs" />
+    <Compile Include="TrackerDotNet\classes\TrackerDb.cs" />
+    <Compile Include="TrackerDotNet\classes\TrackerTools.cs" />
+    <Compile Include="TrackerDotNet\control\ItemGroupTbl.cs" />
+    <Compile Include="TrackerDotNet\control\UsedItemGroupTbl.cs" />
+    <Compile Include="TrackerDotNet\control\ActiveDeliveryData.cs" />
+    <Compile Include="TrackerDotNet\control\CityPrepDaysTbl.cs" />
+    <Compile Include="TrackerDotNet\control\CityTblData.cs" />
+    <Compile Include="TrackerDotNet\control\CityTblDAL.cs" />
+    <Compile Include="TrackerDotNet\control\CompanyNames.cs" />
+    <Compile Include="TrackerDotNet\control\ContactType.cs" />
+    <Compile Include="TrackerDotNet\control\CustomersAccInfoTbl.cs" />
+    <Compile Include="TrackerDotNet\control\InvoiceTypeTbl.cs" />
+    <Compile Include="TrackerDotNet\control\LogTbl.cs" />
+    <Compile Include="TrackerDotNet\control\CustomersWithDatesAndUsageTbl.cs" />
+    <Compile Include="TrackerDotNet\control\ItemUnitsTbl.cs" />
+    <Compile Include="TrackerDotNet\control\MachineConditionsTbl.cs" />
+    <Compile Include="TrackerDotNet\control\PaymentTermsTbl.cs" />
+    <Compile Include="TrackerDotNet\control\PriceLevelsTbl.cs" />
+    <Compile Include="TrackerDotNet\control\RepairFaultsTbl.cs" />
+    <Compile Include="TrackerDotNet\control\RepairStatusesTbl.cs" />
+    <Compile Include="TrackerDotNet\control\RepairsTbl.cs" />
+    <Compile Include="TrackerDotNet\control\SectionTypesTbl.cs" />
+    <Compile Include="TrackerDotNet\control\SentRemindersLogTbl.cs" />
+    <Compile Include="TrackerDotNet\control\SysDataTbl.cs" />
+    <Compile Include="TrackerDotNet\control\TransactionTypesTbl.cs" />
+    <Compile Include="TrackerDotNet\control\ContactsThayMayNeedData.cs" />
+    <Compile Include="TrackerDotNet\control\ContactsThatMayNeedNextWeek.cs" />
+    <Compile Include="TrackerDotNet\control\CustomerTrackedServiceItems.cs" />
+    <Compile Include="TrackerDotNet\control\OrderCheckData.cs" />
+    <Compile Include="TrackerDotNet\control\OrderCheck.cs" />
+    <Compile Include="TrackerDotNet\control\OrderTblData.cs" />
+    <Compile Include="TrackerDotNet\control\OrderTbl.cs" />
+    <Compile Include="TrackerDotNet\control\ReoccuranceTypeTbl.cs" />
+    <Compile Include="TrackerDotNet\control\ReoccuringOrderTbl.cs" />
+    <Compile Include="TrackerDotNet\control\ReoccuringOrderExtData.cs" />
+    <Compile Include="TrackerDotNet\control\ReoccuringOrderDAL.cs" />
+    <Compile Include="TrackerDotNet\control\ContactEmailDetails.cs" />
+    <Compile Include="TrackerDotNet\control\SendCheckEmailTextsData.cs" />
+    <Compile Include="TrackerDotNet\control\ItemContactRequires.cs" />
+    <Compile Include="TrackerDotNet\control\ContactToRemindDetails.cs" />
+    <Compile Include="TrackerDotNet\control\ContactToRemindWithItems.cs" />
+    <Compile Include="TrackerDotNet\control\TempCoffeeCheckup.cs" />
+    <Compile Include="TrackerDotNet\control\CustomerData.cs" />
+    <Compile Include="TrackerDotNet\control\CustomerDAL.cs" />
+    <Compile Include="TrackerDotNet\control\OrderDetailDAL.cs" />
+    <Compile Include="TrackerDotNet\control\OrderData.cs" />
+    <Compile Include="TrackerDotNet\control\OrderDetailData.cs" />
+    <Compile Include="TrackerDotNet\control\ClientUsageFromTempOrder.cs" />
+    <Compile Include="TrackerDotNet\control\ClientUsageLinesTbl.cs" />
+    <Compile Include="TrackerDotNet\control\ClientUsageTbl.cs" />
+    <Compile Include="TrackerDotNet\control\CustomersTbl.cs" />
+    <Compile Include="TrackerDotNet\control\CustomerSummary.cs" />
+    <Compile Include="TrackerDotNet\control\CustomerSummaryDAL.cs" />
+    <Compile Include="TrackerDotNet\control\CustomerTypeTbl.cs" />
+    <Compile Include="TrackerDotNet\control\DeliveryItemsTbl.cs" />
+    <Compile Include="TrackerDotNet\control\EquipTypeTbl.cs" />
+    <Compile Include="TrackerDotNet\control\ItemTypeTbl.cs" />
+    <Compile Include="TrackerDotNet\control\ItemUsageTbl.cs" />
+    <Compile Include="TrackerDotNet\control\NextRoastDateByCityTbl.cs" />
+    <Compile Include="TrackerDotNet\control\OrderCls.cs" />
+    <Compile Include="TrackerDotNet\control\OrderDataControl.cs" />
+    <Compile Include="TrackerDotNet\control\OrderHeaderData.cs" />
+    <Compile Include="TrackerDotNet\control\OrderItemTbl.cs" />
+    <Compile Include="TrackerDotNet\control\PackagingTbl.cs" />
+    <Compile Include="TrackerDotNet\control\PersonsTbl.cs" />
+    <Compile Include="TrackerDotNet\control\TempOrdersData.cs" />
+    <Compile Include="TrackerDotNet\control\TempOrdersDAL.cs" />
+    <Compile Include="TrackerDotNet\control\TempOrdersHeaderTbl.cs" />
+    <Compile Include="TrackerDotNet\control\TempOrdersLinesTbl.cs" />
+    <Compile Include="TrackerDotNet\control\TrackedServiceItemTbl.cs" />
+    <Compile Include="TrackerDotNet\DataSets\TrackerDataSet.cs" />
+    <Compile Include="TrackerDotNet\DataSets\CustomersCls.cs" />
+    <Compile Include="TrackerDotNet\DataSets\TrackerDataSetTableAdapters\OrdersTblTableAdapter.cs" />
+    <Compile Include="TrackerDotNet\DataSets\TrackerDataSetTableAdapters\CustomersTblTableAdapter.cs" />
+    <Compile Include="TrackerDotNet\DataSets\TrackerDataSetTableAdapters\ItemTypeTblTableAdapter.cs" />
+    <Compile Include="TrackerDotNet\DataSets\TrackerDataSetTableAdapters\CityTblTableAdapter.cs" />
+    <Compile Include="TrackerDotNet\DataSets\TrackerDataSetTableAdapters\TableAdapterManager.cs" />
+    <Compile Include="TrackerDotNet\Pages\GroupItemDetail.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>GroupItemDetail.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\ItemGroups.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>ItemGroups.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\LeaveApp.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>LeaveApp.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\Log.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\CustomerDetails.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>CustomerDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\QuaffeeCoffeeTastingSheet.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>QuaffeeCoffeeTastingSheet.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\RepairDetail.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>RepairDetail.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\Repairs.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>Repairs.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\RepairStatusChange.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>RepairStatusChange.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\SentRemindersSheet.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>SentRemindersSheet.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\SupportTables.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>SupportTables.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\TestPage.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>TestPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\LoadSendCoffeeCheckup.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>LoadSendCoffeeCheckup.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\BackupAndRestore.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>BackupAndRestore.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\CoffeeRequired.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>CoffeeRequired.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\ReoccuringOrderDetails.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>ReoccuringOrderDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\ReoccuringOrders.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>ReoccuringOrders.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\DeleteOrderLine.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>DeleteOrderLine.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\DeliverySheet.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>DeliverySheet.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\NewOrderDetail.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>NewOrderDetail.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\OrderDetail.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>OrderDetail.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\OrderDone.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>OrderDone.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\PreperationSummary.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>PreperationSummary.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\SendCoffeeCheckup.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>SendCoffeeCheckup.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Pages\ThisWeeksOrder.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>ThisWeeksOrder.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackerDotNet\Properties\Settings.cs" />
+    <Compile Include="TrackerDotNet\Account\ChangePassword.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Account\ChangePasswordSuccess.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Account\Login.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Account\RecoverPassword.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Account\Register.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\test\AutoClassMaker.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\test\XMLtoSQL.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Tools\MergeCustomersFromQB.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Tools\MoveDeliveryDate.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Tools\SystemData.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Tools\SystemTools.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackerDotNet\Tools\TestPeople.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="AssemblyInfo.cs" />
+    <None Include="web - Copy.config" />
+    <None Include="web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="TrackerDotNet\Account\Web.config" />
+    <None Include="TrackerDotNet\Administration\Web.config" />
+    <None Include="TrackerDotNet\DataSets\ActiveDeliveriesDataSet.xsc" />
+    <None Include="TrackerDotNet\DataSets\ActiveDeliveriesDataSet.xsd" />
+    <None Include="TrackerDotNet\DataSets\ActiveDeliveriesDataSet.xss" />
+    <None Include="TrackerDotNet\DataSets\CoffeeCheckupDataSet.xsc" />
+    <None Include="TrackerDotNet\DataSets\CoffeeCheckupDataSet.xsd" />
+    <None Include="TrackerDotNet\DataSets\CoffeeCheckupDataSet.xss" />
+    <None Include="TrackerDotNet\DataSets\Customers.xsc" />
+    <None Include="TrackerDotNet\DataSets\Customers.xsd" />
+    <None Include="TrackerDotNet\DataSets\Customers.xss" />
+    <None Include="TrackerDotNet\MobileSite.Master" />
+    <None Include="TrackerDotNet\Site.Master" />
+    <None Include="TrackerDotNet\Tools\Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TrackerDotNet\About.aspx" />
+    <Content Include="TrackerDotNet\Account\ChangePassword.aspx" />
+    <Content Include="TrackerDotNet\Account\ChangePasswordSuccess.aspx" />
+    <Content Include="TrackerDotNet\Account\Login.aspx" />
+    <Content Include="TrackerDotNet\Account\NewAccountTemplate.htm" />
+    <Content Include="TrackerDotNet\Account\RecoverPassword.aspx" />
+    <Content Include="TrackerDotNet\Account\Register.aspx" />
+    <Content Include="TrackerDotNet\Administration\ManageRoles.aspx" />
+    <Content Include="TrackerDotNet\Administration\ManageUsers.aspx" />
+    <Content Include="TrackerDotNet\Administration\UserInformation.aspx" />
+    <Content Include="TrackerDotNet\Default.aspx" />
+    <Content Include="TrackerDotNet\DisableClient.aspx" />
+    <Content Include="TrackerDotNet\Pages\BackupAndRestore.aspx" />
+    <Content Include="TrackerDotNet\Pages\ClientList.aspx" />
+    <Content Include="TrackerDotNet\Pages\CoffeeRequired.aspx" />
+    <Content Include="TrackerDotNet\Pages\CustomerDetails.aspx" />
+    <Content Include="TrackerDotNet\Pages\Customers.aspx" />
+    <Content Include="TrackerDotNet\Pages\DeleteOrderLine.aspx" />
+    <Content Include="TrackerDotNet\Pages\DeliverySheet.aspx" />
+    <Content Include="TrackerDotNet\Pages\GroupItemDetail.aspx" />
+    <Content Include="TrackerDotNet\Pages\ItemGroups.aspx" />
+    <Content Include="TrackerDotNet\Pages\LeaveApp.aspx" />
+    <Content Include="TrackerDotNet\Pages\LoadSendCoffeeCheckup.aspx" />
+    <Content Include="TrackerDotNet\Pages\LogTable.aspx" />
+    <Content Include="TrackerDotNet\Pages\Lookups.aspx" />
+    <Content Include="TrackerDotNet\Pages\NewOrder.aspx" />
+    <Content Include="TrackerDotNet\Pages\NewOrderDetail.aspx" />
+    <Content Include="TrackerDotNet\Pages\OrderBuiten2Vineyard.aspx" />
+    <Content Include="TrackerDotNet\Pages\OrderDetail.aspx" />
+    <Content Include="TrackerDotNet\Pages\OrderDone.aspx" />
+    <Content Include="TrackerDotNet\Pages\OrderEntry.aspx" />
+    <Content Include="TrackerDotNet\Pages\OrdersEdit.aspx" />
+    <Content Include="TrackerDotNet\Pages\OrderSheet.aspx" />
+    <Content Include="TrackerDotNet\Pages\OrderVineyard2Buiten.aspx" />
+    <Content Include="TrackerDotNet\Pages\PreperationSummary.aspx" />
+    <Content Include="TrackerDotNet\Pages\Print.aspx" />
+    <Content Include="TrackerDotNet\Pages\QuaffeeCoffeeTastingSheet.aspx" />
+    <Content Include="TrackerDotNet\Pages\ReoccuringOrderDetails.aspx" />
+    <Content Include="TrackerDotNet\Pages\ReoccuringOrders.aspx" />
+    <Content Include="TrackerDotNet\Pages\RepairDetail.aspx" />
+    <Content Include="TrackerDotNet\Pages\RepairDetailOld.aspx" />
+    <Content Include="TrackerDotNet\Pages\Repairs.aspx" />
+    <Content Include="TrackerDotNet\Pages\RepairStatusChange.aspx" />
+    <Content Include="TrackerDotNet\Pages\SendCoffeeCheckup.aspx" />
+    <Content Include="TrackerDotNet\Pages\SentRemindersSheet.aspx" />
+    <Content Include="TrackerDotNet\Pages\SummaryOFCoffeeRequired.aspx" />
+    <Content Include="TrackerDotNet\Pages\SupportTables.aspx" />
+    <Content Include="TrackerDotNet\Pages\TestPage.aspx" />
+    <Content Include="TrackerDotNet\Pages\ThisWeeksOrder.aspx" />
+    <Content Include="TrackerDotNet\test\About.aspx" />
+    <Content Include="TrackerDotNet\test\AutoClassMaker.aspx" />
+    <Content Include="TrackerDotNet\test\PrintingTblHeadersTest.htm" />
+    <Content Include="TrackerDotNet\test\SQLCommands.xml" />
+    <Content Include="TrackerDotNet\test\SQLCommands2.xml" />
+    <Content Include="TrackerDotNet\test\SQLCommandsFlushSEText.xml" />
+    <Content Include="TrackerDotNet\test\XMLtoSQL.aspx" />
+    <Content Include="TrackerDotNet\Tools\About.aspx" />
+    <Content Include="TrackerDotNet\Tools\AutoClassMaker.aspx" />
+    <Content Include="TrackerDotNet\Tools\GenMachineKeys.aspx" />
+    <Content Include="TrackerDotNet\Tools\MergeCustomersFromQB.aspx" />
+    <Content Include="TrackerDotNet\Tools\MoveDeliveryDate.aspx" />
+    <Content Include="TrackerDotNet\Tools\PrintingTblHeadersTest.htm" />
+    <Content Include="TrackerDotNet\Tools\SQLCommands.xml" />
+    <Content Include="TrackerDotNet\Tools\SQLCommands22.xml" />
+    <Content Include="TrackerDotNet\Tools\SQLCommands23.xml" />
+    <Content Include="TrackerDotNet\Tools\SQLCommandsGroupItems14Aug2017.xml" />
+    <Content Include="TrackerDotNet\Tools\SystemData.aspx" />
+    <Content Include="TrackerDotNet\Tools\SystemTools.aspx" />
+    <Content Include="TrackerDotNet\Tools\TestPeople.aspx" />
+    <Content Include="TrackerDotNet\Tools\XMLtoSQL.aspx" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

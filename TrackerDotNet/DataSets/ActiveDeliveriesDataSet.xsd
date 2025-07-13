@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="ActiveDeliveriesDataSet" targetNamespace="http://tempuri.org/ActiveDeliveriesDataSet.xsd" xmlns:mstns="http://tempuri.org/ActiveDeliveriesDataSet.xsd" xmlns="http://tempuri.org/ActiveDeliveriesDataSet.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="1" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections>
+          <Connection AppSettingsObjectName="Web.config" AppSettingsPropertyName="Tracker08ConnectionString" ConnectionStringObject="" IsAppSettingsProperty="true" Modifier="Assembly" Name="Tracker08ConnectionString (Web.config)" PropertyReference="AppConfig.System.Configuration.ConfigurationManager.0.ConnectionStrings.Tracker08ConnectionString.ConnectionString" Provider="System.Data.OleDb" />
+          <Connection AppSettingsObjectName="Web.config" AppSettingsPropertyName="Tracker08ConnectionStringLocal" ConnectionStringObject="" IsAppSettingsProperty="true" Modifier="Assembly" Name="Tracker08ConnectionStringLocal (Web.config)" PropertyReference="AppConfig.System.Configuration.ConfigurationManager.0.ConnectionStrings.Tracker08ConnectionStringLocal.ConnectionString" Provider="System.Data.OleDb" />
+        </Connections>
+        <Tables>
+          <TableAdapter BaseClass="System.ComponentModel.Component" DataAccessorModifier="AutoLayout, AnsiClass, Class, Public" DataAccessorName="ActiveRoastsInOrdersTblTableAdapter" GeneratorDataComponentClassName="ActiveRoastsInOrdersTblTableAdapter" Name="ActiveRoastsInOrdersTbl" UserDataComponentName="ActiveRoastsInOrdersTblTableAdapter">
+            <MainSource>
+              <DbSource ConnectionRef="Tracker08ConnectionString (Web.config)" DbObjectName="OrdersTbl" DbObjectType="Table" GenerateMethods="Get" GenerateShortCommands="false" GeneratorGetMethodName="GetActiveRoastDates" GetMethodModifier="Public" GetMethodName="GetActiveRoastDates" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="false" UserGetMethodName="GetActiveRoastDates" UserSourceName="GetActiveRoastDates">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="true">
+                    <CommandText>SELECT DISTINCT RoastDate
+FROM            OrdersTbl
+WHERE        (Done = false)</CommandText>
+                    <Parameters />
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+            </MainSource>
+            <Mappings>
+              <Mapping SourceColumn="RoastDate" DataSetColumn="RoastDate" />
+            </Mappings>
+            <Sources />
+          </TableAdapter>
+          <TableAdapter BaseClass="System.ComponentModel.Component" DataAccessorModifier="AutoLayout, AnsiClass, Class, Public" DataAccessorName="OrdersTblTableAdapter" GeneratorDataComponentClassName="OrdersTblTableAdapter" Name="OrdersTbl" UserDataComponentName="OrdersTblTableAdapter">
+            <MainSource>
+              <DbSource ConnectionRef="Tracker08ConnectionString (Web.config)" DbObjectType="Unknown" GenerateMethods="Get" GenerateShortCommands="false" GeneratorGetMethodName="GetActiveDeliveryDatesWithDeliveryPerson" GetMethodModifier="Public" GetMethodName="GetActiveDeliveryDatesWithDeliveryPerson" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="false" UserGetMethodName="GetActiveDeliveryDatesWithDeliveryPerson" UserSourceName="GetActiveDeliveryDatesWithDeliveryPerson">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="true">
+                    <CommandText>SELECT DISTINCT OrdersTbl.RequiredByDate, PersonsTbl.Person, PersonsTbl.PersonID
+FROM            (OrdersTbl LEFT OUTER JOIN
+                         PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID)
+WHERE        (OrdersTbl.Done = false)</CommandText>
+                    <Parameters />
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+            </MainSource>
+            <Mappings>
+              <Mapping SourceColumn="RequiredByDate" DataSetColumn="RequiredByDate" />
+              <Mapping SourceColumn="Person" DataSetColumn="Person" />
+              <Mapping SourceColumn="PersonID" DataSetColumn="PersonID" />
+            </Mappings>
+            <Sources>
+              <DbSource ConnectionRef="Tracker08ConnectionString (Web.config)" DbObjectName="OrdersTbl" DbObjectType="Table" GenerateMethods="Get" GenerateShortCommands="true" GeneratorGetMethodName="GetActiveDeliveryDates" GetMethodModifier="Public" GetMethodName="GetActiveDeliveryDates" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="true" UserGetMethodName="GetActiveDeliveryDates" UserSourceName="GetActiveDeliveryDates">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="true">
+                    <CommandText>SELECT DISTINCT OrdersTbl.RequiredByDate
+FROM            OrdersTbl 
+WHERE        (OrdersTbl.Done = false)</CommandText>
+                    <Parameters />
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+              <DbSource ConnectionRef="Tracker08ConnectionString (Web.config)" DbObjectType="Unknown" GenerateMethods="Get" GenerateShortCommands="true" GeneratorGetMethodName="GetActiveDeliveryForPersonOnDate" GetMethodModifier="Public" GetMethodName="GetActiveDeliveryForPersonOnDate" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="true" UserGetMethodName="GetActiveDeliveryForPersonOnDate" UserSourceName="GetActiveDeliveryForPersonOnDate">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="true">
+                    <CommandText>SELECT DISTINCT OrdersTbl.RequiredByDate, PersonsTbl.Person, PersonsTbl.PersonID
+FROM            (OrdersTbl LEFT OUTER JOIN
+                         PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID)
+WHERE        (OrdersTbl.Done = false) and (OrdersTbl.RequiredByDate=?)</CommandText>
+                    <Parameters>
+                      <Parameter AllowDbNull="true" AutogeneratedName="Param1" ColumnName="RequiredByDate" DataSourceName="OrdersTbl" DataTypeServer="DbType.Date" DbType="Date" Direction="Input" ParameterName="RequiredByDate" Precision="0" ProviderType="Date" Scale="0" Size="0" SourceColumn="RequiredByDate" SourceColumnNullMapping="false" SourceVersion="Current" />
+                    </Parameters>
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+            </Sources>
+          </TableAdapter>
+        </Tables>
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="ActiveDeliveriesDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="ActiveDeliveriesDataSet" msprop:Generator_UserDSName="ActiveDeliveriesDataSet">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="ActiveRoastsInOrdersTbl" msprop:Generator_TableClassName="ActiveRoastsInOrdersTblDataTable" msprop:Generator_TableVarName="tableActiveRoastsInOrdersTbl" msprop:Generator_TablePropName="ActiveRoastsInOrdersTbl" msprop:Generator_RowDeletingName="ActiveRoastsInOrdersTblRowDeleting" msprop:Generator_UserTableName="ActiveRoastsInOrdersTbl" msprop:Generator_RowChangingName="ActiveRoastsInOrdersTblRowChanging" msprop:Generator_RowEvHandlerName="ActiveRoastsInOrdersTblRowChangeEventHandler" msprop:Generator_RowDeletedName="ActiveRoastsInOrdersTblRowDeleted" msprop:Generator_RowEvArgName="ActiveRoastsInOrdersTblRowChangeEvent" msprop:Generator_RowChangedName="ActiveRoastsInOrdersTblRowChanged" msprop:Generator_RowClassName="ActiveRoastsInOrdersTblRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="RoastDate" msprop:Generator_ColumnVarNameInTable="columnRoastDate" msprop:Generator_ColumnPropNameInRow="RoastDate" msprop:Generator_ColumnPropNameInTable="RoastDateColumn" msprop:Generator_UserColumnName="RoastDate" type="xs:dateTime" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="OrdersTbl" msprop:Generator_TableClassName="OrdersTblDataTable" msprop:Generator_TableVarName="tableOrdersTbl" msprop:Generator_TablePropName="OrdersTbl" msprop:Generator_RowDeletingName="OrdersTblRowDeleting" msprop:Generator_UserTableName="OrdersTbl" msprop:Generator_RowChangingName="OrdersTblRowChanging" msprop:Generator_RowEvHandlerName="OrdersTblRowChangeEventHandler" msprop:Generator_RowDeletedName="OrdersTblRowDeleted" msprop:Generator_RowEvArgName="OrdersTblRowChangeEvent" msprop:Generator_RowChangedName="OrdersTblRowChanged" msprop:Generator_RowClassName="OrdersTblRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="RequiredByDate" msprop:Generator_ColumnVarNameInTable="columnRequiredByDate" msprop:Generator_ColumnPropNameInRow="RequiredByDate" msprop:Generator_ColumnPropNameInTable="RequiredByDateColumn" msprop:Generator_UserColumnName="RequiredByDate" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="Person" msprop:Generator_ColumnVarNameInTable="columnPerson" msprop:Generator_ColumnPropNameInRow="Person" msprop:Generator_ColumnPropNameInTable="PersonColumn" msprop:Generator_UserColumnName="Person" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="PersonID" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnPersonID" msprop:Generator_ColumnPropNameInRow="PersonID" msprop:Generator_ColumnPropNameInTable="PersonIDColumn" msprop:Generator_UserColumnName="PersonID" type="xs:int" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
