@@ -21,7 +21,7 @@ namespace TrackerDotNet.control
         private int _UserID;
         private int _SectionID;
         private int _TranactionTypeID;
-        private int _CustomerID;
+        private long _CustomerID;
         private string _Details;
         private string _Notes;
 
@@ -32,7 +32,7 @@ namespace TrackerDotNet.control
             this._UserID = 0;
             this._SectionID = 0;
             this._TranactionTypeID = 0;
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._Details = string.Empty;
             this._Notes = string.Empty;
         }
@@ -67,7 +67,7 @@ namespace TrackerDotNet.control
             set => this._TranactionTypeID = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -101,7 +101,7 @@ namespace TrackerDotNet.control
                         UserID = dataReader["UserID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["UserID"]),
                         SectionID = dataReader["SectionID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["SectionID"]),
                         TranactionTypeID = dataReader["TranactionTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["TranactionTypeID"]),
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         Details = dataReader["Details"] == DBNull.Value ? string.Empty : dataReader["Details"].ToString(),
                         Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString()
                     });

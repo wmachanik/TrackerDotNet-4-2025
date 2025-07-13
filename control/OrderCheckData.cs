@@ -11,14 +11,15 @@ namespace TrackerDotNet.control
 {
     public class OrderCheckData
     {
-        private int _OrderID;
-        private int _CustomerID;
+        private int _OrderID;   // shoudl be long, but since we are using 32-bit access causes issues
+        private long _CustomerID;
         private int _ItemTypeID;
         private DateTime _RequiredByDate;
 
         public OrderCheckData()
         {
-            this._OrderID = this._CustomerID = 0L;
+            this._OrderID = 0;
+            this._CustomerID = 0;
             this._ItemTypeID = 0;
             this._RequiredByDate = DateTime.MinValue;
         }
@@ -29,7 +30,7 @@ namespace TrackerDotNet.control
             set => this._OrderID = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;

@@ -169,7 +169,7 @@ namespace TrackerDotNet.DataSets
         {
             MemoryStream memoryStream = new MemoryStream();
             this.WriteXmlSchema((XmlWriter)new XmlTextWriter((Stream)memoryStream, (Encoding)null));
-            memoryStream.Position = 0L;
+            memoryStream.Position = 0;
             return XmlSchema.Read((XmlReader)new XmlTextReader((Stream)memoryStream), (ValidationEventHandler)null);
         }
 
@@ -241,8 +241,8 @@ namespace TrackerDotNet.DataSets
                         current.Write((Stream)memoryStream2);
                         if (memoryStream1.Length == memoryStream2.Length)
                         {
-                            memoryStream1.Position = 0L;
-                            memoryStream2.Position = 0L;
+                            memoryStream1.Position = 0;
+                            memoryStream2.Position = 0;
                             //do
                             //    ;
                             while (memoryStream1.Position != memoryStream1.Length && memoryStream1.ReadByte() == memoryStream2.ReadByte());
@@ -828,8 +828,8 @@ namespace TrackerDotNet.DataSets
                             current.Write((Stream)memoryStream2);
                             if (memoryStream1.Length == memoryStream2.Length)
                             {
-                                memoryStream1.Position = 0L;
-                                memoryStream2.Position = 0L;
+                                memoryStream1.Position = 0;
+                                memoryStream2.Position = 0;
                                 
                                 while (memoryStream1.Position != memoryStream1.Length && memoryStream1.ReadByte() == memoryStream2.ReadByte());
                                 if (memoryStream1.Position == memoryStream1.Length)
@@ -880,7 +880,7 @@ namespace TrackerDotNet.DataSets
 
             [DebuggerNonUserCode]
             [GeneratedCode("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public int CustomerID
+            public long CustomerID
             {
                 get
                 {

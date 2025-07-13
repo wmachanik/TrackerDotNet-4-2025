@@ -372,7 +372,8 @@ namespace TrackerDotNet.control
 
         public List<ItemTypeTbl> GetAllGroupTypeItems()
         {
-            return this.GetAllItemsofServiceType(new SysDataTbl().GetGroupItemTypeID());
+            int groupItemTypeId = new SysDataTbl().GetGroupItemTypeID();
+            return this.GetAllItemsofServiceType(groupItemTypeId);
         }
 
         [DataObjectMethod(DataObjectMethodType.Update)]

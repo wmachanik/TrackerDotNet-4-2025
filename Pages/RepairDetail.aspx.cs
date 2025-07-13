@@ -152,7 +152,7 @@ namespace TrackerDotNet.Pages
                 Notes = this.tbxNotes.Text,
                 DateLogged = Convert.ToDateTime(this.lblDateLogged.Text).Date,
                 LastStatusChange = Convert.ToDateTime(this.lblLastChanged.Text).Date,
-                RelatedOrderID = (long)Convert.ToInt32(this.lblRelatedOrderID.Text)
+                RelatedOrderID = Convert.ToInt32(this.lblRelatedOrderID.Text)
             };
         }
 
@@ -163,11 +163,11 @@ namespace TrackerDotNet.Pages
                 return;
             DataItem.CustomerID = Convert.ToInt32(this.ddlNewCompany.SelectedValue);
             DataItem.DateLogged = DateTime.Now.Date;
-            CustomersTbl customersByCustomerId = new CustomersTbl().GetCustomersByCustomerID(DataItem.CustomerID);
-            DataItem.ContactName = customersByCustomerId.ContactFirstName;
-            DataItem.ContactEmail = customersByCustomerId.EmailAddress;
-            DataItem.MachineTypeID = customersByCustomerId.EquipType;
-            DataItem.MachineSerialNumber = customersByCustomerId.MachineSN;
+            CustomersTbl customersByCustomerID = new CustomersTbl().GetCustomersByCustomerID(DataItem.CustomerID);
+            DataItem.ContactName = customersByCustomerID.ContactFirstName;
+            DataItem.ContactEmail = customersByCustomerID.EmailAddress;
+            DataItem.MachineTypeID = customersByCustomerID.EquipType;
+            DataItem.MachineSerialNumber = customersByCustomerID.MachineSN;
             DataItem.DateLogged = DateTime.Now.Date;
             DataItem.InsertRepair(DataItem);
             this.pnlNewRepair.Visible = false;

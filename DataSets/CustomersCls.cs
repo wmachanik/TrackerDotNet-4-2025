@@ -9,256 +9,256 @@ namespace TrackerDotNet.DataSets
 {
     public class CustomersCls
     {
-        private int m_CustomerID;
-        private string m_CompanyName;
-        private string m_ContactTitle;
-        private string m_ContactFirstName;
-        private string m_ContactLastName;
-        private string m_ContactAltFirstName;
-        private string m_ContactAltLastName;
-        private string m_Department;
-        private string m_BillingAddress;
-        private string m_StateOrProvince;
-        private string m_PostalCode;
-        private string m_PhoneNumber;
-        private string m_Extension;
-        private string m_FaxNumber;
-        private string m_CellNumber;
-        private string m_EmailAddress;
-        private string m_AltEmailAddress;
-        private string m_CustomerType;
-        private int m_EquipTypeName;
-        private int m_CoffeePreference;
-        private int m_City;
-        private int m_PriPref;
-        private int m_SecPref;
-        private double m_PriPrefQty;
-        private double m_SecPrefQty;
-        private int m_Abreviation;
-        private string m_MachineSN;
-        private bool m_UsesFilter;
-        private bool m_Autofulfill;
-        private bool m_Enabled;
-        private bool m_PredictionDisabled;
-        private bool m_AlwaysSendChkUp;
-        private bool m_NormallyResponds;
-        private string m_Notes;
+        private long _CustomerID;
+        private string _CompanyName;
+        private string _ContactTitle;
+        private string _ContactFirstName;
+        private string _ContactLastName;
+        private string _ContactAltFirstName;
+        private string _ContactAltLastName;
+        private string _Department;
+        private string _BillingAddress;
+        private string _StateOrProvince;
+        private string _PostalCode;
+        private string _PhoneNumber;
+        private string _Extension;
+        private string _FaxNumber;
+        private string _CellNumber;
+        private string _EmailAddress;
+        private string _AltEmailAddress;
+        private string _CustomerType;
+        private int _EquipTypeName;
+        private int _CoffeePreference;
+        private int _City;
+        private int _PriPref;
+        private int _SecPref;
+        private double _PriPrefQty;
+        private double _SecPrefQty;
+        private int _Abreviation;
+        private string _MachineSN;
+        private bool _UsesFilter;
+        private bool _Autofulfill;
+        private bool _Enabled;
+        private bool _PredictionDisabled;
+        private bool _AlwaysSendChkUp;
+        private bool _NormallyResponds;
+        private string _Notes;
 
         public CustomersCls()
         {
-            this.m_CustomerID = 0;
-            this.m_CompanyName = this.m_ContactTitle = this.m_ContactFirstName = this.m_ContactLastName = this.m_ContactAltFirstName = this.m_ContactAltLastName = this.m_Department = this.m_BillingAddress = this.m_StateOrProvince = this.m_PostalCode = this.m_PhoneNumber = this.m_Extension = this.m_FaxNumber = this.m_CellNumber = this.m_EmailAddress = this.m_AltEmailAddress = this.m_CustomerType = "";
-            this.m_EquipTypeName = this.m_CoffeePreference = this.m_City = this.m_PriPref = this.m_SecPref = 0;
-            this.m_PriPrefQty = this.m_SecPrefQty = 0.0;
-            this.m_Abreviation = 0;
-            this.m_MachineSN = "";
-            this.m_Enabled = true;
-            this.m_UsesFilter = this.m_Autofulfill = this.m_PredictionDisabled = this.m_AlwaysSendChkUp = this.m_NormallyResponds = false;
-            this.m_Notes = "";
+            this._CustomerID = 0;
+            this._CompanyName = this._ContactTitle = this._ContactFirstName = this._ContactLastName = this._ContactAltFirstName = this._ContactAltLastName = this._Department = this._BillingAddress = this._StateOrProvince = this._PostalCode = this._PhoneNumber = this._Extension = this._FaxNumber = this._CellNumber = this._EmailAddress = this._AltEmailAddress = this._CustomerType = "";
+            this._EquipTypeName = this._CoffeePreference = this._City = this._PriPref = this._SecPref = 0;
+            this._PriPrefQty = this._SecPrefQty = 0.0;
+            this._Abreviation = 0;
+            this._MachineSN = "";
+            this._Enabled = true;
+            this._UsesFilter = this._Autofulfill = this._PredictionDisabled = this._AlwaysSendChkUp = this._NormallyResponds = false;
+            this._Notes = "";
         }
 
-        public int CustomerID
+        public long CustomerID
         {
-            get => this.m_CustomerID;
-            set => this.m_CustomerID = value;
+            get => this._CustomerID;
+            set => this._CustomerID = value;
         }
 
         public string CompanyName
         {
-            get => this.m_CompanyName;
-            set => this.m_CompanyName = value;
+            get => this._CompanyName;
+            set => this._CompanyName = value;
         }
 
         public string ContactTitle
         {
-            get => this.m_ContactTitle;
-            set => this.m_ContactTitle = value;
+            get => this._ContactTitle;
+            set => this._ContactTitle = value;
         }
 
         public string ContactFirstName
         {
-            get => this.m_ContactFirstName;
-            set => this.m_ContactFirstName = value;
+            get => this._ContactFirstName;
+            set => this._ContactFirstName = value;
         }
 
         public string ContactLastName
         {
-            get => this.m_ContactLastName;
-            set => this.m_ContactLastName = value;
+            get => this._ContactLastName;
+            set => this._ContactLastName = value;
         }
 
         public string ContactAltFirstName
         {
-            get => this.m_ContactAltFirstName;
-            set => this.m_ContactAltFirstName = value;
+            get => this._ContactAltFirstName;
+            set => this._ContactAltFirstName = value;
         }
 
         public string ContactAltLastName
         {
-            get => this.m_ContactAltLastName;
-            set => this.m_ContactAltLastName = value;
+            get => this._ContactAltLastName;
+            set => this._ContactAltLastName = value;
         }
 
         public string Department
         {
-            get => this.m_Department;
-            set => this.m_Department = value;
+            get => this._Department;
+            set => this._Department = value;
         }
 
         public string BillingAddress
         {
-            get => this.m_BillingAddress;
-            set => this.m_BillingAddress = value;
+            get => this._BillingAddress;
+            set => this._BillingAddress = value;
         }
 
         public string StateOrProvince
         {
-            get => this.m_StateOrProvince;
-            set => this.m_StateOrProvince = value;
+            get => this._StateOrProvince;
+            set => this._StateOrProvince = value;
         }
 
         public string PostalCode
         {
-            get => this.m_PostalCode;
-            set => this.m_PostalCode = value;
+            get => this._PostalCode;
+            set => this._PostalCode = value;
         }
 
         public string PhoneNumber
         {
-            get => this.m_PhoneNumber;
-            set => this.m_PhoneNumber = value;
+            get => this._PhoneNumber;
+            set => this._PhoneNumber = value;
         }
 
         public string Extension
         {
-            get => this.m_Extension;
-            set => this.m_Extension = value;
+            get => this._Extension;
+            set => this._Extension = value;
         }
 
         public string FaxNumber
         {
-            get => this.m_FaxNumber;
-            set => this.m_FaxNumber = value;
+            get => this._FaxNumber;
+            set => this._FaxNumber = value;
         }
 
         public string CellNumber
         {
-            get => this.m_CellNumber;
-            set => this.m_CellNumber = value;
+            get => this._CellNumber;
+            set => this._CellNumber = value;
         }
 
         public string EmailAddress
         {
-            get => this.m_EmailAddress;
-            set => this.m_EmailAddress = value;
+            get => this._EmailAddress;
+            set => this._EmailAddress = value;
         }
 
         public string AltEmailAddress
         {
-            get => this.m_AltEmailAddress;
-            set => this.m_AltEmailAddress = value;
+            get => this._AltEmailAddress;
+            set => this._AltEmailAddress = value;
         }
 
         public string CustomerType
         {
-            get => this.m_CustomerType;
-            set => this.m_CustomerType = value;
+            get => this._CustomerType;
+            set => this._CustomerType = value;
         }
 
         public int EquipTypeName
         {
-            get => this.m_EquipTypeName;
-            set => this.m_EquipTypeName = value;
+            get => this._EquipTypeName;
+            set => this._EquipTypeName = value;
         }
 
         public int CoffeePreference
         {
-            get => this.m_CoffeePreference;
-            set => this.m_CoffeePreference = value;
+            get => this._CoffeePreference;
+            set => this._CoffeePreference = value;
         }
 
         public int City
         {
-            get => this.m_City;
-            set => this.m_City = value;
+            get => this._City;
+            set => this._City = value;
         }
 
         public int PriPref
         {
-            get => this.m_PriPref;
-            set => this.m_PriPref = value;
+            get => this._PriPref;
+            set => this._PriPref = value;
         }
 
         public int SecPref
         {
-            get => this.m_SecPref;
-            set => this.m_SecPref = value;
+            get => this._SecPref;
+            set => this._SecPref = value;
         }
 
         public double PriPrefQty
         {
-            get => this.m_PriPrefQty;
-            set => this.m_PriPrefQty = value;
+            get => this._PriPrefQty;
+            set => this._PriPrefQty = value;
         }
 
         public double SecPrefQty
         {
-            get => this.m_SecPrefQty;
-            set => this.m_SecPrefQty = value;
+            get => this._SecPrefQty;
+            set => this._SecPrefQty = value;
         }
 
         public int Abreviation
         {
-            get => this.m_Abreviation;
-            set => this.m_Abreviation = value;
+            get => this._Abreviation;
+            set => this._Abreviation = value;
         }
 
         public string MachineSN
         {
-            get => this.m_MachineSN;
-            set => this.m_MachineSN = value;
+            get => this._MachineSN;
+            set => this._MachineSN = value;
         }
 
         public bool UsesFilter
         {
-            get => this.m_UsesFilter;
-            set => this.m_UsesFilter = value;
+            get => this._UsesFilter;
+            set => this._UsesFilter = value;
         }
 
         public bool Autofulfill
         {
-            get => this.m_Autofulfill;
-            set => this.m_Autofulfill = value;
+            get => this._Autofulfill;
+            set => this._Autofulfill = value;
         }
 
         public bool Enabled
         {
-            get => this.m_Enabled;
-            set => this.m_Enabled = value;
+            get => this._Enabled;
+            set => this._Enabled = value;
         }
 
         public bool PredictionDisabled
         {
-            get => this.m_PredictionDisabled;
-            set => this.m_PredictionDisabled = value;
+            get => this._PredictionDisabled;
+            set => this._PredictionDisabled = value;
         }
 
         public bool AlwaysSendChkUp
         {
-            get => this.m_AlwaysSendChkUp;
-            set => this.m_AlwaysSendChkUp = value;
+            get => this._AlwaysSendChkUp;
+            set => this._AlwaysSendChkUp = value;
         }
 
         public bool NormallyResponds
         {
-            get => this.m_NormallyResponds;
-            set => this.m_NormallyResponds = value;
+            get => this._NormallyResponds;
+            set => this._NormallyResponds = value;
         }
 
         public string Notes
         {
-            get => this.m_Notes;
-            set => this.m_Notes = value;
+            get => this._Notes;
+            set => this._Notes = value;
         }
     }
 }

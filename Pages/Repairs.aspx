@@ -4,8 +4,7 @@
 </asp:Content>
 <asp:Content ID="cntRepairsBdy" ContentPlaceHolderID="MainContent" runat="server">
   <h1>List of Repairs</h1>
-    <asp:s
-  <ajaxToolkit:ScriptManager ID="smRepairsSummary" runat="server"></ajaxToolkit:ScriptManager>
+  <asp:ScriptManager runat="server" ID="smRepairsSummary"  />
   <asp:UpdateProgress ID="uprgRepairsSummary" runat="server" AssociatedUpdatePanelID="upnlRepairsSummary" >
     <ProgressTemplate>
       <img src="../images/animi/BlueArrowsUpdate.gif" alt="updating" width="16" height="16" />updating.....

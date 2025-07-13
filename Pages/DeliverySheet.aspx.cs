@@ -133,7 +133,7 @@ namespace TrackerDotNet.Pages
             this.Session["DeliverySheetDeliveryBy"] = pOnlyDeliveryBy;
 
             // Complete SQL with all columns
-            string strSQL = @"SELECT DISTINCT OrdersTbl.OrderID, CustomersTbl.CompanyName AS CoName, OrdersTbl.CustomerId, " +
+            string strSQL = @"SELECT DISTINCT OrdersTbl.OrderID, CustomersTbl.CompanyName AS CoName, OrdersTbl.CustomerID, " +
                               "OrdersTbl.OrderDate, OrdersTbl.RoastDate,OrdersTbl.ItemTypeID, ItemTypeTbl.ItemDesc, " +
                               "OrdersTbl.QuantityOrdered, ItemTypeTbl.ItemShortName, ItemTypeTbl.ItemEnabled, " +
                               "ItemTypeTbl.ReplacementID,  CityPrepDaysTbl.DeliveryOrder,  ItemTypeTbl.SortOrder, " +
@@ -144,7 +144,7 @@ namespace TrackerDotNet.Pages
                                        "( CityPrepDaysTbl RIGHT OUTER JOIN CustomersTbl ON CityPrepDaysTbl.CityID = CustomersTbl.City )" +
                                         "RIGHT OUTER JOIN " +
                                         "( OrdersTbl LEFT OUTER JOIN PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID)" +
-                                        " ON CustomersTbl.CustomerID = OrdersTbl.CustomerId" +
+                                        " ON CustomersTbl.CustomerID = OrdersTbl.CustomerID" +
                                       ") LEFT OUTER JOIN PackagingTbl ON OrdersTbl.PackagingID = PackagingTbl.PackagingID) " +
                                     " LEFT OUTER JOIN ItemTypeTbl ON OrdersTbl.ItemTypeID = ItemTypeTbl.ItemTypeID " +
                               "WHERE (OrdersTbl.RequiredByDate = ?)";
@@ -230,7 +230,7 @@ namespace TrackerDotNet.Pages
             {
                 bool flag = false;
                 DeliverySheet.deliveryItems deliveryItems1 = new DeliverySheet.deliveryItems();
-                deliveryItems1.ContactID = pDataReader["CustomerId"].ToString();
+                deliveryItems1.ContactID = pDataReader["CustomerID"].ToString();
                 deliveryItems1.ContactCompany = pDataReader["CoName"].ToString();
                 if (deliveryItems1.ContactCompany.StartsWith("ZZName"))
                 {
@@ -554,7 +554,7 @@ namespace TrackerDotNet.Pages
 
         protected void btnFind_Click(object sender, EventArgs e)
         {
-            string strSQL = $"SELECT DISTINCT OrdersTbl.OrderID, CustomersTbl.CompanyName AS CoName, OrdersTbl.CustomerId, OrdersTbl.OrderDate, OrdersTbl.RoastDate, OrdersTbl.ItemTypeID, ItemTypeTbl.ItemDesc, OrdersTbl.QuantityOrdered, ItemTypeTbl.ItemShortName, ItemTypeTbl.ItemEnabled, ItemTypeTbl.ReplacementID,  CityPrepDaysTbl.DeliveryOrder,  ItemTypeTbl.SortOrder, OrdersTbl.RequiredByDate, OrdersTbl.ToBeDeliveredBy, OrdersTbl.PurchaseOrder, OrdersTbl.Confirmed, OrdersTbl.InvoiceDone, OrdersTbl.Done, OrdersTbl.Notes, PackagingTbl.Description AS PackDesc, PackagingTbl.BGColour, PersonsTbl.Abreviation FROM ((((CityPrepDaysTbl RIGHT OUTER JOIN CustomersTbl ON CityPrepDaysTbl.CityID = CustomersTbl.City) RIGHT OUTER JOIN  (OrdersTbl LEFT OUTER JOIN PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID) ON CustomersTbl.CustomerID = OrdersTbl.CustomerId) LEFT OUTER JOIN   PackagingTbl ON OrdersTbl.PackagingID = PackagingTbl.PackagingID) LEFT OUTER JOIN ItemTypeTbl ON OrdersTbl.ItemTypeID = ItemTypeTbl.ItemTypeID) WHERE (CustomersTbl.CompanyName LIKE '%{this.tbxFindClient.Text}%') AND (OrdersTbl.Done = false) ORDER BY OrdersTbl.RequiredByDate, OrdersTbl.ToBeDeliveredBy, CityPrepDaysTbl.DeliveryOrder, CustomersTbl.CompanyName, ItemTypeTbl.SortOrder";
+            string strSQL = $"SELECT DISTINCT OrdersTbl.OrderID, CustomersTbl.CompanyName AS CoName, OrdersTbl.CustomerID, OrdersTbl.OrderDate, OrdersTbl.RoastDate, OrdersTbl.ItemTypeID, ItemTypeTbl.ItemDesc, OrdersTbl.QuantityOrdered, ItemTypeTbl.ItemShortName, ItemTypeTbl.ItemEnabled, ItemTypeTbl.ReplacementID,  CityPrepDaysTbl.DeliveryOrder,  ItemTypeTbl.SortOrder, OrdersTbl.RequiredByDate, OrdersTbl.ToBeDeliveredBy, OrdersTbl.PurchaseOrder, OrdersTbl.Confirmed, OrdersTbl.InvoiceDone, OrdersTbl.Done, OrdersTbl.Notes, PackagingTbl.Description AS PackDesc, PackagingTbl.BGColour, PersonsTbl.Abreviation FROM ((((CityPrepDaysTbl RIGHT OUTER JOIN CustomersTbl ON CityPrepDaysTbl.CityID = CustomersTbl.City) RIGHT OUTER JOIN  (OrdersTbl LEFT OUTER JOIN PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID) ON CustomersTbl.CustomerID = OrdersTbl.CustomerID) LEFT OUTER JOIN   PackagingTbl ON OrdersTbl.PackagingID = PackagingTbl.PackagingID) LEFT OUTER JOIN ItemTypeTbl ON OrdersTbl.ItemTypeID = ItemTypeTbl.ItemTypeID) WHERE (CustomersTbl.CompanyName LIKE '%{this.tbxFindClient.Text}%') AND (OrdersTbl.Done = false) ORDER BY OrdersTbl.RequiredByDate, OrdersTbl.ToBeDeliveredBy, CityPrepDaysTbl.DeliveryOrder, CustomersTbl.CompanyName, ItemTypeTbl.SortOrder";
             TrackerDb trackerDb = new TrackerDb();
             IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader(strSQL);
             this.BuildDeliveryTable(dataReader, false);

@@ -342,14 +342,14 @@
     OnUpdated="odsOrderSummary_OnUpdated"
     UpdateMethod="UpdateOrderDetails" >
         <SelectParameters>
-          <asp:SessionParameter DefaultValue="-1" Name="CustomerId" SessionField="BoundCustomerId" Type="Int64" />
+          <asp:SessionParameter DefaultValue="-1" Name="CustomerID" SessionField="BoundCustomerID" Type="Int64" />
           <asp:SessionParameter DefaultValue="" Name="DeliveryDate" SessionField="BoundDeliveryDate" Type="DateTime" />
           <asp:SessionParameter DefaultValue="&quot;&quot;" Name="Notes" SessionField="BoundNotes" Type="String" />
           <asp:Parameter Name="MaximumRows" Type="Int32" />
           <asp:Parameter Name="StartRowIndex" Type="Int32" />
         </SelectParameters>
         <UpdateParameters>
-          <asp:Parameter Name="CustomerId" Type="Int64" />
+          <asp:Parameter Name="CustomerID" Type="Int64" />
           <asp:Parameter Name="OrderDate" Type="DateTime" />
           <asp:Parameter Name="RoastDate" Type="DateTime" />
           <asp:Parameter Name="ToBeDeliveredBy" Type="Int32" />
@@ -359,18 +359,18 @@
           <asp:Parameter Name="InvoiceDone" Type="Boolean" />
           <asp:Parameter Name="PurchaseOrder" Type="String" />
           <asp:Parameter Name="Notes" Type="String" />
-          <asp:SessionParameter DefaultValue="-1" Name="OriginalCustomerId" SessionField="BoundCustomerId" Type="Int64" />
+          <asp:SessionParameter DefaultValue="-1" Name="OriginalCustomerID" SessionField="BoundCustomerID" Type="Int64" />
           <asp:SessionParameter DefaultValue="" Name="OriginalDeliveryDate" SessionField="BoundDeliveryDate" Type="DateTime" />
           <asp:SessionParameter DefaultValue="&quot;&quot;" Name="OriginalNotes" SessionField="BoundNotes" Type="String" />
         </UpdateParameters>
       </asp:ObjectDataSource>
   <%--
 SelecT:
-          <asp:QueryStringParameter DefaultValue="1" Name="CustomerId" QueryStringField="CustomerID" Type="Int64" />
+          <asp:QueryStringParameter DefaultValue="1" Name="CustomerID" QueryStringField="CustomerID" Type="Int64" />
           <asp:QueryStringParameter Name="DeliveryDate" QueryStringField="DeliveryDate" Type="DateTime" />
           <asp:QueryStringParameter Name="Notes" QueryStringField="Notes" Type="String" />
 Update:
-          <asp:QueryStringParameter DefaultValue="1" Name="OriginalCustomerId" QueryStringField="CustomerID" Type="Int64" />
+          <asp:QueryStringParameter DefaultValue="1" Name="OriginalCustomerID" QueryStringField="CustomerID" Type="Int64" />
           <asp:QueryStringParameter Name="OriginalDeliveryDate" QueryStringField="DeliveryDate" Type="DateTime" />
           <asp:QueryStringParameter Name="OriginalNotes" QueryStringField="Notes" Type="String" />
 
@@ -393,14 +393,14 @@ Update:
     </DeleteParameters>
     <UpdateParameters>
       <asp:Parameter Name="OrderID" Type="Int64" />
-      <asp:SessionParameter DefaultValue="-1" Name="CustomerId" SessionField="BoundCustomerId" Type="Int64" />
+      <asp:SessionParameter DefaultValue="-1" Name="CustomerID" SessionField="BoundCustomerID" Type="Int64" />
       <asp:Parameter Name="ItemTypeID" Type="Int32" />
       <asp:SessionParameter DefaultValue="" Name="DeliveryDate" SessionField="BoundDeliveryDate" Type="DateTime" />
       <asp:Parameter Name="QuantityOrdered" Type="Double" />
       <asp:Parameter Name="PackagingID" Type="Int32" />
     </UpdateParameters>
     <SelectParameters>
-      <asp:SessionParameter DefaultValue="1" Name="CustomerId" SessionField="BoundCustomerId" Type="Int64" />
+      <asp:SessionParameter DefaultValue="1" Name="CustomerID" SessionField="BoundCustomerID" Type="Int64" />
       <asp:SessionParameter DefaultValue="" Name="DeliveryDate" SessionField="BoundDeliveryDate" Type="DateTime" />
       <asp:SessionParameter DefaultValue="&quot;&quot;" Name="Notes" SessionField="BoundNotes" Type="String" />
       <asp:Parameter Name="MaximumRows" Type="Int32" />

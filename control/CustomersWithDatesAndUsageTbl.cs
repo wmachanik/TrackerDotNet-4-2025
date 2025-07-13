@@ -54,7 +54,7 @@ namespace TrackerDotNet.control
                 if (dataReader.Read())
                 {
                     withDatesAndUsage = new CustomersWithDatesAndUsageTbl();
-                    withDatesAndUsage.Customer.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]);
+                    withDatesAndUsage.Customer.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]);
                     withDatesAndUsage.Customer.CompanyName = dataReader["CompanyName"] == DBNull.Value ? string.Empty : dataReader["CompanyName"].ToString();
                     withDatesAndUsage.Customer.ContactTitle = dataReader["ContactTitle"] == DBNull.Value ? string.Empty : dataReader["ContactTitle"].ToString();
                     withDatesAndUsage.Customer.ContactFirstName = dataReader["ContactFirstName"] == DBNull.Value ? string.Empty : dataReader["ContactFirstName"].ToString();
@@ -98,7 +98,7 @@ namespace TrackerDotNet.control
                     withDatesAndUsage.NextRoastDateByCity.DeliveryDate = dataReader["DeliveryDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["DeliveryDate"]).Date;
                     withDatesAndUsage.NextRoastDateByCity.PrepDate = dataReader["PreperationDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["PreperationDate"]).Date;
                     withDatesAndUsage.NextRoastDateByCity.DeliveryOrder = dataReader["DeliveryOrder"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["DeliveryOrder"]);
-                    withDatesAndUsage.ClientUsage.LastCupCount = dataReader["LastCupCount"] == DBNull.Value ? 0L : (long)Convert.ToInt32(dataReader["LastCupCount"]);
+                    withDatesAndUsage.ClientUsage.LastCupCount = dataReader["LastCupCount"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["LastCupCount"]);
                     withDatesAndUsage.ClientUsage.NextCoffeeBy = dataReader["NextCoffeeBy"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["NextCoffeeBy"]).Date;
                     withDatesAndUsage.ClientUsage.NextCleanOn = dataReader["NextCleanOn"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["NextCleanOn"]).Date;
                     withDatesAndUsage.ClientUsage.NextFilterEst = dataReader["NextFilterEst "] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["NextFilterEst"]).Date;

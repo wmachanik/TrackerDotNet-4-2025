@@ -22,7 +22,7 @@ namespace TrackerDotNet.control
         private const string CONST_SQL_GETGROUPITEMTYPED = "SELECT UsedItemGroupID, LastItemTypeID, LastItemTypeSortPos, LastItemDateChanged, Notes FROM UsedItemGroupTbl WHERE(ContactID = ?) AND (GroupItemTypeID = ?)";
         private const string CONST_SELECTLASTUSEDITEMID = "SELECT UsedItemGroupID, GroupItemTypeID, LastItemTypeSortPos, Notes FROM UsedItemGroupTbl WHERE ContactID = ? AND LastItemTypeID = ? AND LastItemDateChanged = ?";
         private int _UsedItemGroupID;
-        private int _ContactID;
+        private long _ContactID;
         private int _GroupItemTypeID;
         private int _LastItemTypeID;
         private int _LastItemTypeSortPos;
@@ -46,7 +46,7 @@ namespace TrackerDotNet.control
             set => this._UsedItemGroupID = value;
         }
 
-        public int ContactID
+        public long ContactID
         {
             get => this._ContactID;
             set => this._ContactID = value;
@@ -97,7 +97,7 @@ namespace TrackerDotNet.control
                     all.Add(new UsedItemGroupTbl()
                     {
                         UsedItemGroupID = dataReader["UsedItemGroupID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["UsedItemGroupID"]),
-                        ContactID = dataReader["ContactID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["ContactID"]),
+                        ContactID = dataReader["ContactID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ContactID"]),
                         GroupItemTypeID = dataReader["GroupItemTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["GroupItemTypeID"]),
                         LastItemTypeID = dataReader["LastItemTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["LastItemTypeID"]),
                         LastItemTypeSortPos = dataReader["LastItemTypeSortPos"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["LastItemTypeSortPos"]),

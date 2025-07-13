@@ -211,7 +211,7 @@ namespace TrackerDotNet.Pages
                             ItemContactRequires _ItemRequired = new ItemContactRequires();
                             _ItemRequired.CustomerID = thatMayNeedNextWeek[index1].CustomerData.CustomerID;
                             _ItemRequired.AutoFulfill = thatMayNeedNextWeek[index1].CustomerData.autofulfill;
-                            _ItemRequired.ReoccurID = 0L;
+                            _ItemRequired.ReoccurID = 0;
                             _ItemRequired.ItemID = lastItemsUsed[index3].ItemProvidedID;
                             _ItemRequired.ItemQty = lastItemsUsed[index3].AmountProvided;
                             _ItemRequired.ItemPackagID = lastItemsUsed[index3].PackagingID;
@@ -391,7 +391,7 @@ namespace TrackerDotNet.Pages
             {
                 OrderTblData pOrderData = new OrderTblData();
                 flag2 = true;
-                pOrderData.CustomerId = pContact.CustomerID;
+                pOrderData.CustomerID = pContact.CustomerID;
                 pOrderData.OrderDate = DateTime.Now.Date;
                 pOrderData.RoastDate = pContact.NextPrepDate.Date;
                 pOrderData.RequiredByDate = pContact.NextDeliveryDate.Date;

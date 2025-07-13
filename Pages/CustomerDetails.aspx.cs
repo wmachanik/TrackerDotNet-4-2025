@@ -20,7 +20,7 @@ namespace TrackerDotNet.Pages
     {
 
 
-        private const string CONST_URL_REQUEST_CUSTOMERID = "ID";
+        private const string CONST_URL_REQUEST_CustomerID = "ID";
         private const string CONST_URL_REQUEST_CUSTOMERACCFOCUS = "Focus_AccInfo";
         private const string CONST_FORCE_GVITEMS_BIND = "ForceGVItemsToBind";
         private const string CONST_LASTTABCONTER = "LastTabcCustomerIndex";
@@ -206,11 +206,11 @@ namespace TrackerDotNet.Pages
             this.uppnlTabContainer.Update();
         }
 
-        private int GetCustomerIDFromRequest()
+        private long GetCustomerIDFromRequest()
         {
             long result = 0;
             if (this.Request.QueryString["ID"] != null && !long.TryParse(this.Request.QueryString["ID"], out result))
-                result = 0L;
+                result = 0;
             return result;
         }
 
@@ -354,7 +354,7 @@ namespace TrackerDotNet.Pages
             return result;
         }
 
-        private int StringToInt64(string pValue)
+        private long StringToInt64(string pValue)
         {
             long result = 0;
             long.TryParse(pValue, out result);
@@ -373,7 +373,7 @@ namespace TrackerDotNet.Pages
             return new CustomersTbl()
             {
                 CompanyName = this.CompanyNameTextBox.Text,
-                CustomerID = string.IsNullOrWhiteSpace(this.CompanyIDLabel.Text) ? 0L : this.StringToInt64(this.CompanyIDLabel.Text),
+                CustomerID = string.IsNullOrWhiteSpace(this.CompanyIDLabel.Text) ? 0 : this.StringToInt64(this.CompanyIDLabel.Text),
                 ContactFirstName = this.ContactFirstNameTextBox.Text,
                 ContactLastName = this.ContactLastNameTextBox.Text,
                 ContactTitle = this.ContactTitleTextBox.Text,
@@ -551,7 +551,7 @@ namespace TrackerDotNet.Pages
             if (e.CommandName == "Delete")
             {
                 ItemUsageTbl itemUsageTbl = new ItemUsageTbl();
-                itemUsageTbl.ClientUsageLineNo = (long)Convert.ToInt32(e.CommandArgument);
+                itemUsageTbl.ClientUsageLineNo = Convert.ToInt32(e.CommandArgument);
                 itemUsageTbl.DeleteItemLine(itemUsageTbl.ClientUsageLineNo);
                 flag = true;
             }
@@ -573,7 +573,7 @@ namespace TrackerDotNet.Pages
                 ItemUsageLine.PrepTypeID = this.StringToInt32(control5.Text);
                 ItemUsageLine.Notes = control6.Text;
                 ItemUsageLine.CustomerID = this.StringToInt64(this.CompanyIDLabel.Text);
-                ItemUsageLine.ClientUsageLineNo = this.StringToInt64(control7.Text);
+                ItemUsageLine.ClientUsageLineNo = this.StringToInt32(control7.Text);
                 ItemUsageLine.UpdateItemsUsed(ItemUsageLine);
                 flag = true;
             }
@@ -589,9 +589,9 @@ namespace TrackerDotNet.Pages
             DropDownList dropDownList = (DropDownList)sender;
             if (dropDownList == null || !string.IsNullOrEmpty(dropDownList.SelectedValue))
                 return;
-            long customerIdFromRequest = this.GetCustomerIDFromRequest();
-            if (customerIdFromRequest > 0L)
-                new CustomersAccInfoTbl().GetByPaymentTypeIDByCustomerID(customerIdFromRequest);
+            long CustomerIDFromRequest = this.GetCustomerIDFromRequest();
+            if (CustomerIDFromRequest > 0L)
+                new CustomersAccInfoTbl().GetByPaymentTypeIDByCustomerID(CustomerIDFromRequest);
             else
                 dropDownList.SelectedIndex = 1;
         }
@@ -636,10 +636,10 @@ namespace TrackerDotNet.Pages
             }
             else
             {
-                CustomersAccInfoTbl byCustomerId = accDataFromForm.GetByCustomerID(accDataFromForm.CustomerID);
-                if (!byCustomerId.CustomersAccInfoID.Equals(0))
+                CustomersAccInfoTbl byCustomerID = accDataFromForm.GetByCustomerID(accDataFromForm.CustomerID);
+                if (!byCustomerID.CustomersAccInfoID.Equals(0))
                 {
-                    accDataFromForm.CustomersAccInfoID = byCustomerId.CustomersAccInfoID;
+                    accDataFromForm.CustomersAccInfoID = byCustomerID.CustomersAccInfoID;
                     this.UpdateAccountInfo(accDataFromForm);
                 }
                 else

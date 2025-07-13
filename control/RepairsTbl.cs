@@ -35,7 +35,7 @@ namespace TrackerDotNet.control
         private const string CONST_SQL_SELECTITEMWITHANORDER = "SELECT  RepairID, CustomerID, ContactName, ContactEmail, JobCardNumber, DateLogged, LastStatusChange, MachineTypeID, MachineSerialNumber, SwopOutMachineID, MachineConditionID, TakenFrother, TakenBeanLid, TakenWaterLid, BrokenFrother, BrokenBeanLid, BrokenWaterLid, RepairFaultID, RepairFaultDesc, RepairsTbl.RepairStatusID, RelatedOrderID, Notes FROM (RepairsTbl INNER JOIN TempOrdersLinesTbl ON RepairsTbl.RelatedOrderID = TempOrdersLinesTbl.OriginalOrderID)";
         private const string CONST_SQL_SETDONEBYID = "UPDATE RepairsTbl SET RepairStatusID = ? WHERE (RelatedOrderID = ?)";
         private int _RepairID;
-        private int _CustomerID;
+        private long _CustomerID;
         private string _ContactName;
         private string _ContactEmail;
         private string _JobCardNumber;
@@ -60,7 +60,7 @@ namespace TrackerDotNet.control
         public RepairsTbl()
         {
             this._RepairID = 0;
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._ContactName = string.Empty;
             this._ContactEmail = string.Empty;
             this._JobCardNumber = string.Empty;
@@ -79,7 +79,7 @@ namespace TrackerDotNet.control
             this._RepairFaultID = 0;
             this._RepairFaultDesc = string.Empty;
             this._RepairStatusID = 0;
-            this._RelatedOrderID = 0L;
+            this._RelatedOrderID = 0;
             this._Notes = string.Empty;
         }
 
@@ -89,7 +89,7 @@ namespace TrackerDotNet.control
             set => this._RepairID = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -261,7 +261,7 @@ namespace TrackerDotNet.control
                     allRepairs.Add(new RepairsTbl()
                     {
                         RepairID = dataReader["RepairID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RepairID"]),
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         ContactName = dataReader["ContactName"] == DBNull.Value ? string.Empty : dataReader["ContactName"].ToString(),
                         ContactEmail = dataReader["ContactEmail"] == DBNull.Value ? string.Empty : dataReader["ContactEmail"].ToString(),
                         JobCardNumber = dataReader["JobCardNumber"] == DBNull.Value ? string.Empty : dataReader["JobCardNumber"].ToString(),
@@ -280,7 +280,7 @@ namespace TrackerDotNet.control
                         RepairFaultID = dataReader["RepairFaultID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RepairFaultID"]),
                         RepairFaultDesc = dataReader["RepairFaultDesc"] == DBNull.Value ? string.Empty : dataReader["RepairFaultDesc"].ToString(),
                         RepairStatusID = dataReader["RepairStatusID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RepairStatusID"]),
-                        RelatedOrderID = dataReader["RelatedOrderID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["RelatedOrderID"]),
+                        RelatedOrderID = dataReader["RelatedOrderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RelatedOrderID"]),
                         Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString()
                     });
                 dataReader.Close();
@@ -304,7 +304,7 @@ namespace TrackerDotNet.control
                     {
                         repairById = new RepairsTbl();
                         repairById.RepairID = pRepairID;
-                        repairById.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]);
+                        repairById.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]);
                         repairById.ContactName = dataReader["ContactName"] == DBNull.Value ? string.Empty : dataReader["ContactName"].ToString();
                         repairById.ContactEmail = dataReader["ContactEmail"] == DBNull.Value ? string.Empty : dataReader["ContactEmail"].ToString();
                         repairById.JobCardNumber = dataReader["JobCardNumber"] == DBNull.Value ? string.Empty : dataReader["JobCardNumber"].ToString();
@@ -323,7 +323,7 @@ namespace TrackerDotNet.control
                         repairById.RepairFaultID = dataReader["RepairFaultID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RepairFaultID"]);
                         repairById.RepairFaultDesc = dataReader["RepairFaultDesc"] == DBNull.Value ? string.Empty : dataReader["RepairFaultDesc"].ToString();
                         repairById.RepairStatusID = dataReader["RepairStatusID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RepairStatusID"]);
-                        repairById.RelatedOrderID = dataReader["RelatedOrderID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["RelatedOrderID"]);
+                        repairById.RelatedOrderID = dataReader["RelatedOrderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RelatedOrderID"]);
                         repairById.Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString();
                     }
                     dataReader.Close();
@@ -450,7 +450,7 @@ namespace TrackerDotNet.control
             bool flag = false;
             OrderTblData pOrderData = new OrderTblData();
             DateTime pDelivery = DateTime.Now.Date.AddDays(7.0);
-            pOrderData.CustomerId = pRepair.CustomerID;
+            pOrderData.CustomerID = pRepair.CustomerID;
             pOrderData.ItemTypeID = 36;
             pOrderData.QuantityOrdered = 1.0;
             pOrderData.Notes = "Collect/Swop out Machine for Service";
@@ -479,7 +479,7 @@ namespace TrackerDotNet.control
             }
             OrderTbl orderTbl = new OrderTbl();
             orderTbl.InsertNewOrderLine(pOrderData);
-            pRepair.RelatedOrderID = orderTbl.GetLastOrderAdded(pOrderData.CustomerId, pOrderData.OrderDate, 36);
+            pRepair.RelatedOrderID = orderTbl.GetLastOrderAdded(pOrderData.CustomerID, pOrderData.OrderDate, 36);
             return flag;
         }
 
@@ -539,7 +539,7 @@ namespace TrackerDotNet.control
                     relatedTempOrders.Add(new RepairsTbl()
                     {
                         RepairID = dataReader["RepairID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RepairID"]),
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         ContactName = dataReader["ContactName"] == DBNull.Value ? string.Empty : dataReader["ContactName"].ToString(),
                         ContactEmail = dataReader["ContactEmail"] == DBNull.Value ? string.Empty : dataReader["ContactEmail"].ToString(),
                         JobCardNumber = dataReader["JobCardNumber"] == DBNull.Value ? string.Empty : dataReader["JobCardNumber"].ToString(),
@@ -558,7 +558,7 @@ namespace TrackerDotNet.control
                         RepairFaultID = dataReader["RepairFaultID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RepairFaultID"]),
                         RepairFaultDesc = dataReader["RepairFaultDesc"] == DBNull.Value ? string.Empty : dataReader["RepairFaultDesc"].ToString(),
                         RepairStatusID = dataReader["RepairStatusID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RepairStatusID"]),
-                        RelatedOrderID = dataReader["RelatedOrderID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["RelatedOrderID"]),
+                        RelatedOrderID = dataReader["RelatedOrderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["RelatedOrderID"]),
                         Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString()
                     });
                 dataReader.Close();

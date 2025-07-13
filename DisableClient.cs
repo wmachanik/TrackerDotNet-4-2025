@@ -28,26 +28,26 @@ namespace TrackerDotNet
                 string str = ConfigurationManager.AppSettings["SysEmailFrom"] == null ? "orders@quaffee.co.za" : ConfigurationManager.AppSettings["SysEmailFrom"];
                 CustomersTbl customersTbl = new CustomersTbl();
                 customersTbl.DisableCustomer((long)result);
-                CustomersTbl customersByCustomerId = customersTbl.GetCustomersByCustomerID((long)result);
-                this.CompanyNameLabel.Text = customersByCustomerId.CompanyName;
+                CustomersTbl customersByCustomerID = customersTbl.GetCustomersByCustomerID((long)result);
+                this.CompanyNameLabel.Text = customersByCustomerID.CompanyName;
                 string empty = string.Empty;
-                string pObj1 = customersByCustomerId.ContactAltFirstName;
+                string pObj1 = customersByCustomerID.ContactAltFirstName;
                 if (!string.IsNullOrEmpty(pObj1))
                 {
-                    if (!string.IsNullOrEmpty(customersByCustomerId.ContactAltFirstName))
-                        pObj1 = $"{pObj1} & {customersByCustomerId.ContactAltFirstName}";
+                    if (!string.IsNullOrEmpty(customersByCustomerID.ContactAltFirstName))
+                        pObj1 = $"{pObj1} & {customersByCustomerID.ContactAltFirstName}";
                 }
                 else
-                    pObj1 = string.IsNullOrEmpty(customersByCustomerId.ContactAltFirstName) ? "X Coffee lover" : customersByCustomerId.ContactAltFirstName;
+                    pObj1 = string.IsNullOrEmpty(customersByCustomerID.ContactAltFirstName) ? "X Coffee lover" : customersByCustomerID.ContactAltFirstName;
                 EmailCls emailCls = new EmailCls();
-                if (!string.IsNullOrEmpty(customersByCustomerId.EmailAddress))
-                    emailCls.SetEmailTo(customersByCustomerId.EmailAddress);
-                if (!string.IsNullOrEmpty(customersByCustomerId.AltEmailAddress))
-                    emailCls.SetEmailTo(customersByCustomerId.AltEmailAddress);
+                if (!string.IsNullOrEmpty(customersByCustomerID.EmailAddress))
+                    emailCls.SetEmailTo(customersByCustomerID.EmailAddress);
+                if (!string.IsNullOrEmpty(customersByCustomerID.AltEmailAddress))
+                    emailCls.SetEmailTo(customersByCustomerID.AltEmailAddress);
                 emailCls.SetEmailCC(str);
-                emailCls.SetEmailSubject(customersByCustomerId.CompanyName + " request to be disabled in Coffee Tracker");
+                emailCls.SetEmailSubject(customersByCustomerID.CompanyName + " request to be disabled in Coffee Tracker");
                 emailCls.AddFormatToBody("Dear {0}, <br /><br />", (object)pObj1);
-                emailCls.AddFormatToBody("As requested we have disabled: {0} in Quaffee's Coffee Tracker.<br /><br />", (object)customersByCustomerId.CompanyName);
+                emailCls.AddFormatToBody("As requested we have disabled: {0} in Quaffee's Coffee Tracker.<br /><br />", (object)customersByCustomerID.CompanyName);
                 emailCls.AddFormatToBody("We wish you the best in the future. Should you require anything else from us please email {0}.<br /><br />", (object)str);
                 emailCls.AddStrAndNewLineToBody("The Quaffee Orders Team");
                 emailCls.AddStrAndNewLineToBody("web: <a href='http://www.quaffee.co.za'>quaffee.co.za</a>");

@@ -14,8 +14,8 @@ namespace TrackerDotNet.control
 {
     public class CustomersTbl
     {
-        public const long CONST_CUSTOMERID_GENERALOROTHER = 9;
-        public const string CONST_STR_CUSTOMERID_GENERALOROTHER = "9";
+        public const long CONST_CustomerID_GENERALOROTHER = 9;
+        public const string CONST_STR_CustomerID_GENERALOROTHER = "9";
         private const int CONST_MAXREMINDERS = 10;
         private const string CONST_CONSTRING = "Tracker08ConnectionString";
         private const string CONST_SQL_CUSTOMERS_SELECT = "SELECT CustomerID, CompanyName, ContactTitle, ContactFirstName, ContactLastName, ContactAltFirstName, ContactAltLastName, Department, BillingAddress, City, StateOrProvince AS Province, PostalCode,  [Country/Region] AS Region, PhoneNumber, Extension, FaxNumber, CellNumber, EmailAddress, AltEmailAddress, ContractNo, CustomerTypeID, EquipType, CoffeePreference, PriPrefQty, PrefPrepTypeID, PrefPackagingID,  SecondaryPreference, SecPrefQty, TypicallySecToo, PreferedAgent, SalesAgentID, MachineSN,  UsesFilter, autofulfill, enabled, PredictionDisabled, AlwaysSendChkUp, NormallyResponds,  ReminderCount, LastDateSentReminder, Notes FROM CustomersTbl";
@@ -34,7 +34,7 @@ namespace TrackerDotNet.control
         private const string CONST_SQL_CUSTOMERS_RESET_REMINDERCOUNT = "UPDATE CustomersTbl SET ReminderCount = 0";
         private const string CONST_SQL_CUSTOMERS_RESET_REMINDERCOUNT_FORCEENABLE = ", enabled = true";
         private const string CONST_SQL_CUSTOMERS_RESET_REMINDERCOUNT_WHERE = " WHERE CustomerID = ?";
-        private int _CustomerID;
+        private long _CustomerID;
         private string _CompanyName;
         private string _ContactTitle;
         private string _ContactFirstName;
@@ -78,7 +78,7 @@ namespace TrackerDotNet.control
 
         public CustomersTbl()
         {
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._CompanyName = string.Empty;
             this._ContactTitle = string.Empty;
             this._ContactFirstName = string.Empty;
@@ -121,7 +121,7 @@ namespace TrackerDotNet.control
             this._Notes = string.Empty;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -467,7 +467,7 @@ namespace TrackerDotNet.control
 
         public CustomersTbl GetCustomersByCustomerID(long pCustomerID, string pSortBy)
         {
-            CustomersTbl customersByCustomerId = new CustomersTbl();
+            CustomersTbl customersByCustomerID = new CustomersTbl();
             TrackerDb trackerDb = new TrackerDb();
             string strSQL = "SELECT CustomerID, CompanyName, ContactTitle, ContactFirstName, ContactLastName, ContactAltFirstName, ContactAltLastName, Department, BillingAddress, City, StateOrProvince AS Province, PostalCode,  [Country/Region] AS Region, PhoneNumber, Extension, FaxNumber, CellNumber, EmailAddress, AltEmailAddress, ContractNo, CustomerTypeID, EquipType, CoffeePreference, PriPrefQty, PrefPrepTypeID, PrefPackagingID,  SecondaryPreference, SecPrefQty, TypicallySecToo, PreferedAgent, SalesAgentID, MachineSN,  UsesFilter, autofulfill, enabled, PredictionDisabled, AlwaysSendChkUp, NormallyResponds,  ReminderCount, LastDateSentReminder, Notes FROM CustomersTbl";
             if (pCustomerID > 0L)
@@ -481,11 +481,11 @@ namespace TrackerDotNet.control
             if (dataReader != null)
             {
                 if (dataReader.Read())
-                    customersByCustomerId = CustomersTbl.MoveReaderDataToCustomersTblData(dataReader);
+                    customersByCustomerID = CustomersTbl.MoveReaderDataToCustomersTblData(dataReader);
                 dataReader.Close();
             }
             trackerDb.Close();
-            return customersByCustomerId;
+            return customersByCustomerID;
         }
 
         public bool InsertCustomer(CustomersTbl pThisCustomerTblData)

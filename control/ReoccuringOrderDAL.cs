@@ -70,8 +70,8 @@ namespace TrackerDotNet.control
                 while (dataReader.Read())
                 {
                     ReoccuringOrderExtData reoccuringOrderExtData = new ReoccuringOrderExtData();
-                    reoccuringOrderExtData.ReoccuringOrderID = dataReader["ID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["ID"]);
-                    reoccuringOrderExtData.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]);
+                    reoccuringOrderExtData.ReoccuringOrderID = dataReader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ID"]);
+                    reoccuringOrderExtData.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]);
                     reoccuringOrderExtData.ReoccuranceTypeID = dataReader["ReoccuranceType"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ReoccuranceType"]);
                     reoccuringOrderExtData.ReoccuranceValue = dataReader["Value"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["Value"]);
                     reoccuringOrderExtData.ItemRequiredID = dataReader["ItemRequiredID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemRequiredID"]);
@@ -93,7 +93,7 @@ namespace TrackerDotNet.control
             return all;
         }
 
-        public ReoccuringOrderTbl GetByReoccuringOrderByID(long pReoccuringID)
+        public ReoccuringOrderTbl GetByReoccuringOrderByID(int pReoccuringID)
         {
             ReoccuringOrderTbl reoccuringOrderById = (ReoccuringOrderTbl)null;
             string strSQL = "SELECT CustomerID, ReoccuranceType, [Value], ItemRequiredID, QtyRequired, DateLastDone, NextDateRequired, RequireUntilDate, PackagingID, DeliveryByID, Enabled, Notes  FROM ReoccuringOrderTbl WHERE ID = ?";
@@ -106,7 +106,7 @@ namespace TrackerDotNet.control
                 {
                     reoccuringOrderById = new ReoccuringOrderTbl();
                     reoccuringOrderById.ReoccuringOrderID = pReoccuringID;
-                    reoccuringOrderById.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]);
+                    reoccuringOrderById.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]);
                     reoccuringOrderById.ReoccuranceTypeID = dataReader["ReoccuranceType"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ReoccuranceType"]);
                     reoccuringOrderById.ReoccuranceValue = dataReader["Value"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["Value"]);
                     reoccuringOrderById.ItemRequiredID = dataReader["ItemRequiredID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemRequiredID"]);
@@ -191,7 +191,7 @@ namespace TrackerDotNet.control
                 while (dataReader.Read())
                     reoccuringOrderTblList.Add(new ReoccuringOrderTbl()
                     {
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : (long)Convert.ToInt32(dataReader["CustomerID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         ItemRequiredID = dataReader["ItemRequiredID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemRequiredID"]),
                         DateLastDone = dataReader["LastDatePerItem"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["LastDatePerItem"]).Date
                     });

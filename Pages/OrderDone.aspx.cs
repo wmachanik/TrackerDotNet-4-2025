@@ -45,7 +45,7 @@ namespace TrackerDotNet.Pages
         private int AddItemsToClientUsageTbl(
           long pCustomerID,
           bool pIsActual,
-          long pCupCount,
+          int pCupCount,
           double pStock,
           DateTime pDeliveryDate)
         {
@@ -94,14 +94,14 @@ namespace TrackerDotNet.Pages
 
         protected void ShowResults(
           string CustomerName,
-          long pCustomerId,
+          long pCustomerID,
           ClientUsageTbl pOriginalUsageData)
         {
             this.pnlOrderDetails.Visible = false;
             this.tbxCustomerName.Text = CustomerName;
             List<ClientUsageTbl> clientUsageTblList = new List<ClientUsageTbl>();
             clientUsageTblList.Add(pOriginalUsageData);
-            clientUsageTblList.Add(new ClientUsageTbl().GetUsageData(pCustomerId));
+            clientUsageTblList.Add(new ClientUsageTbl().GetUsageData(pCustomerID));
             this.dgCustomerUsage.AutoGenerateColumns = false;
             this.dgCustomerUsage.DataSource = (object)clientUsageTblList;
             this.dgCustomerUsage.DataBind();
@@ -111,34 +111,34 @@ namespace TrackerDotNet.Pages
         private bool SendDeliveredEmail(long pCustomerID, string pMessage)
         {
             bool flag = false;
-            CustomersTbl customersByCustomerId = new CustomersTbl().GetCustomersByCustomerID(pCustomerID);
-            if (customersByCustomerId.EmailAddress.Contains("@") || customersByCustomerId.AltEmailAddress.Contains("@"))
+            CustomersTbl customersByCustomerID = new CustomersTbl().GetCustomersByCustomerID(pCustomerID);
+            if (customersByCustomerID.EmailAddress.Contains("@") || customersByCustomerID.AltEmailAddress.Contains("@"))
             {
                 string empty = string.Empty;
                 EmailCls emailCls = new EmailCls();
                 emailCls.SetEmailSubject("Confirmation email");
                 string pObj1;
-                if (customersByCustomerId.EmailAddress.Contains("@"))
+                if (customersByCustomerID.EmailAddress.Contains("@"))
                 {
-                    emailCls.SetEmailTo(customersByCustomerId.EmailAddress);
-                    if (customersByCustomerId.AltEmailAddress.Contains("@"))
+                    emailCls.SetEmailTo(customersByCustomerID.EmailAddress);
+                    if (customersByCustomerID.AltEmailAddress.Contains("@"))
                     {
-                        emailCls.SetEmailCC(customersByCustomerId.AltEmailAddress);
-                        string str = !string.IsNullOrEmpty(customersByCustomerId.ContactFirstName) ? customersByCustomerId.ContactFirstName : string.Empty;
-                        if (!string.IsNullOrEmpty(str) && !string.IsNullOrEmpty(customersByCustomerId.ContactAltFirstName))
+                        emailCls.SetEmailCC(customersByCustomerID.AltEmailAddress);
+                        string str = !string.IsNullOrEmpty(customersByCustomerID.ContactFirstName) ? customersByCustomerID.ContactFirstName : string.Empty;
+                        if (!string.IsNullOrEmpty(str) && !string.IsNullOrEmpty(customersByCustomerID.ContactAltFirstName))
                             str += " and ";
-                        pObj1 = str + (string.IsNullOrEmpty(customersByCustomerId.ContactAltFirstName) ? customersByCustomerId.ContactAltFirstName : string.Empty);
+                        pObj1 = str + (string.IsNullOrEmpty(customersByCustomerID.ContactAltFirstName) ? customersByCustomerID.ContactAltFirstName : string.Empty);
                     }
                     else
                     {
-                        emailCls.SetEmailTo(customersByCustomerId.AltEmailAddress);
-                        pObj1 = empty + (string.IsNullOrEmpty(customersByCustomerId.ContactAltFirstName) ? customersByCustomerId.ContactAltFirstName : string.Empty);
+                        emailCls.SetEmailTo(customersByCustomerID.AltEmailAddress);
+                        pObj1 = empty + (string.IsNullOrEmpty(customersByCustomerID.ContactAltFirstName) ? customersByCustomerID.ContactAltFirstName : string.Empty);
                     }
                 }
                 else
                 {
-                    emailCls.SetEmailTo(customersByCustomerId.AltEmailAddress);
-                    pObj1 = empty + (string.IsNullOrEmpty(customersByCustomerId.ContactAltFirstName) ? customersByCustomerId.ContactAltFirstName : string.Empty);
+                    emailCls.SetEmailTo(customersByCustomerID.AltEmailAddress);
+                    pObj1 = empty + (string.IsNullOrEmpty(customersByCustomerID.ContactAltFirstName) ? customersByCustomerID.ContactAltFirstName : string.Empty);
                 }
                 if (string.IsNullOrEmpty(pObj1))
                     pObj1 = "coffee lover";
@@ -157,10 +157,10 @@ namespace TrackerDotNet.Pages
             trackerTools.SetTrackerSessionErrorString(string.Empty);
             Label control1 = (Label)this.fvOrderDone.FindControl("CustomerIDLabel");
             Label control2 = (Label)this.fvOrderDone.FindControl("CompanyNameLabel");
-            long int64 = Convert.ToInt32(control1.Text);
+            int _int32 = Convert.ToInt32(control1.Text);
             DateTime dateTime = Convert.ToDateTime(((TextBox)this.fvOrderDone.FindControl("ByDateTextBox")).Text);
             ClientUsageTbl clientUsageTbl1 = new ClientUsageTbl();
-            ClientUsageTbl usageData = clientUsageTbl1.GetUsageData(int64);
+            ClientUsageTbl usageData = clientUsageTbl1.GetUsageData(_int32);
             if (!string.IsNullOrEmpty(trackerTools.GetTrackerSessionErrorString()))
                 this.Response.Write(trackerTools.GetTrackerSessionErrorString());
             TempOrdersDAL tempOrdersDal = new TempOrdersDAL();
@@ -176,47 +176,47 @@ namespace TrackerDotNet.Pages
                 double pStock = string.IsNullOrEmpty(this.tbxStock.Text) ? 0.0 : Math.Round(Convert.ToDouble(this.tbxStock.Text), 2);
                 this.ltrlStatus.Text = "Calculating the latest cup count";
                 GeneralTrackerDbTools generalTrackerDbTools = new GeneralTrackerDbTools();
-                GeneralTrackerDbTools.LineUsageData latestUsageData = generalTrackerDbTools.GetLatestUsageData(int64, 2);
+                GeneralTrackerDbTools.LineUsageData latestUsageData = generalTrackerDbTools.GetLatestUsageData(_int32, 2);
                 if (!string.IsNullOrEmpty(trackerTools.GetTrackerSessionErrorString()))
                 {
                     showMessageBox showMessageBox2 = new showMessageBox(this.Page, "Tracker Session Error", trackerTools.GetTrackerSessionErrorString());
                 }
                 bool pIsActual = this.tbxCount.MaxLength > 0;
-                long pCupCount = 0;
+                int pCupCount = 0;
                 if (this.tbxCount.MaxLength > 0)
                     pCupCount = Convert.ToInt32(this.tbxCount.Text);
                 if (pCupCount < 1L || pCupCount < latestUsageData.LastCount)
                 {
                     this.ltrlStatus.Text = "Calculating the latest est cup count";
-                    pCupCount = generalTrackerDbTools.CalcEstCupCount(int64, latestUsageData, flag);
+                    pCupCount = generalTrackerDbTools.CalcEstCupCount(_int32, latestUsageData, flag);
                     pIsActual = false;
                 }
                 new RepairsTbl().SetStatusDoneByTempOrder();
-                long clientUsageTbl2 = this.AddItemsToClientUsageTbl(int64, pIsActual, pCupCount, pStock, dateTime);
-                if (!clientUsageTbl1.UpdateUsageCupCount(int64, clientUsageTbl2))
+                int _clientUsageTbl2 = this.AddItemsToClientUsageTbl(_int32, pIsActual, pCupCount, pStock, dateTime);
+                if (!clientUsageTbl1.UpdateUsageCupCount(_int32, _clientUsageTbl2))
                 {
                     showMessageBox showMessageBox3 = new showMessageBox(this.Page, "Error", "Error updating last count");
                     this.ltrlStatus.Text = "error updating last count";
                 }
-                generalTrackerDbTools.UpdatePredictions(int64, clientUsageTbl2);
+                generalTrackerDbTools.UpdatePredictions(_int32, _clientUsageTbl2);
                 tempOrdersDal.MarkTempOrdersItemsAsDone();
-                generalTrackerDbTools.ResetCustomerReminderCount(int64, flag);
+                generalTrackerDbTools.ResetCustomerReminderCount(_int32, flag);
                 if (flag)
-                    generalTrackerDbTools.SetClientCoffeeOnlyIfInfo(int64);
+                    generalTrackerDbTools.SetClientCoffeeOnlyIfInfo(_int32);
                 switch (this.rbtnSendConfirm.SelectedValue)
                 {
                     case "postbox":
-                        this.SendDeliveredEmail(int64, "placed your order in the your post box.");
+                        this.SendDeliveredEmail(_int32, "placed your order in the your post box.");
                         break;
                     case "dispatched":
-                        this.SendDeliveredEmail(int64, "dispatched you order.");
+                        this.SendDeliveredEmail(_int32, "dispatched you order.");
                         break;
                     case "done":
-                        this.SendDeliveredEmail(int64, "delivered your order and it has signed for.");
+                        this.SendDeliveredEmail(_int32, "delivered your order and it has signed for.");
                         break;
                 }
                 tempOrdersDal.KillTempOrdersData();
-                this.ShowResults(control2.Text, int64, usageData);
+                this.ShowResults(control2.Text, _int32, usageData);
             }
         }
 

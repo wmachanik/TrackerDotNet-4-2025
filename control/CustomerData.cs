@@ -9,7 +9,7 @@ namespace TrackerDotNet.control
 {
     public class CustomerData
     {
-        private int _CustomerID;
+        private long _CustomerID;
         private string _CompanyName;
         private string _ContactTitle;
         private string _ContactFirstName;
@@ -68,7 +68,7 @@ namespace TrackerDotNet.control
             this._Notes = "";
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;

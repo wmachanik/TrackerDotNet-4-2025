@@ -16,11 +16,11 @@ namespace TrackerDotNet.control
     {
         private const string CONST_SQL_SELECT = "SELECT TOHeaderID, CustomerID, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredByID, Confirmed, Done, Notes FROM TempOrdersHeaderTbl";
         private const string CONST_SQL_GETLASTHEADERID = "SELECT TOP 1 TOHeaderID FROM TempOrdersHeaderTbl ORDER By TOHeaderID DESC";
-        private const string CONST_SQL_INSERT = "INSERT INTO TempOrdersHeaderTbl (CustomerId, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredByID, Confirmed, Done, Notes)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        private const string CONST_SQL_INSERT = "INSERT INTO TempOrdersHeaderTbl (CustomerID, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredByID, Confirmed, Done, Notes)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         private const string CONST_SQL_MARKTEMPORDERSASDONE = "UPDATE OrdersTbl SET OrdersTbl.Done = True WHERE CustomderId = ? AND EXISTS (SELECT RequiredByDate FROM TempOrdersHeaderTbl  WHERE (RequiredByDate = OrdersTbl.RequiredByDate))";
         private const string CONST_SQL_DELETEALL = "DELETE * FROM TempOrdersHeaderTbl";
         private int _TOHeaderID;
-        private int _CustomerID;
+        private long _CustomerID;
         private DateTime _OrderDate;
         private DateTime _RoastDate;
         private DateTime _RequiredByDate;
@@ -31,8 +31,8 @@ namespace TrackerDotNet.control
 
         public TempOrdersHeaderTbl()
         {
-            this._TOHeaderID = 0L;
-            this._CustomerID = 0L;
+            this._TOHeaderID = 0;
+            this._CustomerID = 0;
             this._OrderDate = DateTime.Now.Date;
             this._RoastDate = DateTime.Now.Date;
             this._RequiredByDate = DateTime.Now.Date;
@@ -48,7 +48,7 @@ namespace TrackerDotNet.control
             set => this._TOHeaderID = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -109,8 +109,8 @@ namespace TrackerDotNet.control
                 while (dataReader.Read())
                     all.Add(new TempOrdersHeaderTbl()
                     {
-                        TOHeaderID = dataReader["TOHeaderID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["TOHeaderID"]),
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]),
+                        TOHeaderID = dataReader["TOHeaderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["TOHeaderID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         OrderDate = dataReader["OrderDate"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["OrderDate"]).Date,
                         RoastDate = dataReader["RoastDate"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["RoastDate"]).Date,
                         RequiredByDate = dataReader["RequiredByDate"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["RequiredByDate"]).Date,
@@ -136,20 +136,20 @@ namespace TrackerDotNet.control
             trackerDb.AddParams((object)pHeaderData.Confirmed, DbType.Boolean, "@Confirmed");
             trackerDb.AddParams((object)pHeaderData.Done, DbType.Boolean, "@Done");
             trackerDb.AddParams((object)pHeaderData.Notes, DbType.String, "@Notes");
-            bool flag = string.IsNullOrEmpty(trackerDb.ExecuteNonQuerySQL("INSERT INTO TempOrdersHeaderTbl (CustomerId, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredByID, Confirmed, Done, Notes)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)"));
+            bool flag = string.IsNullOrEmpty(trackerDb.ExecuteNonQuerySQL("INSERT INTO TempOrdersHeaderTbl (CustomerID, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredByID, Confirmed, Done, Notes)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)"));
             trackerDb.Close();
             return flag;
         }
 
         public int GetCurrentTOHeaderID()
         {
-            long currentToHeaderId = 0;
+            int currentToHeaderId = 0;
             TrackerDb trackerDb = new TrackerDb();
             IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT TOP 1 TOHeaderID FROM TempOrdersHeaderTbl ORDER By TOHeaderID DESC");
             if (dataReader != null)
             {
                 if (dataReader.Read())
-                    currentToHeaderId = dataReader["TOHeaderID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["TOHeaderID"]);
+                    currentToHeaderId = dataReader["TOHeaderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["TOHeaderID"]);
                 dataReader.Close();
             }
             trackerDb.Close();

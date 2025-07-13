@@ -16,7 +16,7 @@ using TrackerDotNet.control;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class Lookups : Page
+    public partial class Lookups : Page
     {
         private const string CONST_ITEMSEARCHSESIONVAR = "SearchItemContains";
         private const int CONST_BGCOLOURCOL = 4;

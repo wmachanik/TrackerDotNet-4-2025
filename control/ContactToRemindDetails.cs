@@ -12,7 +12,7 @@ namespace TrackerDotNet.control
     public class ContactToRemindDetails
     {
         private int _TCCID;
-        private int _CustomerID;
+        private long _CustomerID; // Changed from int to long for consistency with other classes but shoudl be long as soojn as we move to 64 bit database
         private string _CompanyName;
         private string _ContactTitle;
         private string _ContactFirstName;
@@ -42,8 +42,8 @@ namespace TrackerDotNet.control
 
         public ContactToRemindDetails()
         {
-            this._TCCID = 0L;
-            this._CustomerID = 0L;
+            this._TCCID = 0;
+            this._CustomerID = 0;
             this._CompanyName = string.Empty;
             this._ContactTitle = string.Empty;
             this._ContactFirstName = string.Empty;
@@ -70,7 +70,7 @@ namespace TrackerDotNet.control
             set => this._TCCID = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;

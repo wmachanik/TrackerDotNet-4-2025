@@ -135,9 +135,8 @@
     <Content Include="test\PrintingTblHeadersTest.htm" />
     <Content Include="test\ShowTableStruct.aspx" />
     <Content Include="test\SQLCommands.xml" />
-    <Content Include="test\SQLCommands2.xml" />
+    <Content Include="App_Data\SQLCommands2.xml" />
     <Content Include="test\SQLCommandsFlushSEText.xml" />
-    <Content Include="test\XMLtoSQL.aspx" />
     <Content Include="Tools\About.aspx" />
     <Content Include="Tools\AutoClassMaker.aspx" />
     <Content Include="Tools\GenMachineKeys.aspx" />
@@ -145,6 +144,7 @@
     <Content Include="Tools\MoveDeliveryDate.aspx" />
     <Content Include="Tools\PrintingTblHeadersTest.htm" />
     <Content Include="Tools\SQLCommands.xml" />
+    <Content Include="Tools\SQLCommands2.xml" />
     <Content Include="Tools\SQLCommands22.xml" />
     <Content Include="Tools\SQLCommands23.xml" />
     <Content Include="Tools\SQLCommandsGroupItems14Aug2017.xml" />
@@ -585,9 +585,6 @@
     <Compile Include="test\ShowTableStruct.aspx.designer.cs">
       <DependentUpon>ShowTableStruct.aspx</DependentUpon>
     </Compile>
-    <Compile Include="test\XMLtoSQL.aspx.designer.cs">
-      <DependentUpon>XMLtoSQL.aspx</DependentUpon>
-    </Compile>
     <Compile Include="Tools\About.aspx.designer.cs">
       <DependentUpon>About.aspx</DependentUpon>
     </Compile>
@@ -597,20 +594,40 @@
     <Compile Include="Tools\GenMachineKeys.aspx.designer.cs">
       <DependentUpon>GenMachineKeys.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Tools\MergeCustomersFromQB.aspx.cs">
+      <DependentUpon>MergeCustomersFromQB.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Tools\MergeCustomersFromQB.aspx.designer.cs">
       <DependentUpon>MergeCustomersFromQB.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\MoveDeliveryDate.aspx.cs">
+      <DependentUpon>MoveDeliveryDate.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Tools\MoveDeliveryDate.aspx.designer.cs">
       <DependentUpon>MoveDeliveryDate.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Tools\SystemData.aspx.cs">
+      <DependentUpon>SystemData.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Tools\SystemData.aspx.designer.cs">
       <DependentUpon>SystemData.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\SystemTools.aspx.cs">
+      <DependentUpon>SystemTools.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Tools\SystemTools.aspx.designer.cs">
       <DependentUpon>SystemTools.aspx</DependentUpon>
     </Compile>
     <Compile Include="Tools\TestPeople.aspx.designer.cs">
       <DependentUpon>TestPeople.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\XMLtoSQL.aspx.cs">
+      <DependentUpon>XMLtoSQL.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Tools\XMLtoSQL.aspx.designer.cs">
       <DependentUpon>XMLtoSQL.aspx</DependentUpon>

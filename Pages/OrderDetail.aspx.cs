@@ -23,7 +23,7 @@ namespace TrackerDotNet.Pages
     {
         public const string CONST_EMAILDELIMITERSTART = "[#";
         public const string CONST_EMAILDELIMITEREND = "#]";
-        public const string CONST_QRYSTR_CUSTOMERID = "CustomerID";
+        public const string CONST_QRYSTR_CustomerID = "CustomerID";
         public const string CONST_QRYSTR_DELIVERYDATE = "DeliveryDate";
         public const string CONST_QRYSTR_NOTES = "Notes";
         public const string CONST_QRYSTR_DELIVERED = "Delivered";
@@ -74,7 +74,7 @@ namespace TrackerDotNet.Pages
                     date = Convert.ToDateTime(this.Request.QueryString["DeliveryDate"]).Date;
                 if (this.Request.QueryString["Notes"] != null)
                     empty = this.Request.QueryString["Notes"].ToString();
-                this.Session["BoundCustomerId"] = (object)num;
+                this.Session["BoundCustomerID"] = (object)num;
                 this.Session["BoundDeliveryDate"] = (object)date.Date;
                 this.Session["BoundNotes"] = (object)empty;
                 this.Session["OrderHeaderValues"] = (object)null;
@@ -121,7 +121,7 @@ namespace TrackerDotNet.Pages
         private void BindRowQueryParameters()
         {
             string controlSelectedValue = this.dvOrderHeaderGetDDLControlSelectedValue("ddlContacts");
-            this.Session["BoundCustomerId"] = (object)Convert.ToInt32(controlSelectedValue);
+            this.Session["BoundCustomerID"] = (object)Convert.ToInt32(controlSelectedValue);
             DateTime date = Convert.ToDateTime(this.GetOrderHeaderRequiredByDateStr()).Date;
             this.Session["BoundDeliveryDate"] = (object)date.Date;
             string orderHeaderNotes = this.GetOrderHeaderNotes();
@@ -220,7 +220,7 @@ namespace TrackerDotNet.Pages
             OrderHeaderData dvOrderHeaderData = this.Get_dvOrderHeaderData(false);
             OrderTblData pOrderData = new OrderTblData()
             {
-                CustomerId = dvOrderHeaderData.CustomerID,
+                CustomerID = dvOrderHeaderData.CustomerID,
                 OrderDate = dvOrderHeaderData.OrderDate,
                 RoastDate = dvOrderHeaderData.RoastDate,
                 RequiredByDate = dvOrderHeaderData.RequiredByDate,
@@ -234,7 +234,7 @@ namespace TrackerDotNet.Pages
             pOrderData.Notes = dvOrderHeaderData.Notes;
             TrackerTools trackerTools = new TrackerTools();
             pOrderData.ItemTypeID = Convert.ToInt32(this.ddlNewItemDesc.SelectedValue);
-            pOrderData.ItemTypeID = trackerTools.ChangeItemIfGroupToNextItemInGroup(pOrderData.CustomerId, pOrderData.ItemTypeID, pOrderData.RequiredByDate);
+            pOrderData.ItemTypeID = trackerTools.ChangeItemIfGroupToNextItemInGroup(pOrderData.CustomerID, pOrderData.ItemTypeID, pOrderData.RequiredByDate);
             pOrderData.QuantityOrdered = Convert.ToDouble(this.tbxNewQuantityOrdered.Text);
             pOrderData.PackagingID = Convert.ToInt32(this.ddlNewPackaging.SelectedValue);
             string str = orderTbl.InsertNewOrderLine(pOrderData);
@@ -520,7 +520,7 @@ namespace TrackerDotNet.Pages
 
         protected void MarkItemAsInvoiced()
         {
-            new OrderTbl().UpdateSetInvoiced(true, (long)this.Session["BoundCustomerId"], ((DateTime)this.Session["BoundDeliveryDate"]).Date, (string)this.Session["BoundNotes"]);
+            new OrderTbl().UpdateSetInvoiced(true, (long)this.Session["BoundCustomerID"], ((DateTime)this.Session["BoundDeliveryDate"]).Date, (string)this.Session["BoundNotes"]);
             this.pnlOrderHeader.Update();
         }
 

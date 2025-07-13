@@ -20,7 +20,7 @@ namespace TrackerDotNet.control
             TempOrdersHeaderTbl tempOrdersHeaderTbl = new TempOrdersHeaderTbl();
             TempOrdersLinesTbl tempOrdersLinesTbl = new TempOrdersLinesTbl();
             bool flag = tempOrdersHeaderTbl.Insert(pTempOrder.HeaderData);
-            long currentToHeaderId = tempOrdersHeaderTbl.GetCurrentTOHeaderID();
+            int currentToHeaderId = tempOrdersHeaderTbl.GetCurrentTOHeaderID();
             for (; flag && pTempOrder.OrdersLines.Count > index; ++index)
             {
                 pTempOrder.OrdersLines[index].TOHeaderID = currentToHeaderId;

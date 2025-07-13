@@ -112,7 +112,7 @@
     ConnectionString="<%$ ConnectionStrings:Tracker08ConnectionString %>" 
     ProviderName="<%$ ConnectionStrings:Tracker08ConnectionString.ProviderName %>" 
    
-    SelectCommand="SELECT DISTINCT CustomersTbl.CompanyName, OrdersTbl.CustomerId, OrdersTbl.OrderDate, OrdersTbl.RoastDate, OrdersTbl.RequiredByDate, PersonsTbl.Person, OrdersTbl.Confirmed, OrdersTbl.Done FROM ((OrdersTbl LEFT OUTER JOIN PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID) LEFT OUTER JOIN CustomersTbl ON OrdersTbl.CustomerId = CustomersTbl.CustomerID) WHERE (OrdersTbl.Done = ?)">
+    SelectCommand="SELECT DISTINCT CustomersTbl.CompanyName, OrdersTbl.CustomerID, OrdersTbl.OrderDate, OrdersTbl.RoastDate, OrdersTbl.RequiredByDate, PersonsTbl.Person, OrdersTbl.Confirmed, OrdersTbl.Done FROM ((OrdersTbl LEFT OUTER JOIN PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID) LEFT OUTER JOIN CustomersTbl ON OrdersTbl.CustomerID = CustomersTbl.CustomerID) WHERE (OrdersTbl.Done = ?)">
     <SelectParameters>
       <asp:ControlParameter ControlID="chkbxOrderDone" Name="Done" 
         PropertyName="Checked" Type="Boolean" 

@@ -14,12 +14,12 @@ namespace TrackerDotNet.control
 {
     public class OrderData
     {
-        private const string CONST_SELECTDISTINCTORDERS = "SELECT DISTINCT OrdersTbl.OrderID, CustomersTbl.CompanyName, OrdersTbl.CustomerId As CustomerID, OrdersTbl.OrderDate,  OrdersTbl.RoastDate, OrdersTbl.RequiredByDate,OrdersTbl.ToBeDeliveredBy, PersonsTbl.Person, OrdersTbl.Confirmed,  OrdersTbl.Done, OrdersTbl.Notes, OrdersTbl.ItemTypeID, OrdersTbl.QuantityOrdered  FROM ((OrdersTbl LEFT OUTER JOIN PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID) LEFT OUTER JOIN CustomersTbl ON OrdersTbl.CustomerId = CustomersTbl.CustomerID) WHERE (OrdersTbl.Done = ?)";
+        private const string CONST_SELECTDISTINCTORDERS = "SELECT DISTINCT OrdersTbl.OrderID, CustomersTbl.CompanyName, OrdersTbl.CustomerID As CustomerID, OrdersTbl.OrderDate,  OrdersTbl.RoastDate, OrdersTbl.RequiredByDate,OrdersTbl.ToBeDeliveredBy, PersonsTbl.Person, OrdersTbl.Confirmed,  OrdersTbl.Done, OrdersTbl.Notes, OrdersTbl.ItemTypeID, OrdersTbl.QuantityOrdered  FROM ((OrdersTbl LEFT OUTER JOIN PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID) LEFT OUTER JOIN CustomersTbl ON OrdersTbl.CustomerID = CustomersTbl.CustomerID) WHERE (OrdersTbl.Done = ?)";
         private const string CONST_UPDATEORDER = "UPDATE OrdersTbl SET CustomerID = ?, OrderDate = ?, RoastDate = ?, RequiredByDate = ?, ToBeDeliveredBy = ?,  ItemTypeID = ?, QuantityOrdered = ?, Confirmed = ?, Done = ?, Notes = ?  WHERE OrderID = ?";
         private const string CONST_UPDATEORDERDATES = "UPDATE OrdersTbl SET RoastDate = ? WHERE CustomerID = ? AND OrderDate = ?";
         private string _CompanyName;
         private int _OrderID;
-        private int _CustomerID;
+        private long _CustomerID;
         private DateTime _OrderDate;
         private DateTime _RoastDate;
         private DateTime _RequiredByDate;
@@ -34,7 +34,7 @@ namespace TrackerDotNet.control
         public OrderData()
         {
             this._CompanyName = string.Empty;
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._OrderDate = this._RoastDate = this._RequiredByDate = DateTime.MinValue;
             this._Person = string.Empty;
             this._Confirmed = this._Done = false;
@@ -55,7 +55,7 @@ namespace TrackerDotNet.control
             set => this._CompanyName = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -146,7 +146,7 @@ namespace TrackerDotNet.control
         public List<OrderData> GetDistinctOrders(bool pOrderDone, string pSearchFor, string pSearchValue)
         {
             List<OrderData> distinctOrders = new List<OrderData>();
-            string strSQL = "SELECT DISTINCT OrdersTbl.OrderID, CustomersTbl.CompanyName, OrdersTbl.CustomerId As CustomerID, OrdersTbl.OrderDate,  OrdersTbl.RoastDate, OrdersTbl.RequiredByDate,OrdersTbl.ToBeDeliveredBy, PersonsTbl.Person, OrdersTbl.Confirmed,  OrdersTbl.Done, OrdersTbl.Notes, OrdersTbl.ItemTypeID, OrdersTbl.QuantityOrdered  FROM ((OrdersTbl LEFT OUTER JOIN PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID) LEFT OUTER JOIN CustomersTbl ON OrdersTbl.CustomerId = CustomersTbl.CustomerID) WHERE (OrdersTbl.Done = ?)";
+            string strSQL = "SELECT DISTINCT OrdersTbl.OrderID, CustomersTbl.CompanyName, OrdersTbl.CustomerID As CustomerID, OrdersTbl.OrderDate,  OrdersTbl.RoastDate, OrdersTbl.RequiredByDate,OrdersTbl.ToBeDeliveredBy, PersonsTbl.Person, OrdersTbl.Confirmed,  OrdersTbl.Done, OrdersTbl.Notes, OrdersTbl.ItemTypeID, OrdersTbl.QuantityOrdered  FROM ((OrdersTbl LEFT OUTER JOIN PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID) LEFT OUTER JOIN CustomersTbl ON OrdersTbl.CustomerID = CustomersTbl.CustomerID) WHERE (OrdersTbl.Done = ?)";
             if (pSearchFor != "none" && !string.IsNullOrEmpty(pSearchFor))
             {
                 switch (pSearchFor)
@@ -167,9 +167,9 @@ namespace TrackerDotNet.control
                 while (dataReader.Read())
                     distinctOrders.Add(new OrderData()
                     {
-                        OrderID = dataReader["OrderID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["OrderID"]),
+                        OrderID = dataReader["OrderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["OrderID"]),
                         CompanyName = dataReader["CompanyName"] == DBNull.Value ? string.Empty : dataReader["CompanyName"].ToString(),
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         OrderDate = dataReader["OrderDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["OrderDate"]).Date,
                         RoastDate = dataReader["RoastDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["RoastDate"]).Date,
                         RequiredByDate = dataReader["RequiredByDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["RequiredByDate"]).Date,

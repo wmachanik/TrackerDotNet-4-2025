@@ -13,13 +13,13 @@ namespace TrackerDotNet.control
 {
     public class OrderDataControl
     {
-        public const string CONST_ORDERUPDATEHEADER_SQL = "UPDATE OrdersTbl SET CustomerId = ?, OrderDate= ?, RoastDate= ?, ToBeDeliveredBy= ?, RequiredByDate = ?, Confirmed= ?, Done= ?, InvoiceDone = ?, PurchaseOrder = ?, Notes = ?";
+        public const string CONST_ORDERUPDATEHEADER_SQL = "UPDATE OrdersTbl SET CustomerID = ?, OrderDate= ?, RoastDate= ?, ToBeDeliveredBy= ?, RequiredByDate = ?, Confirmed= ?, Done= ?, InvoiceDone = ?, PurchaseOrder = ?, Notes = ?";
         private const string CONST_ORDERUPDATEITEMS_SQL = "UPDATE OrdersTbl SET ItemTypeID = ?, QuantityOrdered = ?, PackagingID = ? WHERE (OrderId = ?)";
-        private const string CONST_ORDERUPDATEALL_SQL = "UPDATE OrdersTbl SET CustomerId = ?, OrderDate= ?, RoastDate= ?, RequiredByDate= ?, ToBeDeliveredBy= ?, Confirmed= ?, Done= ?, InvoiceDone = ?, PurchaseOrder = ?, Notes = ?, ItemTypeID = ?, QuantityOrdered = ?, PackagingID = ? WHERE (OrderId = ?)";
+        private const string CONST_ORDERUPDATEALL_SQL = "UPDATE OrdersTbl SET CustomerID = ?, OrderDate= ?, RoastDate= ?, RequiredByDate= ?, ToBeDeliveredBy= ?, Confirmed= ?, Done= ?, InvoiceDone = ?, PurchaseOrder = ?, Notes = ?, ItemTypeID = ?, QuantityOrdered = ?, PackagingID = ? WHERE (OrderId = ?)";
 
         public bool UpdateOrderHeader(OrderHeaderData pOrderHeader, List<string> pOrders)
         {
-            string str = "UPDATE OrdersTbl SET CustomerId = ?, OrderDate= ?, RoastDate= ?, ToBeDeliveredBy= ?, RequiredByDate = ?, Confirmed= ?, Done= ?, InvoiceDone = ?, PurchaseOrder = ?, Notes = ? WHERE ";
+            string str = "UPDATE OrdersTbl SET CustomerID = ?, OrderDate= ?, RoastDate= ?, ToBeDeliveredBy= ?, RequiredByDate = ?, Confirmed= ?, Done= ?, InvoiceDone = ?, PurchaseOrder = ?, Notes = ? WHERE ";
             for (int index = 0; index < pOrders.Count - 1; ++index)
                 str = $"{str} OrderID = {pOrders[index]} OR";
             string strSQL = $"{str} OrderID = {pOrders[pOrders.Count - 1]}";

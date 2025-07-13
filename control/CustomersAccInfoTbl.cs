@@ -25,7 +25,7 @@ namespace TrackerDotNet.control
         private const string CONST_SQL_DELETE = "DELETE FROM CustomersAccInfoTbl WHERE (CustomersAccInfoID = ?)";
         private const string CONST_SQL_GETCUSTOMERSINVOICETYPE = "SELECT InvoiceTypeID FROM CustomersAccInfoTbl WHERE (CustomerID = ?)";
         private int _CustomersAccInfoID;
-        private int _CustomerID;
+        private long _CustomerID;
         private bool _RequiresPurchOrder;
         private string _CustomerVATNo;
         private string _BillAddr1;
@@ -58,7 +58,7 @@ namespace TrackerDotNet.control
         public CustomersAccInfoTbl()
         {
             this._CustomersAccInfoID = 0;
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._RequiresPurchOrder = false;
             this._CustomerVATNo = string.Empty;
             this._BillAddr1 = string.Empty;
@@ -95,7 +95,7 @@ namespace TrackerDotNet.control
             set => this._CustomersAccInfoID = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -284,7 +284,7 @@ namespace TrackerDotNet.control
                     all.Add(new CustomersAccInfoTbl()
                     {
                         CustomersAccInfoID = dataReader["CustomersAccInfoID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomersAccInfoID"]),
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : (long)Convert.ToInt32(dataReader["CustomerID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         RequiresPurchOrder = dataReader["RequiresPurchOrder"] != DBNull.Value && Convert.ToBoolean(dataReader["RequiresPurchOrder"]),
                         CustomerVATNo = dataReader["CustomerVATNo"] == DBNull.Value ? string.Empty : dataReader["CustomerVATNo"].ToString(),
                         BillAddr1 = dataReader["BillAddr1"] == DBNull.Value ? string.Empty : dataReader["BillAddr1"].ToString(),
@@ -323,8 +323,8 @@ namespace TrackerDotNet.control
         [DataObjectMethod(DataObjectMethodType.Select, true)]
         public CustomersAccInfoTbl GetByCustomerID(long pCustomerID)
         {
-            CustomersAccInfoTbl byCustomerId = new CustomersAccInfoTbl();
-            byCustomerId.CustomerID = pCustomerID;
+            CustomersAccInfoTbl byCustomerID = new CustomersAccInfoTbl();
+            byCustomerID.CustomerID = pCustomerID;
             string strSQL = "SELECT CustomersAccInfoID, RequiresPurchOrder, CustomerVATNo, BillAddr1, BillAddr2, BillAddr3, BillAddr4,  BillAddr5, ShipAddr1, ShipAddr2, ShipAddr3, ShipAddr4, ShipAddr5, AccEmail, AltAccEmail,  PaymentTermID, Limit, FullCoName, AccFirstName, AccLastName, AltAccFirstName, AltAccLastName, PriceLevelID,  InvoiceTypeID, RegNo, BankAccNo, BankBranch, Enabled, Notes FROM CustomersAccInfoTbl WHERE (CustomerID = ?)";
             TrackerDb trackerDb = new TrackerDb();
             trackerDb.AddWhereParams((object)pCustomerID, DbType.Int64, "@CustomerID");
@@ -333,56 +333,56 @@ namespace TrackerDotNet.control
             {
                 if (dataReader.Read())
                 {
-                    byCustomerId.CustomersAccInfoID = dataReader["CustomersAccInfoID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomersAccInfoID"]);
-                    byCustomerId.RequiresPurchOrder = dataReader["RequiresPurchOrder"] != DBNull.Value && Convert.ToBoolean(dataReader["RequiresPurchOrder"]);
-                    byCustomerId.CustomerVATNo = dataReader["CustomerVATNo"] == DBNull.Value ? string.Empty : dataReader["CustomerVATNo"].ToString();
-                    byCustomerId.BillAddr1 = dataReader["BillAddr1"] == DBNull.Value ? string.Empty : dataReader["BillAddr1"].ToString();
-                    byCustomerId.BillAddr2 = dataReader["BillAddr2"] == DBNull.Value ? string.Empty : dataReader["BillAddr2"].ToString();
-                    byCustomerId.BillAddr3 = dataReader["BillAddr3"] == DBNull.Value ? string.Empty : dataReader["BillAddr3"].ToString();
-                    byCustomerId.BillAddr4 = dataReader["BillAddr4"] == DBNull.Value ? string.Empty : dataReader["BillAddr4"].ToString();
-                    byCustomerId.BillAddr5 = dataReader["BillAddr5"] == DBNull.Value ? string.Empty : dataReader["BillAddr5"].ToString();
-                    byCustomerId.ShipAddr1 = dataReader["ShipAddr1"] == DBNull.Value ? string.Empty : dataReader["ShipAddr1"].ToString();
-                    byCustomerId.ShipAddr2 = dataReader["ShipAddr2"] == DBNull.Value ? string.Empty : dataReader["ShipAddr2"].ToString();
-                    byCustomerId.ShipAddr3 = dataReader["ShipAddr3"] == DBNull.Value ? string.Empty : dataReader["ShipAddr3"].ToString();
-                    byCustomerId.ShipAddr4 = dataReader["ShipAddr4"] == DBNull.Value ? string.Empty : dataReader["ShipAddr4"].ToString();
-                    byCustomerId.ShipAddr5 = dataReader["ShipAddr5"] == DBNull.Value ? string.Empty : dataReader["ShipAddr5"].ToString();
-                    byCustomerId.AccEmail = dataReader["AccEmail"] == DBNull.Value ? string.Empty : dataReader["AccEmail"].ToString();
-                    byCustomerId.AltAccEmail = dataReader["AltAccEmail"] == DBNull.Value ? string.Empty : dataReader["AltAccEmail"].ToString();
-                    byCustomerId.PaymentTermID = dataReader["PaymentTermID"] == DBNull.Value ? byCustomerId.PaymentTermID : Convert.ToInt32(dataReader["PaymentTermID"]);
-                    byCustomerId.Limit = dataReader["Limit"] == DBNull.Value ? 0.0 : Convert.ToDouble(dataReader["Limit"]);
-                    byCustomerId.FullCoName = dataReader["FullCoName"] == DBNull.Value ? string.Empty : dataReader["FullCoName"].ToString();
-                    byCustomerId.AccFirstName = dataReader["AccFirstName"] == DBNull.Value ? string.Empty : dataReader["AccFirstName"].ToString();
-                    byCustomerId.AccLastName = dataReader["AccLastName"] == DBNull.Value ? string.Empty : dataReader["AccLastName"].ToString();
-                    byCustomerId.AltAccFirstName = dataReader["AltAccFirstName"] == DBNull.Value ? string.Empty : dataReader["AltAccFirstName"].ToString();
-                    byCustomerId.AltAccLastName = dataReader["AltAccLastName"] == DBNull.Value ? string.Empty : dataReader["AltAccLastName"].ToString();
-                    byCustomerId.PriceLevelID = dataReader["PriceLevelID"] == DBNull.Value ? byCustomerId.PriceLevelID : Convert.ToInt32(dataReader["PriceLevelID"]);
-                    byCustomerId.InvoiceTypeID = dataReader["InvoiceTypeID"] == DBNull.Value ? byCustomerId.InvoiceTypeID : Convert.ToInt32(dataReader["InvoiceTypeID"]);
-                    byCustomerId.RegNo = dataReader["RegNo"] == DBNull.Value ? string.Empty : dataReader["RegNo"].ToString();
-                    byCustomerId.BankAccNo = dataReader["BankAccNo"] == DBNull.Value ? string.Empty : dataReader["BankAccNo"].ToString();
-                    byCustomerId.BankBranch = dataReader["BankBranch"] == DBNull.Value ? string.Empty : dataReader["BankBranch"].ToString();
-                    byCustomerId.Enabled = dataReader["Enabled"] == DBNull.Value || Convert.ToBoolean(dataReader["Enabled"]);
-                    byCustomerId.Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString();
+                    byCustomerID.CustomersAccInfoID = dataReader["CustomersAccInfoID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomersAccInfoID"]);
+                    byCustomerID.RequiresPurchOrder = dataReader["RequiresPurchOrder"] != DBNull.Value && Convert.ToBoolean(dataReader["RequiresPurchOrder"]);
+                    byCustomerID.CustomerVATNo = dataReader["CustomerVATNo"] == DBNull.Value ? string.Empty : dataReader["CustomerVATNo"].ToString();
+                    byCustomerID.BillAddr1 = dataReader["BillAddr1"] == DBNull.Value ? string.Empty : dataReader["BillAddr1"].ToString();
+                    byCustomerID.BillAddr2 = dataReader["BillAddr2"] == DBNull.Value ? string.Empty : dataReader["BillAddr2"].ToString();
+                    byCustomerID.BillAddr3 = dataReader["BillAddr3"] == DBNull.Value ? string.Empty : dataReader["BillAddr3"].ToString();
+                    byCustomerID.BillAddr4 = dataReader["BillAddr4"] == DBNull.Value ? string.Empty : dataReader["BillAddr4"].ToString();
+                    byCustomerID.BillAddr5 = dataReader["BillAddr5"] == DBNull.Value ? string.Empty : dataReader["BillAddr5"].ToString();
+                    byCustomerID.ShipAddr1 = dataReader["ShipAddr1"] == DBNull.Value ? string.Empty : dataReader["ShipAddr1"].ToString();
+                    byCustomerID.ShipAddr2 = dataReader["ShipAddr2"] == DBNull.Value ? string.Empty : dataReader["ShipAddr2"].ToString();
+                    byCustomerID.ShipAddr3 = dataReader["ShipAddr3"] == DBNull.Value ? string.Empty : dataReader["ShipAddr3"].ToString();
+                    byCustomerID.ShipAddr4 = dataReader["ShipAddr4"] == DBNull.Value ? string.Empty : dataReader["ShipAddr4"].ToString();
+                    byCustomerID.ShipAddr5 = dataReader["ShipAddr5"] == DBNull.Value ? string.Empty : dataReader["ShipAddr5"].ToString();
+                    byCustomerID.AccEmail = dataReader["AccEmail"] == DBNull.Value ? string.Empty : dataReader["AccEmail"].ToString();
+                    byCustomerID.AltAccEmail = dataReader["AltAccEmail"] == DBNull.Value ? string.Empty : dataReader["AltAccEmail"].ToString();
+                    byCustomerID.PaymentTermID = dataReader["PaymentTermID"] == DBNull.Value ? byCustomerID.PaymentTermID : Convert.ToInt32(dataReader["PaymentTermID"]);
+                    byCustomerID.Limit = dataReader["Limit"] == DBNull.Value ? 0.0 : Convert.ToDouble(dataReader["Limit"]);
+                    byCustomerID.FullCoName = dataReader["FullCoName"] == DBNull.Value ? string.Empty : dataReader["FullCoName"].ToString();
+                    byCustomerID.AccFirstName = dataReader["AccFirstName"] == DBNull.Value ? string.Empty : dataReader["AccFirstName"].ToString();
+                    byCustomerID.AccLastName = dataReader["AccLastName"] == DBNull.Value ? string.Empty : dataReader["AccLastName"].ToString();
+                    byCustomerID.AltAccFirstName = dataReader["AltAccFirstName"] == DBNull.Value ? string.Empty : dataReader["AltAccFirstName"].ToString();
+                    byCustomerID.AltAccLastName = dataReader["AltAccLastName"] == DBNull.Value ? string.Empty : dataReader["AltAccLastName"].ToString();
+                    byCustomerID.PriceLevelID = dataReader["PriceLevelID"] == DBNull.Value ? byCustomerID.PriceLevelID : Convert.ToInt32(dataReader["PriceLevelID"]);
+                    byCustomerID.InvoiceTypeID = dataReader["InvoiceTypeID"] == DBNull.Value ? byCustomerID.InvoiceTypeID : Convert.ToInt32(dataReader["InvoiceTypeID"]);
+                    byCustomerID.RegNo = dataReader["RegNo"] == DBNull.Value ? string.Empty : dataReader["RegNo"].ToString();
+                    byCustomerID.BankAccNo = dataReader["BankAccNo"] == DBNull.Value ? string.Empty : dataReader["BankAccNo"].ToString();
+                    byCustomerID.BankBranch = dataReader["BankBranch"] == DBNull.Value ? string.Empty : dataReader["BankBranch"].ToString();
+                    byCustomerID.Enabled = dataReader["Enabled"] == DBNull.Value || Convert.ToBoolean(dataReader["Enabled"]);
+                    byCustomerID.Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString();
                 }
                 dataReader.Close();
             }
             trackerDb.Close();
-            return byCustomerId;
+            return byCustomerID;
         }
 
         public int GetByPaymentTypeIDByCustomerID(long pCustomerID)
         {
-            int typeIdByCustomerId = 0;
+            int typeIdByCustomerID = 0;
             TrackerDb trackerDb = new TrackerDb();
             trackerDb.AddWhereParams((object)pCustomerID, DbType.Int64, "@CustomerID");
             IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT PaymentTermID FROM CustomersAccInfoTbl WHERE (CustomerID = ?)");
             if (dataReader != null)
             {
                 if (dataReader.Read())
-                    typeIdByCustomerId = dataReader["PaymentTermID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["PaymentTermID"]);
+                    typeIdByCustomerID = dataReader["PaymentTermID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["PaymentTermID"]);
                 dataReader.Close();
             }
             trackerDb.Close();
-            return typeIdByCustomerId;
+            return typeIdByCustomerID;
         }
 
         [DataObjectMethod(DataObjectMethodType.Insert, true)]

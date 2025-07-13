@@ -1,10 +1,9 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="SystemData.aspx.cs" Inherits="TrackerDotNet.Tools.SystemData" %>
+﻿<%@ Page Title="System Data" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="SystemData.aspx.cs" Inherits="TrackerDotNet.Tools.SystemData" %>
 <asp:Content ID="cntSystemDataHdr" ContentPlaceHolderID="HeadContent" runat="server">
 </asp:Content>
 <asp:Content ID="cntSystemDataBdy" ContentPlaceHolderID="MainContent" runat="server">
-  <h1>System Data  </h1>
-  <asp:DetailsView ID="dvSystemData" runat="server" 
-      AutoGenerateRows="False" DataSourceID="odsSystemData"
+  <h1>System Data</h1>
+  <asp:DetailsView ID="dvSystemData" runat="server"  AutoGenerateRows="False" DataSourceID="odsSystemData"
       CssClass="TblWhite" OnItemCommand="dvSystemData_ItemCommand" >
     <Fields>
            <asp:TemplateField HeaderText="Do Reoccuring Orders" 

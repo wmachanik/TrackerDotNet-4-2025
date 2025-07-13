@@ -207,7 +207,7 @@ namespace TrackerDotNet.DataSets
         {
             MemoryStream memoryStream = new MemoryStream();
             this.WriteXmlSchema((XmlWriter)new XmlTextWriter((Stream)memoryStream, (Encoding)null));
-            memoryStream.Position = 0L;
+            memoryStream.Position = 0;
             return XmlSchema.Read((XmlReader)new XmlTextReader((Stream)memoryStream), (ValidationEventHandler)null);
         }
 
@@ -284,7 +284,7 @@ namespace TrackerDotNet.DataSets
       this.tableCustomersTbl.CustomerIDColumn
             }, new DataColumn[1]
             {
-      this.tableOrdersTbl.CustomerIdColumn
+      this.tableOrdersTbl.CustomerIDColumn
             }, false);
             this.Relations.Add(this.relationOrdersToCustomerRelation);
             this.relationOrderItemToItemIDRelation = new DataRelation("OrderItemToItemIDRelation", new DataColumn[1]
@@ -350,8 +350,8 @@ namespace TrackerDotNet.DataSets
                         current.Write((Stream)memoryStream2);
                         if (memoryStream1.Length == memoryStream2.Length)
                         {
-                            memoryStream1.Position = 0L;
-                            memoryStream2.Position = 0L;
+                            memoryStream1.Position = 0;
+                            memoryStream2.Position = 0;
                             
                             while (memoryStream1.Position != memoryStream1.Length && memoryStream1.ReadByte() == memoryStream2.ReadByte());
                             if (memoryStream1.Position == memoryStream1.Length)
@@ -394,7 +394,7 @@ namespace TrackerDotNet.DataSets
         public class OrderTblDataTable : TypedTableBase<TrackerDataSet.OrdersTblRow>
         {
             private DataColumn columnOrderID;
-            private DataColumn columnCustomerId;
+            private DataColumn columnCustomerID;
             private DataColumn columnOrderDate;
             private DataColumn columnRoastDate;
             private DataColumn columnItemTypeID;
@@ -444,7 +444,7 @@ namespace TrackerDotNet.DataSets
 
             [GeneratedCode("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             [DebuggerNonUserCode]
-            public DataColumn CustomerIdColumn => this.columnCustomerId;
+            public DataColumn CustomerIDColumn => this.columnCustomerID;
 
             [DebuggerNonUserCode]
             [GeneratedCode("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
@@ -579,7 +579,7 @@ namespace TrackerDotNet.DataSets
             internal void InitVars()
             {
                 this.columnOrderID = this.Columns["OrderID"];
-                this.columnCustomerId = this.Columns["CustomerId"];
+                this.columnCustomerID = this.Columns["CustomerID"];
                 this.columnOrderDate = this.Columns["OrderDate"];
                 this.columnRoastDate = this.Columns["RoastDate"];
                 this.columnItemTypeID = this.Columns["ItemTypeID"];
@@ -597,8 +597,8 @@ namespace TrackerDotNet.DataSets
             {
                 this.columnOrderID = new DataColumn("OrderID", typeof(int), (string)null, MappingType.Element);
                 this.Columns.Add(this.columnOrderID);
-                this.columnCustomerId = new DataColumn("CustomerId", typeof(int), (string)null, MappingType.Element);
-                this.Columns.Add(this.columnCustomerId);
+                this.columnCustomerID = new DataColumn("CustomerID", typeof(int), (string)null, MappingType.Element);
+                this.Columns.Add(this.columnCustomerID);
                 this.columnOrderDate = new DataColumn("OrderDate", typeof(DateTime), (string)null, MappingType.Element);
                 this.Columns.Add(this.columnOrderDate);
                 this.columnRoastDate = new DataColumn("RoastDate", typeof(DateTime), (string)null, MappingType.Element);
@@ -741,8 +741,8 @@ namespace TrackerDotNet.DataSets
                             current.Write((Stream)memoryStream2);
                             if (memoryStream1.Length == memoryStream2.Length)
                             {
-                                memoryStream1.Position = 0L;
-                                memoryStream2.Position = 0L;
+                                memoryStream1.Position = 0;
+                                memoryStream2.Position = 0;
                                
                                 while (memoryStream1.Position != memoryStream1.Length && memoryStream1.ReadByte() == memoryStream2.ReadByte());
                                 if (memoryStream1.Position == memoryStream1.Length)
@@ -1388,8 +1388,8 @@ namespace TrackerDotNet.DataSets
                             current.Write((Stream)memoryStream2);
                             if (memoryStream1.Length == memoryStream2.Length)
                             {
-                                memoryStream1.Position = 0L;
-                                memoryStream2.Position = 0L;
+                                memoryStream1.Position = 0;
+                                memoryStream2.Position = 0;
                                 
                                 while (memoryStream1.Position != memoryStream1.Length && memoryStream1.ReadByte() == memoryStream2.ReadByte());
                                 if (memoryStream1.Position == memoryStream1.Length)
@@ -1729,8 +1729,8 @@ namespace TrackerDotNet.DataSets
                             current.Write((Stream)memoryStream2);
                             if (memoryStream1.Length == memoryStream2.Length)
                             {
-                                memoryStream1.Position = 0L;
-                                memoryStream2.Position = 0L;
+                                memoryStream1.Position = 0;
+                                memoryStream2.Position = 0;
                                 
                                 while (memoryStream1.Position != memoryStream1.Length && memoryStream1.ReadByte() == memoryStream2.ReadByte());
                                 if (memoryStream1.Position == memoryStream1.Length)
@@ -2016,8 +2016,8 @@ namespace TrackerDotNet.DataSets
                             current.Write((Stream)memoryStream2);
                             if (memoryStream1.Length == memoryStream2.Length)
                             {
-                                memoryStream1.Position = 0L;
-                                memoryStream2.Position = 0L;
+                                memoryStream1.Position = 0;
+                                memoryStream2.Position = 0;
                                
                                 while (memoryStream1.Position != memoryStream1.Length && memoryStream1.ReadByte() == memoryStream2.ReadByte());
                                 if (memoryStream1.Position == memoryStream1.Length)
@@ -2058,20 +2058,20 @@ namespace TrackerDotNet.DataSets
 
             [GeneratedCode("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             [DebuggerNonUserCode]
-            public int CustomerId
+            public long CustomerID
             {
                 get
                 {
                     try
                     {
-                        return (int)this[this.tableOrdersTbl.CustomerIdColumn];
+                        return (int)this[this.tableOrdersTbl.CustomerIDColumn];
                     }
                     catch (InvalidCastException ex)
                     {
-                        throw new StrongTypingException("The value for column 'CustomerId' in table 'OrdersTbl' is DBNull.", (Exception)ex);
+                        throw new StrongTypingException("The value for column 'CustomerID' in table 'OrdersTbl' is DBNull.", (Exception)ex);
                     }
                 }
-                set => this[this.tableOrdersTbl.CustomerIdColumn] = (object)value;
+                set => this[this.tableOrdersTbl.CustomerIDColumn] = (object)value;
             }
 
             [DebuggerNonUserCode]
@@ -2266,11 +2266,11 @@ namespace TrackerDotNet.DataSets
 
             [GeneratedCode("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             [DebuggerNonUserCode]
-            public bool IsCustomerIdNull() => this.IsNull(this.tableOrdersTbl.CustomerIdColumn);
+            public bool IsCustomerIDNull() => this.IsNull(this.tableOrdersTbl.CustomerIDColumn);
 
             [DebuggerNonUserCode]
             [GeneratedCode("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public void SetCustomerIdNull() => this[this.tableOrdersTbl.CustomerIdColumn] = Convert.DBNull;
+            public void SetCustomerIDNull() => this[this.tableOrdersTbl.CustomerIDColumn] = Convert.DBNull;
 
             [GeneratedCode("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             [DebuggerNonUserCode]
@@ -2368,7 +2368,7 @@ namespace TrackerDotNet.DataSets
 
             [DebuggerNonUserCode]
             [GeneratedCode("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public int CustomerID
+            public long CustomerID
             {
                 get => (int)this[this.tableCustomersTbl.CustomerIDColumn];
                 set => this[this.tableCustomersTbl.CustomerIDColumn] = (object)value;

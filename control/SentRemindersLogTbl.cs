@@ -20,7 +20,7 @@ namespace TrackerDotNet.control
         private const string CONST_SQL_UPDATE = "UPDATE SentRemindersLogTbl SET CustomerID = ?, DateSentReminder = ?, NextPrepDate = ?, ReminderSent = ?, HadAutoFulfilItem = ?, HadReoccurItems = ?  WHERE (SentRemindersLogTbl.ReminderID = ?)";
         private const string CONST_SQL_INSERT = "INSERT INTO SentRemindersLogTbl (CustomerID, DateSentReminder, NextPrepDate, ReminderSent, HadAutoFulfilItem, HadReoccurItems) VALUES (?, ?, ?, ?, ?, ?)";
         private int _ReminderID;
-        private int _CustomerID;
+        private long _CustomerID;
         private DateTime _DateSentReminder;
         private DateTime _NextPrepDate;
         private bool _ReminderSent;
@@ -30,7 +30,7 @@ namespace TrackerDotNet.control
         public SentRemindersLogTbl()
         {
             this._ReminderID = 0;
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._DateSentReminder = DateTime.Now;
             this._NextPrepDate = DateTime.Now.Date;
             this._ReminderSent = false;
@@ -44,7 +44,7 @@ namespace TrackerDotNet.control
             set => this._ReminderID = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -94,7 +94,7 @@ namespace TrackerDotNet.control
                     all.Add(new SentRemindersLogTbl()
                     {
                         ReminderID = dataReader["ReminderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ReminderID"]),
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         DateSentReminder = dataReader["DateSentReminder"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["DateSentReminder"]).Date,
                         NextPrepDate = dataReader["NextPrepDate"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["NextPrepDate"]).Date,
                         ReminderSent = dataReader["ReminderSent"] != DBNull.Value && Convert.ToBoolean(dataReader["ReminderSent"]),

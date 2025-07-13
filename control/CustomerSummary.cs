@@ -9,7 +9,7 @@ namespace TrackerDotNet.control
 {
     public class CustomerSummary
     {
-        private int _CustomerID;
+        private long _CustomerID;
         private string _CompanyName;
         private string _ContactFirstName;
         private string _ContactLastName;
@@ -24,7 +24,7 @@ namespace TrackerDotNet.control
 
         public CustomerSummary()
         {
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._CompanyName = string.Empty;
             this._ContactFirstName = string.Empty;
             this._ContactLastName = string.Empty;
@@ -38,7 +38,7 @@ namespace TrackerDotNet.control
             this.enabled = false;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;

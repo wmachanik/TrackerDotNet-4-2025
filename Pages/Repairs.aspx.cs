@@ -14,7 +14,7 @@ using TrackerDotNet.control;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class Repairs : Page
+    public partial class Repairs : Page
     {
         private const string CONST_WHERECLAUSE_SESSIONVAR = "CustomerRepairWhereFilter";
         private const int CONST_GVCOL_CONTACTNAME = 4;

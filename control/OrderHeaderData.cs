@@ -11,11 +11,11 @@ namespace TrackerDotNet.control
 {
     public class OrderHeaderData
     {
-        public const string CONST_BOUNDCUSTOMERID = "BoundCustomerId";
+        public const string CONST_BOUNDCustomerID = "BoundCustomerID";
         public const string CONST_BOUNDDELIVERYDATE = "BoundDeliveryDate";
         public const string CONST_BOUNDOLDDELIVERYDATE = "BoundOldDeliveryDate";
         public const string CONST_BOUNDNOTES = "BoundNotes";
-        private int _otCustomerID;
+        private long _otCustomerID;
         private int _otToBeDeliveredBy;
         private DateTime _otOrderDate;
         private DateTime _otRoastDate;
@@ -35,7 +35,7 @@ namespace TrackerDotNet.control
             this._otInvoiceDone = this._otDone = false;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._otCustomerID;
             set => this._otCustomerID = value;

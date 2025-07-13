@@ -15,7 +15,7 @@ namespace TrackerDotNet.control
     public class ClientUsageFromTempOrder
     {
         public const string CONST_STR_SELECT = "SELECT TempOrdersHeaderTbl.CustomerID, TempOrdersLinesTbl.ItemID, TempOrdersLinesTbl.ServiceTypeID, TempOrdersLinesTbl.Qty,  ItemTypeTbl.UnitsPerQty, TempOrdersLinesTbl.PackagingID FROM  ((TempOrdersHeaderTbl INNER JOIN TempOrdersLinesTbl ON TempOrdersHeaderTbl.TOHeaderID = TempOrdersLinesTbl.TOHeaderID)  LEFT OUTER JOIN ItemTypeTbl ON TempOrdersLinesTbl.ItemID = ItemTypeTbl.ItemTypeID) WHERE TempOrdersHeaderTbl.CustomerID = ? AND TempOrdersLinesTbl.ServiceTypeID <> 17";
-        private int _CustomerID;
+        private long _CustomerID;
         private int _ItemID;
         private int _ServiceTypeID;
         private double _Qty;
@@ -24,7 +24,7 @@ namespace TrackerDotNet.control
 
         public ClientUsageFromTempOrder()
         {
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._ItemID = 0;
             this._ServiceTypeID = 0;
             this._Qty = 0.0;
@@ -32,7 +32,7 @@ namespace TrackerDotNet.control
             this._PackagingID = 0;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -87,7 +87,7 @@ namespace TrackerDotNet.control
                 while (dataReader.Read())
                     all.Add(new ClientUsageFromTempOrder()
                     {
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         ItemID = dataReader["ItemID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemID"]),
                         ServiceTypeID = dataReader["ServiceTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ServiceTypeID"]),
                         Qty = dataReader["Qty"] == DBNull.Value ? 0.0 : Convert.ToDouble(dataReader["Qty"]),

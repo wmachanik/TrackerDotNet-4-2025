@@ -65,7 +65,7 @@ namespace TrackerDotNet.Pages
             }
         }
 
-        private void PutDataFromForm(long pReoccuringOrderID)
+        private void PutDataFromForm(int pReoccuringOrderID)
         {
             ReoccuringOrderTbl reoccuringOrderById = new ReoccuringOrderDAL().GetByReoccuringOrderByID(pReoccuringOrderID);
             if (reoccuringOrderById == null)

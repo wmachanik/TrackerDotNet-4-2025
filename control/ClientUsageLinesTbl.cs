@@ -20,9 +20,9 @@ namespace TrackerDotNet.control
         private const string CONST_SQL_SELECTSERVICELINES = "SELECT ClientUsageLineNo, CustomerID, [Date] AS LineDate, CupCount, ServiceTypeID, Qty, Notes  FROM ClientUsageLinesTbl WHERE ClientUsageLinesTbl.CustomerID = ? AND ClientUsageLinesTbl.ServiceTypeID = ?";
         private const string CONST_SQL_LASTESTUSAGEDATA = "SELECT TOP 1 ClientUsageLineNo, CustomerID, [Date] As LineDate, CupCount, ServiceTypeID, Qty  FROM ClientUsageLinesTbl WHERE CustomerID = ? ";
         private int _ClientUsageLineNo;
-        private int _CustomerID;
+        private long _CustomerID;   //issues with this beiun glong in the 32 bit verion, but have kept it as long for compatibility with other parts of the code
         private DateTime _LineDate;
-        private int _CupCount;
+        private int _CupCount;   // change from long for this implemention
         private int _ServiceTypeID;
         private double _Qty;
         private string _Notes;
@@ -30,9 +30,9 @@ namespace TrackerDotNet.control
         public ClientUsageLinesTbl()
         {
             this._ClientUsageLineNo = 0;
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._LineDate = DateTime.MinValue;
-            this._CupCount = 0L;
+            this._CupCount = 0;
             this._ServiceTypeID = 0;
             this._Qty = 0.0;
             this._Notes = string.Empty;
@@ -44,7 +44,7 @@ namespace TrackerDotNet.control
             set => this._ClientUsageLineNo = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -143,7 +143,7 @@ namespace TrackerDotNet.control
             trackerDb.WhereParams.Add(new DBParameter()
             {
                 DataValue = (object)pCustomerID,
-                DataDbType = DbType.Int64
+                DataDbType = DbType.Int32
             });
             IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT MIN(ClientUsageLinesTbl.[Date]) AS MinDate FROM ClientUsageLinesTbl WHERE ClientUsageLinesTbl.CustomerID = ?");
             if (dataReader != null)
@@ -228,7 +228,7 @@ namespace TrackerDotNet.control
                         CustomerID = pCustomerID,
                         ClientUsageLineNo = dataReader["ClientUsageLineNo"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ClientUsageLineNo"])
                     };
-                    clientUsageLinesTbl.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : (long)Convert.ToInt32(dataReader["CustomerID"]);
+                    clientUsageLinesTbl.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]);
                     clientUsageLinesTbl.LineDate = dataReader["LineDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["LineDate"]).Date;
                     clientUsageLinesTbl.CupCount = dataReader["CupCount"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CupCount"]);
                     clientUsageLinesTbl.ServiceTypeID = dataReader["ServiceTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ServiceTypeID"]);
@@ -262,9 +262,9 @@ namespace TrackerDotNet.control
                         CustomerID = pCustomerID,
                         ClientUsageLineNo = dataReader["ClientUsageLineNo"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ClientUsageLineNo"])
                     };
-                    latestUsageData.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : (long)Convert.ToInt32(dataReader["CustomerID"]);
+                    latestUsageData.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]);
                     latestUsageData.LineDate = dataReader["LineDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["LineDate"]).Date;
-                    latestUsageData.CupCount = dataReader["CupCount"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CupCount"]);
+                    latestUsageData.CupCount = dataReader["CupCount"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CupCount"]);
                     latestUsageData.ServiceTypeID = dataReader["ServiceTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ServiceTypeID"]);
                     latestUsageData.Qty = dataReader["Qty"] == DBNull.Value ? 0.0 : Math.Round(Convert.ToDouble(dataReader["Qty"]), 2);
                 }

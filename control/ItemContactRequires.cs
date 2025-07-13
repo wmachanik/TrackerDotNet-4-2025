@@ -11,7 +11,7 @@ namespace TrackerDotNet.control
     {
         private int _TCIID;
         private int _ItemID;
-        private int _CustomerID;
+        private long _CustomerID;
         private double _ItemQty;
         private int _ItemPrepID;
         private int _ItemPackagID;
@@ -21,13 +21,13 @@ namespace TrackerDotNet.control
 
         public ItemContactRequires()
         {
-            this._TCIID = 0L;
+            this._TCIID = 0;
             this._ItemID = 0;
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._ItemQty = 0.0;
             this._ItemPrepID = this._ItemPackagID = 0;
             this._AutoFulfill = this._ReoccurOrder = false;
-            this._ReoccurID = 0L;
+            this._ReoccurID = 0;
         }
 
         public int TCIID
@@ -42,7 +42,7 @@ namespace TrackerDotNet.control
             set => this._ItemID = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;

@@ -1,12 +1,13 @@
-﻿<%@ Page Title="QOnt Ssytem Tools" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" 
-  CodeBehind="SystemTools.aspx.cs" Inherits="TrackerDotNet.Tools.SystemTools" %>
+﻿<%@ Page Title="System Tools" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" 
+  CodeBehind="SystemTools.aspx.cs" Inherits="TrackerDotNet.Tools.SystemTools" MaintainScrollPositionOnPostback="true" %>
+
   <asp:Content ID="cntSystemToolsHdr" ContentPlaceHolderID="HeadContent" runat="server">
   </asp:Content>
   <asp:Content ID="cntSystemToolsBdy" ContentPlaceHolderID="MainContent" runat="server">
   <h1>General System Tools</h1>
   <br />
-  <asp:ScriptManager ID="tsmSystemTools" runat="server"></asp:ScriptManager>
-    <asp:UpdateProgress ID="uprgSystemTools" runat="server" AssociatedUpdatePanelID="upnlSystemToolsButtons" EnableViewState="true" Visible="true" >
+  <asp:ScriptManager ID="tsmSystemTools" runat="server"  />
+   <asp:UpdateProgress ID="uprgSystemTools" runat="server" AssociatedUpdatePanelID="upnlSystemToolsButtons" EnableViewState="true" Visible="true" >
       <ProgressTemplate>
         <img src="../images/animi/BlueArrowsUpdate.gif" alt="updating" width="16" height="16" />updating.....
       </ProgressTemplate>
@@ -40,7 +41,7 @@
       <br />
       <asp:Literal ID="ltrlStatus" Text="" runat="server" Visible="false" />
       <br /><br />
-      <asp:Panel ID="pnlSetClinetType" runat="server" Visible="false">
+      <asp:Panel ID="pnlSetClientType" runat="server" Visible="false">
         <table class="TblWhite" width="100%">
           <tr valign="top">
             <td>

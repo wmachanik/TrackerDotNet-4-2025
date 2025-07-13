@@ -72,7 +72,7 @@ namespace TrackerDotNet.classes
             set => new TrackerTools().SetTrackerSessionErrorString(value);
         }
 
-        private object ConvertToOleDbValue(DbType dbType, object value)
+        private object PrepareValueForOleDb(DbType dbType, object value)
         {
             if (value == null || value == DBNull.Value)
                 return DBNull.Value;
@@ -82,10 +82,15 @@ namespace TrackerDotNet.classes
                 switch (dbType)
                 {
                     case DbType.Date:
-                    case DbType.DateTime:
-                        if (value is DateTime dt)
-                            return dt.Date;
                         return Convert.ToDateTime(value).Date;
+
+                    case DbType.DateTime:
+                        DateTime dtVal;
+                        if (value is DateTime)
+                            dtVal = (DateTime)value;
+                        else
+                            dtVal = Convert.ToDateTime(value);
+                        return dtVal.ToString("MM/dd/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
 
                     case DbType.Int16:
                         return Convert.ToInt16(value);
@@ -94,10 +99,16 @@ namespace TrackerDotNet.classes
                         return Convert.ToInt32(value);
 
                     case DbType.Int64:
-                        return Convert.ToInt64(value);
+                        long longVal = Convert.ToInt64(value);
+                        if (longVal <= int.MaxValue && longVal >= int.MinValue)
+                        {
+                            return (int)longVal;
+                        }
+                        return DBNull.Value;
 
                     case DbType.Decimal:
                     case DbType.Currency:
+                    case DbType.VarNumeric:
                         return Convert.ToDecimal(value);
 
                     case DbType.Double:
@@ -113,15 +124,17 @@ namespace TrackerDotNet.classes
                     case DbType.AnsiString:
                     case DbType.AnsiStringFixedLength:
                     case DbType.StringFixedLength:
+                    case DbType.Xml:
                         string strVal = Convert.ToString(value);
                         if (string.IsNullOrWhiteSpace(strVal))
                             return DBNull.Value;
-                        else
-                            return strVal;
-
+                        return strVal;
 
                     case DbType.Guid:
-                        return (value is Guid) ? value : Guid.Parse(value.ToString());
+                        Guid guidResult;
+                        if (Guid.TryParse(value.ToString(), out guidResult))
+                            return guidResult;
+                        return DBNull.Value;
 
                     case DbType.Byte:
                         return Convert.ToByte(value);
@@ -132,16 +145,116 @@ namespace TrackerDotNet.classes
                         else
                             return DBNull.Value;
 
-
                     default:
                         return value;
                 }
             }
             catch
             {
-                return DBNull.Value; // fallback to avoid crashing
+                return DBNull.Value;
             }
         }
+        private OleDbParameter BuildOleDbParameter(DBParameter param)
+        {
+            OleDbParameter oleParam = new OleDbParameter();
+
+            oleParam.Value = PrepareValueForOleDb(param.DataDbType, param.DataValue);
+
+            if (param.ParamName != null && !param.ParamName.Equals("?"))
+            {
+                oleParam.ParameterName = param.ParamName;
+                oleParam.DbType = param.DataDbType;
+            }
+            else
+            {
+                oleParam.OleDbType = ConvertToOleDbType(param.DataDbType);
+            }
+
+            return oleParam;
+        }
+        //private object ConvertToOleDbValue(DbType dbType, object value)
+        //{
+        //    if (value == null || value == DBNull.Value)
+        //        return DBNull.Value;
+
+        //    try
+        //    {
+        //        switch (dbType)
+        //        {
+        //            case DbType.Date:
+        //            case DbType.DateTime:
+        //                if (value is DateTime dt)
+        //                    return dt.Date;
+        //                return Convert.ToDateTime(value).Date;
+
+        //            case DbType.Int16:
+        //                return Convert.ToInt16(value);
+
+        //            case DbType.Int32:
+        //                return Convert.ToInt32(value);
+
+        //            case DbType.Int64:
+        //                long myValue = Convert.ToInt64(value); // your logic
+        //                if (myValue <= int.MaxValue && myValue >= int.MinValue)
+        //                {
+        //                    return (int)myValue;
+        //                }
+        //                else
+        //                {
+        //                    // Log to file, event log, or debugging trace
+        //                    System.Diagnostics.Trace.WriteLine($"Conversion failed: long to int for Access database");
+        //                    return -1; // DBNull.Value;
+        //                }
+
+        //            case DbType.Decimal:
+        //            case DbType.Currency:
+        //                return Convert.ToDecimal(value);
+
+        //            case DbType.Double:
+        //                return Convert.ToDouble(value);
+
+        //            case DbType.Single:
+        //                return Convert.ToSingle(value);
+
+        //            case DbType.Boolean:
+        //                return Convert.ToBoolean(value);
+
+        //            case DbType.String:
+        //            case DbType.AnsiString:
+        //            case DbType.AnsiStringFixedLength:
+        //            case DbType.StringFixedLength:
+        //                string strVal = Convert.ToString(value);
+        //                if (string.IsNullOrWhiteSpace(strVal))
+        //                    return DBNull.Value;
+        //                else
+        //                    return strVal;
+
+
+        //            case DbType.Guid:
+        //                if (Guid.TryParse(value.ToString(), out Guid result))
+        //                    return result;
+        //                else
+        //                    return DBNull.Value;
+
+        //            case DbType.Byte:
+        //                return Convert.ToByte(value);
+
+        //            case DbType.Binary:
+        //                if (value is byte[] bytes)
+        //                    return bytes;
+        //                else
+        //                    return DBNull.Value;
+
+
+        //            default:
+        //                return value;
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        return DBNull.Value; // fallback to avoid crashing
+        //    }
+        //}
 
         private OleDbType ConvertToOleDbType(DbType pDbType)
         {
@@ -175,7 +288,7 @@ namespace TrackerDotNet.classes
                 case DbType.Int32:
                     return OleDbType.Integer;
                 case DbType.Int64:
-                    return OleDbType.BigInt;
+                    return OleDbType.Integer;  // Access32-bit does nto support BigInt, but this is what it should be;
                 case DbType.Object:
                     return OleDbType.IDispatch;
                 case DbType.SByte:
@@ -257,68 +370,34 @@ namespace TrackerDotNet.classes
           List<DBParameter> pWhereParams)
         {
             string str = string.Empty;
-            this._TrackerDbConn.Open();
-            OleDbTransaction transaction = this._TrackerDbConn.BeginTransaction();
-            this._command = new OleDbCommand(strSQL, this._TrackerDbConn, transaction);
-            if (pParams != null)
-            {
-                foreach (DBParameter pParam in pParams)
-                {
-                    //if (pParam.DataDbType == DbType.DateTime)
-                    //    pParam.DataValue = (object)((DateTime)pParam.DataValue).Date;
-                    if (pParam.ParamName.Equals("?"))
-                    {
-                        OleDbParameterCollection parameters = this._command.Parameters;
-                        OleDbParameter oleDbParameter1 = new OleDbParameter();
-                        oleDbParameter1.Value = ConvertToOleDbValue(pParam.DataDbType, pParam.DataValue);
-                        oleDbParameter1.OleDbType = this.ConvertToOleDbType(pParam.DataDbType);
-                        OleDbParameter oleDbParameter2 = oleDbParameter1;
-                        parameters.Add(oleDbParameter2);
-                    }
-                    else
-                    {
-                        OleDbParameterCollection parameters = this._command.Parameters;
-                        OleDbParameter oleDbParameter3 = new OleDbParameter();
-                        oleDbParameter3.Value = ConvertToOleDbValue(pParam.DataDbType, pParam.DataValue);
-                        oleDbParameter3.DbType = pParam.DataDbType;
-                        oleDbParameter3.ParameterName = pParam.ParamName;
-                        OleDbParameter oleDbParameter4 = oleDbParameter3;
-                        parameters.Add(oleDbParameter4);
-                    }
-                }
-            }
-            if (pWhereParams != null)
-            {
-                foreach (DBParameter pWhereParam in pWhereParams)
-                {
-                    if (pWhereParam.ParamName.Equals("?"))
-                    {
-                        OleDbParameterCollection parameters = this._command.Parameters;
-                        OleDbParameter oleDbParameter5 = new OleDbParameter();
-                        oleDbParameter5.Value = ConvertToOleDbValue(pWhereParam.DataDbType, pWhereParam.DataValue);
-                        oleDbParameter5.OleDbType = this.ConvertToOleDbType(pWhereParam.DataDbType);
-                        OleDbParameter oleDbParameter6 = oleDbParameter5;
-                        parameters.Add(oleDbParameter6);
-                    }
-                    else
-                    {
-                        OleDbParameterCollection parameters = this._command.Parameters;
-                        OleDbParameter oleDbParameter7 = new OleDbParameter();
-                        oleDbParameter7.Value = ConvertToOleDbValue(pWhereParam.DataDbType, pWhereParam.DataValue);
-                        oleDbParameter7.DbType = pWhereParam.DataDbType;
-                        oleDbParameter7.ParameterName = pWhereParam.ParamName;
-                        OleDbParameter oleDbParameter8 = oleDbParameter7;
-                        parameters.Add(oleDbParameter8);
-                    }
-                }
-            }
+
             try
             {
+                this._TrackerDbConn.Open();
+                OleDbTransaction transaction = this._TrackerDbConn.BeginTransaction();
+                this._command = new OleDbCommand(strSQL, this._TrackerDbConn, transaction);
+
+                if (pParams != null)
+                {
+                    foreach (DBParameter pParam in pParams)
+                    {
+                        this._command.Parameters.Add(BuildOleDbParameter(pParam));
+                    }
+                }
+
+                if (pWhereParams != null)
+                {
+                    foreach (DBParameter pWhereParam in pWhereParams)
+                    {
+                        this._command.Parameters.Add(BuildOleDbParameter(pWhereParam));
+                    }
+                }
 
                 for (int i = 0; i < _command.Parameters.Count; i++)
                 {
-                    var param = _command.Parameters[i];
-                    System.Diagnostics.Debug.WriteLine($"Param[{i}]: Value={param.Value}, DbType={param.DbType}, OleDbType={param.OleDbType}");
+                    OleDbParameter param = _command.Parameters[i];
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Param[{i}]: Value={param.Value}, DbType={param.DbType}, OleDbType={param.OleDbType}");
                 }
 
                 this.numRecs = this._command.ExecuteNonQuery();
@@ -326,15 +405,18 @@ namespace TrackerDotNet.classes
             }
             catch (OleDbException ex)
             {
-                transaction.Rollback();
-                str = ex.Message;
-                this.ErrorResult = str;
+                this.ErrorResult = ex.Message;
             }
             finally
             {
+                if (this._command != null)
+                    this._command.Dispose();
+
                 this._TrackerDbConn.Close();
             }
+
             return str;
+
         }
 
         public DataSet ReturnDataSet(string strSQL)
@@ -344,25 +426,24 @@ namespace TrackerDotNet.classes
 
         public DataSet ReturnDataSet(string strSQL, List<DBParameter> pWhereParams)
         {
-            DataSet dataSet = (DataSet)null;
+            DataSet dataSet = null;
+
             try
             {
                 this._TrackerDbConn.Open();
-                dataSet = new DataSet();
                 this._command = new OleDbCommand(strSQL, this._TrackerDbConn);
+
                 if (pWhereParams != null)
                 {
-                    for (int index = 0; index < pWhereParams.Count; ++index)
+                    foreach (DBParameter param in pWhereParams)
                     {
-                        OleDbParameterCollection parameters = this._command.Parameters;
-                        OleDbParameter oleDbParameter1 = new OleDbParameter();
-                        oleDbParameter1.Value = pWhereParams[index].DataValue;
-                        oleDbParameter1.DbType = pWhereParams[index].DataDbType;
-                        OleDbParameter oleDbParameter2 = oleDbParameter1;
-                        parameters.Add(oleDbParameter2);
+                        this._command.Parameters.Add(BuildOleDbParameter(param));
                     }
                 }
-                new OleDbDataAdapter(this._command).Fill(dataSet, "objDataSet");
+
+                dataSet = new DataSet();
+                OleDbDataAdapter adapter = new OleDbDataAdapter(this._command);
+                adapter.Fill(dataSet, "objDataSet");
             }
             catch (OleDbException ex)
             {
@@ -370,9 +451,12 @@ namespace TrackerDotNet.classes
             }
             finally
             {
-                this._command.Dispose();
+                if (this._command != null)
+                    this._command.Dispose();
+
                 this._TrackerDbConn.Close();
             }
+
             return dataSet;
         }
 
@@ -383,6 +467,7 @@ namespace TrackerDotNet.classes
         public IDataReader ExecuteSQLGetDataReader(string strSQL, List<DBParameter> pWhereParams)
         {
             IDataReader dataReader = null;
+
             try
             {
                 this._TrackerDbConn.Open();
@@ -392,51 +477,48 @@ namespace TrackerDotNet.classes
                 {
                     foreach (DBParameter pWhereParam in pWhereParams)
                     {
-                        var param = new OleDbParameter
-                        {
-                            Value = ConvertParameterForAccess(pWhereParam.DataValue, pWhereParam.DataDbType),
-                            OleDbType = GetOleDbType(pWhereParam.DataDbType)
-                        };
-                        this._command.Parameters.Add(param);
+                        this._command.Parameters.Add(BuildOleDbParameter(pWhereParam));
                     }
                 }
+
                 dataReader = this._command.ExecuteReader();
             }
             catch (OleDbException ex)
             {
                 this.ErrorResult = $"SQL Error: {ex.Message}\nQuery: {strSQL}";
-                // Log parameters for debugging
+
                 foreach (OleDbParameter p in this._command.Parameters)
                 {
                     this.ErrorResult += $"\nParam: {p.Value} ({p.OleDbType})";
                 }
             }
+
             return dataReader;
         }
 
         // Add these helper methods to your TrackerDb class
-        private OleDbType GetOleDbType(DbType dbType)
-        {
-            switch (dbType)
-            {
-                case DbType.DateTime: return OleDbType.DBTimeStamp;
-                case DbType.Int32: return OleDbType.Integer;
-                case DbType.String: return OleDbType.VarChar;
-                default: return OleDbType.VarChar;
-            }
-        }
+        //private OleDbType GetOleDbType(DbType dbType)
+        //{
+        //    switch (dbType)
+        //    {
+        //        case DbType.DateTime: return OleDbType.DBTimeStamp;
+        //        case DbType.Int32: return OleDbType.Integer;
+        //        case DbType.String: return OleDbType.VarChar;
+        //        default: return OleDbType.VarChar;
+        //    }
+        //}
 
-        private object ConvertParameterForAccess(object value, DbType dbType)
-        {
-            if (value == null) return DBNull.Value;
+        //private object ConvertParameterForAccess(object value, DbType dbType)
+        //{
+        //    if (value == null) return DBNull.Value;
 
-            if (dbType == DbType.DateTime)
-            {
-                // Force proper Access date format
-                return ((DateTime)value).ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
-            }
-            return value;
-        }
+        //    if (dbType == DbType.DateTime)
+        //    {
+        //        // Force proper Access date format
+        //        return ((DateTime)value).ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+        //    }
+        //    return value;
+        //}
         /* old one
           public IDataReader ExecuteSQLGetDataReader(string strSQL, List<DBParameter> pWhereParams)
                 {
@@ -474,27 +556,29 @@ namespace TrackerDotNet.classes
 
         public Hashtable ReturnHashTable(string strSQL, List<DBParameter> pWhereParams)
         {
+            OleDbDataReader oleDbDataReader = null;
+            Hashtable hashtable = new Hashtable();
+
             try
             {
                 this._TrackerDbConn.Open();
                 this._command = new OleDbCommand(strSQL, this._TrackerDbConn);
+
                 if (pWhereParams != null)
                 {
                     foreach (DBParameter pWhereParam in pWhereParams)
                     {
-                        OleDbParameterCollection parameters = this._command.Parameters;
-                        OleDbParameter oleDbParameter1 = new OleDbParameter();
-                        oleDbParameter1.Value = pWhereParam.DataValue;
-                        oleDbParameter1.DbType = pWhereParam.DataDbType;
-                        OleDbParameter oleDbParameter2 = oleDbParameter1;
-                        parameters.Add(oleDbParameter2);
+                        this._command.Parameters.Add(BuildOleDbParameter(pWhereParam));
                     }
                 }
-                OleDbDataReader oleDbDataReader = this._command.ExecuteReader();
-                Hashtable hashtable = new Hashtable();
+
+                oleDbDataReader = this._command.ExecuteReader();
                 while (oleDbDataReader.Read())
-                    hashtable.Add((object)oleDbDataReader.GetString(0), (object)oleDbDataReader.GetString(1));
-                return hashtable;
+                {
+                    object key = oleDbDataReader.GetValue(0);
+                    object value = oleDbDataReader.GetValue(1);
+                    hashtable.Add(key, value);
+                }
             }
             catch (OleDbException ex)
             {
@@ -503,10 +587,16 @@ namespace TrackerDotNet.classes
             }
             finally
             {
+                if (oleDbDataReader != null && !oleDbDataReader.IsClosed)
+                    oleDbDataReader.Close();
+
                 this._command.Dispose();
                 this._TrackerDbConn.Close();
             }
+
+            return hashtable;
         }
+
 
         public void Close()
         {

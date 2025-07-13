@@ -84,25 +84,25 @@
             ShowInsertButton="True"  />
           <asp:BoundField DataField="OrderID" HeaderText="OrderID" InsertVisible="False" ReadOnly="True"
             SortExpression="OrderID" Visible="False" />
-          <asp:TemplateField HeaderText="Customer" SortExpression="CustomerId">
+          <asp:TemplateField HeaderText="Customer" SortExpression="CustomerID">
             <EditItemTemplate>
               <asp:DropDownList ID="ddlCustomer" runat="server" DataSourceID="odsCompanyNames"
                 DataTextField="NameAndDetails" DataValueField="CustomerID" AppendDataBoundItems="true"
-                SelectedValue='<%# Bind("CustomerId") %>' Font-Size="Small" >
+                SelectedValue='<%# Bind("CustomerID") %>' Font-Size="Small" >
                 <asp:ListItem Selected="True" Text="---Please select a Company---" Value="" />
               </asp:DropDownList>
             </EditItemTemplate>
             <InsertItemTemplate>
               <asp:DropDownList ID="ddlCustomer" runat="server" DataSourceID="odsCompanyNames"
                 DataTextField="NameAndDetails" DataValueField="CustomerID" AppendDataBoundItems="true"
-                SelectedValue='<%# Bind("CustomerId") %>' Font-Size="Small">
+                SelectedValue='<%# Bind("CustomerID") %>' Font-Size="Small">
                 <asp:ListItem Selected="True" Text="---Please select a Company---" Value="" />
               </asp:DropDownList>
             </InsertItemTemplate>
             <ItemTemplate>
               <asp:DropDownList ID="ddlCustomer" runat="server" DataSourceID="odsCompanyNames"
                 DataTextField="CompanyName" DataValueField="CustomerID"  Enabled="false"
-                SelectedValue='<%# Bind("CustomerId") %>' Font-Size="Small">
+                SelectedValue='<%# Bind("CustomerID") %>' Font-Size="Small">
               </asp:DropDownList>
             </ItemTemplate>
           </asp:TemplateField>
@@ -247,7 +247,7 @@
         TypeName="TrackerDotNet.DataSets.OrdersDataSetTableAdapters.OrdersTableAdapter"
         UpdateMethod="UpdateByOrderID">
         <InsertParameters>
-          <asp:Parameter Name="CustomerId" Type="Int32" />
+          <asp:Parameter Name="CustomerID" Type="Int32" />
           <asp:Parameter Name="OrderDate" Type="DateTime" />
           <asp:Parameter Name="RoastDate" Type="DateTime" />
           <asp:Parameter Name="ItemTypeID" Type="Int32" />
@@ -263,7 +263,7 @@
             Name="OrderID" PropertyName="SelectedValue" Type="Int32" />
         </SelectParameters>
         <UpdateParameters>
-          <asp:Parameter Name="CustomerId" Type="Int32" />
+          <asp:Parameter Name="CustomerID" Type="Int32" />
           <asp:Parameter Name="OrderDate" Type="DateTime" />
           <asp:Parameter Name="RoastDate" Type="DateTime" />
           <asp:Parameter Name="ItemTypeID" Type="Int32" />
@@ -317,7 +317,7 @@
             <EditItemTemplate>
               <asp:DropDownList ID="ddlCustomer" runat="server" DataSourceID="odsCompanyNames"
                 DataTextField="NameAndDetails" DataValueField="CustomerID" Width="20em" 
-                SelectedValue='<%# Bind("CustomerId") %>' Font-Size="Small" AppendDataBoundItems="true" >
+                SelectedValue='<%# Bind("CustomerID") %>' Font-Size="Small" AppendDataBoundItems="true" >
                 <asp:ListItem Selected="True" Text="---Please select a Company---" Value="" />
               </asp:DropDownList>
             </EditItemTemplate>
@@ -330,7 +330,7 @@
             <ItemTemplate>
 <!--              <asp:Label ID="lblCompany" runat="server" Text='<%# Eval("CompanyName") %>'></asp:Label>   -->
               <asp:HyperLink ID="hlCompany" runat="server" 
-                NavigateUrl='<%# Eval("CustomerId", "CustomerDetails.aspx?ID={0}") %>' 
+                NavigateUrl='<%# Eval("CustomerID", "CustomerDetails.aspx?ID={0}") %>' 
                 Text='<%# Eval("CompanyName") %>'></asp:HyperLink>
             </ItemTemplate>
           </asp:TemplateField>
@@ -448,7 +448,7 @@
         TypeName="TrackerDotNet.DataSets.OrdersDataSetTableAdapters.OrdersTableAdapter" UpdateMethod="UpdateByOrderID"
         OnSelecting="odsOrdersTbl_Selecting"  MaximumRowsParameterName="\*32">
         <UpdateParameters>
-          <asp:Parameter Name="CustomerId" Type="Int32" />
+          <asp:Parameter Name="CustomerID" Type="Int32" />
           <asp:Parameter Name="OrderDate" Type="DateTime" />
           <asp:Parameter Name="RoastDate" Type="DateTime" />
           <asp:Parameter Name="ItemTypeID" Type="Int32" />

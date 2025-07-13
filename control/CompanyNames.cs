@@ -18,18 +18,18 @@ namespace TrackerDotNet.control
         private const string CONST_SQL_SELECT = "SELECT [CustomerID], [CompanyName], [enabled] FROM [CustomersTbl] ORDER BY [enabled], [CompanyName]";
         private const string CONST_SQL_SELECTDEMOS = "SELECT [CustomerID], [CompanyName], [enabled] FROM [CustomersTbl] WHERE [CompanyName] LIKE 'DEMO%' ORDER BY [enabled], [CompanyName]";
         private const string CONST_SQL_CUSTOMERNAME_SELECT = "SELECT CompanyName FROM CustomersTbl WHERE (CustomerID = ?)";
-        private int _CustomerID;
+        private long _CustomerID;
         private string _CompanyName;
         private bool _enabled;
 
         public CompanyNames()
         {
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._CompanyName = string.Empty;
             this._enabled = false;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;

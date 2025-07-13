@@ -15,29 +15,29 @@ namespace TrackerDotNet.control
     public class OrderItemTbl
     {
         private const string CONST_ORDERSLINES_SELECT = "SELECT ItemTypeID, QuantityOrdered, PrepTypeID FROM OrdersTbl WHERE ";
-        private const string CONST_ORDERSSUMMARY_SELECT = "SELECT CustomerId, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredBy, Confirmed, Done, InvoiceDone, PurchaseOrder, Notes  FROM OrdersTbl WHERE ";
+        private const string CONST_ORDERSSUMMARY_SELECT = "SELECT CustomerID, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredBy, Confirmed, Done, InvoiceDone, PurchaseOrder, Notes  FROM OrdersTbl WHERE ";
 
         public List<OrderHeaderData> LoadOrderSummary(
-          long CustomerId,
+          long CustomerID,
           DateTime DeliveryDate,
           string Notes,
           int MaximumRows,
           int StartRowIndex)
         {
             List<OrderHeaderData> orderHeaderDataList = new List<OrderHeaderData>();
-            string str1 = "SELECT CustomerId, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredBy, Confirmed, Done, InvoiceDone, PurchaseOrder, Notes  FROM OrdersTbl WHERE ";
+            string str1 = "SELECT CustomerID, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredBy, Confirmed, Done, InvoiceDone, PurchaseOrder, Notes  FROM OrdersTbl WHERE ";
             TrackerDb trackerDb = new TrackerDb();
             string strSQL;
-            if (CustomerId == 9L)
+            if (CustomerID == 9L)
             {
-                strSQL = str1 + "([CustomerId] = 9) AND ([RequiredByDate] = ?) AND ([Notes] = ?)";
+                strSQL = str1 + "([CustomerID] = 9) AND ([RequiredByDate] = ?) AND ([Notes] = ?)";
                 trackerDb.AddWhereParams((object)DeliveryDate, DbType.Date, "@RequiredByDate");
                 trackerDb.AddWhereParams((object)Notes, DbType.String, "@Notes");
             }
             else
             {
-                strSQL = str1 + "([CustomerId] = ?) AND ([RequiredByDate] = ?)";
-                trackerDb.AddWhereParams((object)CustomerId, DbType.Int64, "@CustomerId");
+                strSQL = str1 + "([CustomerID] = ?) AND ([RequiredByDate] = ?)";
+                trackerDb.AddWhereParams((object)CustomerID, DbType.Int64, "@CustomerID");
                 trackerDb.AddWhereParams((object)DeliveryDate, DbType.Date, "@RequiredByDate");
             }
             IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader(strSQL);
@@ -49,11 +49,11 @@ namespace TrackerDotNet.control
                     {
                         orderHeaderDataList.Add(new OrderHeaderData()
                         {
-                            CustomerID = Convert.ToInt32(dataReader[nameof(CustomerId)]),
+                            CustomerID = Convert.ToInt32(dataReader[nameof(CustomerID)]),
                             OrderDate = (DateTime)dataReader["OrderDate"],
                             RoastDate = (DateTime)dataReader["RoastDate"],
                             RequiredByDate = (DateTime)dataReader["RequiredByDate"],
-                            ToBeDeliveredBy = dataReader["ToBeDeliveredBy"] == DBNull.Value ? 3L : (long)(int)dataReader["ToBeDeliveredBy"],
+                            ToBeDeliveredBy = dataReader["ToBeDeliveredBy"] == DBNull.Value ? 3 : (int)dataReader["ToBeDeliveredBy"],
                             Confirmed = dataReader["Confirmed"] != DBNull.Value && (bool)dataReader["Confirmed"],
                             Done = dataReader["Done"] != DBNull.Value && (bool)dataReader["Done"],
                             InvoiceDone = dataReader["InvoiceDone"] != DBNull.Value && (bool)dataReader["InvoiceDone"],
@@ -63,7 +63,7 @@ namespace TrackerDotNet.control
                     }
                     else
                     {
-                        long int64 = Convert.ToInt32(dataReader[nameof(CustomerId)].ToString());
+                        long int64 = Convert.ToInt32(dataReader[nameof(CustomerID)].ToString());
                         if (orderHeaderDataList[0].CustomerID.Equals(int64))
                         {
                             string str2 = dataReader[nameof(Notes)] == DBNull.Value ? "" : (string)dataReader[nameof(Notes)];
@@ -82,7 +82,7 @@ namespace TrackerDotNet.control
         }
 
         public bool UpdateOrderDetails(
-          long CustomerId,
+          long CustomerID,
           DateTime OrderDate,
           DateTime RoastDate,
           int ToBeDeliveredBy,
@@ -92,13 +92,13 @@ namespace TrackerDotNet.control
           bool InvoiceDone,
           string PurchaseOrder,
           string Notes,
-          long OriginalCustomerId,
+          long OriginalCustomerID,
           DateTime OriginalDeliveryDate,
           string OriginalNotes)
         {
-            string str = "UPDATE OrdersTbl SET CustomerId = ?, OrderDate= ?, RoastDate= ?, ToBeDeliveredBy= ?, RequiredByDate = ?, Confirmed= ?, Done= ?, InvoiceDone = ?, PurchaseOrder = ?, Notes = ? WHERE ";
+            string str = "UPDATE OrdersTbl SET CustomerID = ?, OrderDate= ?, RoastDate= ?, ToBeDeliveredBy= ?, RequiredByDate = ?, Confirmed= ?, Done= ?, InvoiceDone = ?, PurchaseOrder = ?, Notes = ? WHERE ";
             TrackerDb trackerDb = new TrackerDb();
-            trackerDb.AddParams((object)CustomerId, DbType.Int64, "@CustomerID");
+            trackerDb.AddParams((object)CustomerID, DbType.Int64, "@CustomerID");
             trackerDb.AddParams((object)OrderDate, DbType.Date, "@OrderDate");
             trackerDb.AddParams((object)RoastDate, DbType.Date, "@RoastDate");
             trackerDb.AddParams((object)ToBeDeliveredBy, DbType.Int32, "@ToBeDeliveredBy");
@@ -109,15 +109,15 @@ namespace TrackerDotNet.control
             trackerDb.AddParams((object)PurchaseOrder, DbType.String, "@PurchaseOrder");
             trackerDb.AddParams((object)Notes, DbType.String, "@Notes");
             string strSQL;
-            if (OriginalCustomerId == 9L)
+            if (OriginalCustomerID == 9L)
             {
-                strSQL = str + "([CustomerId] = 9) AND ([RequiredByDate] = ?) AND ([Notes] = ?)";
+                strSQL = str + "([CustomerID] = 9) AND ([RequiredByDate] = ?) AND ([Notes] = ?)";
                 trackerDb.AddWhereParams((object)OriginalDeliveryDate, DbType.Date, "@RequiredByDate");
                 trackerDb.AddWhereParams((object)OriginalNotes, DbType.String, "@Notes");
             }
             else
             {
-                strSQL = $"{str}([CustomerId] = {OriginalCustomerId.ToString()}) AND ([RequiredByDate] = ?)";
+                strSQL = $"{str}([CustomerID] = {OriginalCustomerID.ToString()}) AND ([RequiredByDate] = ?)";
                 trackerDb.AddWhereParams((object)OriginalDeliveryDate, DbType.Date, "@RequiredByDate");
             }
             bool flag = string.IsNullOrEmpty(trackerDb.ExecuteNonQuerySQL(strSQL));

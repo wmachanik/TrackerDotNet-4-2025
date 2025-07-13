@@ -15,7 +15,7 @@ namespace TrackerDotNet.control
     public class OrderDetailDAL
     {
         public List<OrderDetailData> LoadOrderDetailData(
-          long CustomerId,
+          long CustomerID,
           DateTime DeliveryDate,
           string Notes,
           int MaximumRows,
@@ -25,16 +25,16 @@ namespace TrackerDotNet.control
             TrackerDb trackerDb = new TrackerDb();
             string str = "SELECT [ItemTypeID], [QuantityOrdered], [PackagingID], [OrderID] FROM [OrdersTbl] WHERE ";
             string strSQL;
-            if (CustomerId == 9L)
+            if (CustomerID == 9L)
             {
-                strSQL = str + "([CustomerId] = 9) AND ([RequiredByDate] = ?) AND ([Notes] = ?)";
+                strSQL = str + "([CustomerID] = 9) AND ([RequiredByDate] = ?) AND ([Notes] = ?)";
                 trackerDb.AddWhereParams((object)DeliveryDate, DbType.Date, "@RequiredByDate");
                 trackerDb.AddWhereParams((object)Notes, DbType.String, "@Notes");
             }
             else
             {
-                strSQL = str + "([CustomerId] = ?) AND ([RequiredByDate] = ?)";
-                trackerDb.AddWhereParams((object)CustomerId, DbType.Int64, "@CustomerId");
+                strSQL = str + "([CustomerID] = ?) AND ([RequiredByDate] = ?)";
+                trackerDb.AddWhereParams((object)CustomerID, DbType.Int64, "@CustomerID");
                 trackerDb.AddWhereParams((object)DeliveryDate, DbType.Date, "@RequiredByDate");
             }
             IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader(strSQL);
@@ -45,7 +45,7 @@ namespace TrackerDotNet.control
                     {
                         ItemTypeID = dataReader["ItemTypeID"] == DBNull.Value ? 0 : (int)dataReader["ItemTypeID"],
                         PackagingID = dataReader["PackagingID"] == DBNull.Value ? 0 : (int)dataReader["PackagingID"],
-                        OrderID = (long)(int)dataReader["OrderId"],
+                        OrderID = dataReader["OrderId"] == DBNull.Value ? 0 : (int)dataReader["OrderId"],
                         QuantityOrdered = dataReader["QuantityOrdered"] == DBNull.Value ? 1.0 : Math.Round(Convert.ToDouble(dataReader["QuantityOrdered"]), 2)
                     });
                 dataReader.Close();
@@ -87,7 +87,7 @@ namespace TrackerDotNet.control
           int PackagingID,
           int ItemTypeID)
         {
-            string strSQL = "INSERT INTO OrdersTbl (CustomerId, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredBy, Confirmed, Done, Notes,  ItemTypeID, QuantityOrdered, PackagingID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            string strSQL = "INSERT INTO OrdersTbl (CustomerID, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredBy, Confirmed, Done, Notes,  ItemTypeID, QuantityOrdered, PackagingID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             ItemTypeID = new TrackerTools().ChangeItemIfGroupToNextItemInGroup(CustomerID, ItemTypeID, RequiredByDate);
             TrackerDb trackerDb = new TrackerDb();
             trackerDb.AddParams((object)CustomerID, DbType.Int64, "@CustomerID");

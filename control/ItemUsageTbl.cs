@@ -22,7 +22,7 @@ namespace TrackerDotNet.control
         private const string CONST_SQL_INSERT = "INSERT INTO ItemUsageTbl (CustomerID, [Date], ItemProvided, AmountProvided, PrepTypeID, PackagingID, Notes) VALUES (?, ?, ?, ?, ?, ?, ?)";
         private const string CONST_SQL_DELETELINE = "DELETE FROM ItemUsageTbl WHERE ClientUsageLineNo = ? ";
         private int _ClientUsageLineNo;
-        private int _CustomerID;
+        private long _CustomerID;
         private DateTime _ItemDate;
         private int _ItemProvidedID;
         private double _AmountProvided;
@@ -32,8 +32,8 @@ namespace TrackerDotNet.control
 
         public ItemUsageTbl()
         {
-            this._ClientUsageLineNo = 0L;
-            this._CustomerID = 0L;
+            this._ClientUsageLineNo = 0;
+            this._CustomerID = 0;
             this._ItemDate = DateTime.MinValue;
             this._ItemProvidedID = 0;
             this._AmountProvided = 0.0;
@@ -48,7 +48,7 @@ namespace TrackerDotNet.control
             set => this._ClientUsageLineNo = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -104,8 +104,8 @@ namespace TrackerDotNet.control
                 while (dataReader.Read())
                     allItemsUsed.Add(new ItemUsageTbl()
                     {
-                        ClientUsageLineNo = dataReader["ClientUsageLineNo"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["ClientUsageLineNo"]),
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : (long)Convert.ToInt32(dataReader["CustomerID"]),
+                        ClientUsageLineNo = dataReader["ClientUsageLineNo"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ClientUsageLineNo"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         ItemDate = dataReader["ItemDate"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["ItemDate"]).Date,
                         ItemProvidedID = dataReader["ItemProvided"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemProvided"]),
                         AmountProvided = dataReader["AmountProvided"] == DBNull.Value ? 0.0 : Convert.ToDouble(dataReader["AmountProvided"]),
@@ -204,7 +204,7 @@ namespace TrackerDotNet.control
           int PrepTypeID,
           int PackagingID,
           string Notes,
-          long original_ClientUsageLineNo)
+          int original_ClientUsageLineNo)   // may need to be long for compatibility once we move to 64-bit database
         {
             return this.UpdateItemsUsed(new ItemUsageTbl()
             {

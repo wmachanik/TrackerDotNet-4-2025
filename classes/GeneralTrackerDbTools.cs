@@ -149,7 +149,7 @@ namespace TrackerDotNet.classes
                 int int32 = Convert.ToInt32((DateTime.Now.Date - this.RemoveHolidayPeriodFromDate(pCustomerID, pClientUsageData.UsageDate, 2).Date).TotalDays);
                 a = !pIsCoffee || pClientUsageData.LastQty == 0.0 ? (double)pClientUsageData.LastCount + (double)int32 * aveConsumption : (double)pClientUsageData.LastCount + pClientUsageData.LastQty * 100.0;
             }
-            return (long)Convert.ToInt32(Math.Round(a));
+            return Convert.ToInt32(Math.Round(a));
         }
 
         public int CoffeeCupsLeft(
@@ -166,7 +166,7 @@ namespace TrackerDotNet.classes
           int pTypicalPerKg)
         {
             GeneralTrackerDbTools.LineUsageData latestUsageData = this.GetLatestUsageData(pCustomerID, pServiceTypeID);
-            long num = (long)Math.Round(latestUsageData.LastQty * (double)pTypicalPerKg);
+            int num = (int)Math.Round(latestUsageData.LastQty * (double)pTypicalPerKg);
             if (latestUsageData.LastCount > pCoffeeUsageData.LastCount)
                 num -= latestUsageData.LastCount - pCoffeeUsageData.LastCount;
             return num;
@@ -321,7 +321,7 @@ namespace TrackerDotNet.classes
             return !new ClientUsageTbl().UsageDataExists(pCustomerID) ? this.InsertClientUsageTable(pCustomerID, pClientServiceItems) : this.UpdateClientUsageTable(pCustomerID, pClientServiceItems);
         }
 
-        public bool UpdatePredictions(long pCustomerID, long pLastCount)
+        public bool UpdatePredictions(int pCustomerID, int pLastCount)
         {
             bool flag = false;
             DateTime installDate = this.GetInstallDate(pCustomerID);
@@ -372,7 +372,7 @@ namespace TrackerDotNet.classes
 
             public LineUsageData()
             {
-                this._LastCount = 0L;
+                this._LastCount = 0;
                 this._LastQty = 0.0;
                 this._UsageDate = DateTime.MinValue;
             }

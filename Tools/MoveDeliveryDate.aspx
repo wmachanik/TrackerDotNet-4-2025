@@ -1,9 +1,8 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MoveDeliveryDate.aspx.cs" Inherits="TrackerDotNet.Tools.MoveDeliveryDate" %>
+﻿<%@ Page Title="Move Delivery Date" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MoveDeliveryDate.aspx.cs" Inherits="TrackerDotNet.Tools.MoveDeliveryDate" %>
 <asp:Content ID="cntMoveDeliveryDateHdr" ContentPlaceHolderID="HeadContent" runat="server">
 </asp:Content>
 <asp:Content ID="cntMoveDeliveryDateBdy" ContentPlaceHolderID="MainContent" runat="server">
-  <h1>Move Delivery Date
-  </h1>
+  <h1></h1>
 
 
   <asp:ScriptManager ID="smgrMoveDeliveryDate"  runat="server" />

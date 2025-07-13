@@ -73,7 +73,7 @@ namespace TrackerDotNet.classes
         public const double CONST_TYPICALCLEAN_CONSUMPTION = 200.0;
         public const double CONST_TYPICALDECAL_CONSUMPTION = 500.0;
         public const double CONST_TYPICALFILTER_CONSUMPTION = 300.0;
-        public const int CONST_DEFAULT_PreferredDeliveryByID = 3;
+        public const int CONST_DEFAULT_DELIVERYBYID = 3;
         public const string CONST_DEFAULT_DELIVERYBYABBREVIATION = "SQ";
         public const int CONST_DEFAULT_DELIVERYIDOFCOURIER = 7;
         public const string CONST_DEFAULT_DELIVERYBYCOURIERABBREVIATION = "Cour";
@@ -339,7 +339,7 @@ namespace TrackerDotNet.classes
 
         public class ContactPreferedItems
         {
-            private int _CustID;
+            private long _CustID;
             private int _PreferredDeliveryByID;
             private int _PreferedItem;
             private double _PreferedQty;
@@ -356,7 +356,7 @@ namespace TrackerDotNet.classes
                 this._PrefPackagingID = -1;
             }
 
-            public int CustID
+            public long CustID
             {
                 get => this._CustID;
                 set => this._CustID = value;

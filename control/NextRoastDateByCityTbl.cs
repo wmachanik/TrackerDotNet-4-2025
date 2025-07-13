@@ -14,7 +14,7 @@ namespace TrackerDotNet.control
 {
     public class NextRoastDateByCityTbl
     {
-        private const string CONST_SELECTBYCUSTOMERID = "SELECT NextRoastDateByCityTbl.CityID,  NextRoastDateByCityTbl.PreperationDate, NextRoastDateByCityTbl.DeliveryDate, NextRoastDateByCityTbl.DeliveryOrder,  NextRoastDateByCityTbl.NextPreperationDate,  NextRoastDateByCityTbl.NextDeliveryDate  FROM  (NextRoastDateByCityTbl RIGHT OUTER JOIN CustomersTbl ON NextRoastDateByCityTbl.CityID = CustomersTbl.City)  WHERE (CustomersTbl.CustomerID = ?) ";
+        private const string CONST_SELECTBYCustomerID = "SELECT NextRoastDateByCityTbl.CityID,  NextRoastDateByCityTbl.PreperationDate, NextRoastDateByCityTbl.DeliveryDate, NextRoastDateByCityTbl.DeliveryOrder,  NextRoastDateByCityTbl.NextPreperationDate,  NextRoastDateByCityTbl.NextDeliveryDate  FROM  (NextRoastDateByCityTbl RIGHT OUTER JOIN CustomersTbl ON NextRoastDateByCityTbl.CityID = CustomersTbl.City)  WHERE (CustomersTbl.CustomerID = ?) ";
         private const string CONST_SELECTALL = "SELECT NextRoastDateByCityTbl.CityID, NextRoastDateByCityTbl.PreperationDate, NextRoastDateByCityTbl.DeliveryDate,  NextRoastDateByCityTbl.DeliveryOrder, NextRoastDateByCityTbl.NextPreperationDate, NextRoastDateByCityTbl.NextDeliveryDate  FROM NextRoastDateByCityTbl";
         private const string CONST_SELECTALLDELIVERYDATES = "SELECT DISTINCT DeliveryDate FROM NextRoastDateByCityTbl ORDER BY DeliveryDate ";
         private const string CONST_SELECTIDBYDELIVERYDATES = "SELECT NextRoastDayID FROM NextRoastDateByCityTbl WHERE (DeliveryDate = ?)";
@@ -229,11 +229,11 @@ namespace TrackerDotNet.control
             return str;
         }
 
-        public DateTime GetNextDeliveryDate(long pCustomerId)
+        public DateTime GetNextDeliveryDate(long pCustomerID)
         {
             DateTime nextDeliveryDate = DateTime.MinValue;
             TrackerDb trackerDb = new TrackerDb();
-            trackerDb.AddWhereParams((object)pCustomerId, DbType.Int64);
+            trackerDb.AddWhereParams((object)pCustomerID, DbType.Int64);
             IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT NextRoastDateByCityTbl.DeliveryDate FROM  (CustomersTbl INNER JOIN  NextRoastDateByCityTbl ON CustomersTbl.City = NextRoastDateByCityTbl.CityID) WHERE (CustomersTbl.CustomerID = ?)");
             if (dataReader != null)
             {

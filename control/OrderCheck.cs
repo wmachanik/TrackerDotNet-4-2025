@@ -34,8 +34,8 @@ namespace TrackerDotNet.control
                 while (dataReader.Read())
                 {
                     OrderCheckData orderCheckData = new OrderCheckData();
-                    orderCheckData.OrderID = dataReader["OrderID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["OrderID"]);
-                    orderCheckData.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]);
+                    orderCheckData.OrderID = dataReader["OrderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["OrderID"]);
+                    orderCheckData.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]);
                     orderCheckData.ItemTypeID = dataReader["ItemTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemTypeID"]);
                     orderCheckData.RequiredByDate = dataReader["RequiredByDate"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["RequiredByDate"]).Date;
                     if (similarItemInOrders == null)

@@ -13,7 +13,7 @@ namespace TrackerDotNet.control
     public class ReoccuringOrderTbl
     {
         private int _ReoccuringOrderID;
-        private int _CustomerID;
+        private long _CustomerID;
         private int _ReoccuranceTypeID;
         private int _ReoccuranceValue;
         private int _ItemRequiredID;
@@ -27,8 +27,8 @@ namespace TrackerDotNet.control
 
         public ReoccuringOrderTbl()
         {
-            this._ReoccuringOrderID = 0L;
-            this._CustomerID = 0L;
+            this._ReoccuringOrderID = 0;
+            this._CustomerID = 0;
             this._ReoccuranceTypeID = 0;
             this._ReoccuranceValue = 0;
             this._ItemRequiredID = 0;
@@ -47,7 +47,7 @@ namespace TrackerDotNet.control
             set => this._ReoccuringOrderID = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;

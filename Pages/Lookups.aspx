@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true"
+﻿<%@ Page Title="Lookup Tables" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true"
   CodeBehind="Lookups.aspx.cs" Inherits="TrackerDotNet.Pages.Lookups" MaintainScrollPositionOnPostback="true" %>
 
 <asp:Content ID="cntLookupHdr" ContentPlaceHolderID="HeadContent" runat="server">
@@ -11,10 +11,9 @@
       Please Wait&nbsp;<img src="../images/animi/QuaffeeProgress.gif" alt="Please Wait..." />&nbsp;...
     </ProgressTemplate>
   </asp:UpdateProgress>
-  <h2>
-    Lookup Tables...</h2>
+  <h2>Tables...</h2>
   <asp:Label ID="lblStatus" runat="server" />
-  <ajaxToolkit:TabContainer ID="tabcLookup" runat="server" ActiveTabIndex="5" CssClass="MyTabStyle">
+  <ajaxToolkit:TabContainer ID="tabcLookup" runat="server" ActiveTabIndex="5" CssClass="MyTabStyle" ScrollBars="None" UseVerticalStripPlacement="false">
     <ajaxToolkit:TabPanel runat="server" HeaderText="Items" ID="tabpnlItems">
       <HeaderTemplate>
         Items</HeaderTemplate>

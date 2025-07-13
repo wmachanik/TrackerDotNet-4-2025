@@ -30,7 +30,7 @@ namespace TrackerDotNet.Pages
         private const string CONST_BLUEWATERFILTER = "8ClarBlue";
         private const int CONST_ORDERIDCOL = 4;
         private const int CONST_NOTEITEMTIMEID = 100;
-        public const string CONST_URL_REQUEST_CUSTOMERID = "CoID";
+        public const string CONST_URL_REQUEST_CustomerID = "CoID";
         public const string CONST_URL_REQUEST_NAME = "Name";
         public const string CONST_URL_REQUEST_COMPANYNAME = "CoName";
         public const string CONST_URL_REQUEST_EMAIL = "EMail";
@@ -263,7 +263,7 @@ namespace TrackerDotNet.Pages
 
         private void BindRowQueryParameters()
         {
-            this.Session["BoundCustomerId"] = (object)Convert.ToInt32(this.ddlContacts.SelectedValue);
+            this.Session["BoundCustomerID"] = (object)Convert.ToInt32(this.ddlContacts.SelectedValue);
             this.Session["BoundDeliveryDate"] = (object)Convert.ToDateTime(this.tbxRequiredByDate.Text).Date.Date;
             this.Session["BoundNotes"] = (object)this.tbxNotes.Text;
         }
@@ -380,7 +380,7 @@ namespace TrackerDotNet.Pages
         {
             OrderTblData pOrderData = new OrderTblData();
             OrderTbl orderTbl = new OrderTbl();
-            pOrderData.CustomerId = Convert.ToInt32(this.ddlContacts.SelectedValue);
+            pOrderData.CustomerID = Convert.ToInt32(this.ddlContacts.SelectedValue);
             pOrderData.OrderDate = Convert.ToDateTime(this.tbxOrderDate.Text).Date;
             pOrderData.RoastDate = Convert.ToDateTime(this.tbxRoastDate.Text).Date;
             pOrderData.RequiredByDate = Convert.ToDateTime(this.tbxRequiredByDate.Text).Date;
@@ -392,7 +392,7 @@ namespace TrackerDotNet.Pages
             pOrderData.Notes = this.tbxNotes.Text;
             this.Session["BoundOldDeliveryDate"] = (object)pOrderData.RequiredByDate.Date;
             TrackerTools trackerTools = new TrackerTools();
-            pOrderData.ItemTypeID = trackerTools.ChangeItemIfGroupToNextItemInGroup(pOrderData.CustomerId, pNewItemID, pOrderData.RequiredByDate);
+            pOrderData.ItemTypeID = trackerTools.ChangeItemIfGroupToNextItemInGroup(pOrderData.CustomerID, pNewItemID, pOrderData.RequiredByDate);
             pOrderData.QuantityOrdered = pNewQuantityOrdered;
             pOrderData.PackagingID = pNewPackagingID;
             string str = orderTbl.InsertNewOrderLine(pOrderData);
@@ -538,9 +538,9 @@ namespace TrackerDotNet.Pages
         {
             DateTime date = DateTime.Now.Date;
             TrackerTools trackerTools = new TrackerTools();
-            DateTime dateByCustomerId = trackerTools.GetNextRoastDateByCustomerID(pCustomerID, ref date);
+            DateTime dateByCustomerID = trackerTools.GetNextRoastDateByCustomerID(pCustomerID, ref date);
             TrackerTools.ContactPreferedItems contactPreferedItems = trackerTools.RetrieveCustomerPrefs(pCustomerID);
-            this.tbxRoastDate.Text = $"{dateByCustomerId:d}";
+            this.tbxRoastDate.Text = $"{dateByCustomerID:d}";
             this.tbxRequiredByDate.Text = $"{date:d}";
             int num = new PersonsTbl().IsNormalDeliveryDoW(contactPreferedItems.PreferredDeliveryByID, (int)(date.DayOfWeek + 1)) ? contactPreferedItems.PreferredDeliveryByID : 3;
             if (!num.Equals(contactPreferedItems.PreferredDeliveryByID))

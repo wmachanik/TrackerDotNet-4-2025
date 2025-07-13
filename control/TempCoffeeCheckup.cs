@@ -34,8 +34,8 @@ namespace TrackerDotNet.control
                 while (dataReader.Read())
                     allContacts.Add(new ContactToRemindDetails()
                     {
-                        TCCID = dataReader["TCCID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["TCCID"]),
-                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]),
+                        TCCID = dataReader["TCCID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["TCCID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         CompanyName = dataReader["CompanyName"] == DBNull.Value ? string.Empty : dataReader["CompanyName"].ToString(),
                         ContactFirstName = dataReader["ContactFirstName"] == DBNull.Value ? string.Empty : dataReader["ContactFirstName"].ToString(),
                         ContactAltFirstName = dataReader["ContactAltFirstName"] == DBNull.Value ? string.Empty : dataReader["ContactAltFirstName"].ToString(),
@@ -81,16 +81,16 @@ namespace TrackerDotNet.control
                     {
                         ItemContactRequires itemContactRequires = new ItemContactRequires()
                         {
-                            TCIID = dataReader["TCIID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["TCIID"]),
-                            CustomerID = dataReader[nameof(CustomerID)] == DBNull.Value ? 0L : Convert.ToInt32(dataReader[nameof(CustomerID)]),
+                            TCIID = dataReader["TCIID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["TCIID"]),
+                            CustomerID = dataReader[nameof(CustomerID)] == DBNull.Value ? 0 : Convert.ToInt32(dataReader[nameof(CustomerID)]),
                             ItemID = dataReader["ItemID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemID"]),
                             ItemQty = dataReader["ItemQty"] == DBNull.Value ? 0.0 : Convert.ToDouble(dataReader["ItemQty"]),
                             ItemPrepID = dataReader["ItemPrepID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemPrepID"]),
                             ItemPackagID = dataReader["ItemPackagID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemPackagID"]),
                             AutoFulfill = dataReader["AutoFulfill"] != DBNull.Value && Convert.ToBoolean(dataReader["AutoFulfill"]),
-                            ReoccurID = dataReader["ReoccurOrderID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["ReoccurOrderID"])
+                            ReoccurID = dataReader["ReoccurOrderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ReoccurOrderID"])
                         };
-                        itemContactRequires.ReoccurOrder = itemContactRequires.ReoccurID > 0L;
+                        itemContactRequires.ReoccurOrder = itemContactRequires.ReoccurID > 0;
                         allContactItems.Add(itemContactRequires);
                     }
                     dataReader.Close();
@@ -116,8 +116,8 @@ namespace TrackerDotNet.control
                 while (dataReader.Read())
                 {
                     ContactToRemindWithItems toRemindWithItems = new ContactToRemindWithItems();
-                    toRemindWithItems.TCCID = dataReader["TCCID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["TCCID"]);
-                    toRemindWithItems.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["CustomerID"]);
+                    toRemindWithItems.TCCID = dataReader["TCCID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["TCCID"]);
+                    toRemindWithItems.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]);
                     toRemindWithItems.CompanyName = dataReader["CompanyName"] == DBNull.Value ? string.Empty : dataReader["CompanyName"].ToString();
                     toRemindWithItems.ContactFirstName = dataReader["ContactFirstName"] == DBNull.Value ? string.Empty : dataReader["ContactFirstName"].ToString();
                     toRemindWithItems.ContactAltFirstName = dataReader["ContactAltFirstName"] == DBNull.Value ? string.Empty : dataReader["ContactAltFirstName"].ToString();

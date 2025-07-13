@@ -28,13 +28,13 @@ namespace TrackerDotNet.control
 
         public TempOrdersLinesTbl()
         {
-            this._TOLineID = 0L;
-            this._TOHeaderID = 0L;
+            this._TOLineID = 0;
+            this._TOHeaderID = 0;
             this._ItemID = 0;
             this._ServiceTypeID = 0;
             this._Qty = 0.0;
             this._PackagingID = 0;
-            this._OriginalOrderID = 0L;
+            this._OriginalOrderID = 0;
         }
 
         public int TOLineID
@@ -92,13 +92,13 @@ namespace TrackerDotNet.control
                 while (dataReader.Read())
                     all.Add(new TempOrdersLinesTbl()
                     {
-                        TOLineID = dataReader["TOLineID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["TOLineID"]),
-                        TOHeaderID = dataReader["TOHeaderID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["TOHeaderID"]),
+                        TOLineID = dataReader["TOLineID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["TOLineID"]),
+                        TOHeaderID = dataReader["TOHeaderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["TOHeaderID"]),
                         ItemID = dataReader["ItemID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemID"]),
                         ServiceTypeID = dataReader["ServiceTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ServiceTypeID"]),
                         Qty = dataReader["Qty"] == DBNull.Value ? 0.0 : Convert.ToDouble(dataReader["Qty"]),
                         PackagingID = dataReader["PackagingID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["PackagingID"]),
-                        OriginalOrderID = dataReader["OriginalOrderID"] == DBNull.Value ? 0L : Convert.ToInt32(dataReader["OriginalOrderID"])
+                        OriginalOrderID = dataReader["OriginalOrderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["OriginalOrderID"])
                     });
                 dataReader.Close();
             }

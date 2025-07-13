@@ -17,7 +17,7 @@ namespace TrackerDotNet.control
         public OrderDetailData()
         {
             this._otItemTypeID = 0;
-            this._otOrderID = 0L;
+            this._otOrderID = 0;
             this._otPackagingID = 0;
             this._otQuantityOrdered = 0.0;
         }

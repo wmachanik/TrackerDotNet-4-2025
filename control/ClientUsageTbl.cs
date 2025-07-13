@@ -20,7 +20,7 @@ namespace TrackerDotNet.control
         private const string CONST_SQL_SELECTDAILYCONSUMPTION = "SELECT TOP 1 DailyConsumption FROM ClientUsageTbl WHERE CustomerID = ?";
         private const string CONST_SQL_UPDATE = "UPDATE ClientUsageTbl SET LastCupCount = ?, NextCoffeeBy= ?, NextCleanOn= ?, NextFilterEst= ?, NextDescaleEst= ?, NextServiceEst= ?,DailyConsumption= ?, CleanAveCount = ?, FilterAveCount = ?, DescaleAveCount = ?, ServiceAveCount = ?  WHERE CustomerID = ?";
         private const string CONST_SQL_FORCENEXCOFFEETBY = "UPDATE ClientUsageTbl SET NextCoffeeBy = ? WHERE CustomerID = ?";
-        private int _CustomerID;
+        private long _CustomerID;
         private int _LastCupCount;
         private DateTime _NextCoffeeBy;
         private DateTime _NextCleanOn;
@@ -35,8 +35,8 @@ namespace TrackerDotNet.control
 
         public ClientUsageTbl()
         {
-            this._CustomerID = 0L;
-            this._LastCupCount = 0L;
+            this._CustomerID = 0;
+            this._LastCupCount = 0;
             this._NextCoffeeBy = DateTime.Now.Date;
             this._NextCleanOn = DateTime.Now.Date;
             this._NextFilterEst = DateTime.Now.Date;
@@ -49,7 +49,7 @@ namespace TrackerDotNet.control
             this._CleanAveCount = 0.0;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;
@@ -132,7 +132,7 @@ namespace TrackerDotNet.control
                 if (dataReader.Read())
                 {
                     usageData.CustomerID = pCustomerID;
-                    usageData.LastCupCount = dataReader["LastCupCount"] == DBNull.Value ? 0L : (long)Convert.ToInt32(dataReader["LastCupCount"]);
+                    usageData.LastCupCount = dataReader["LastCupCount"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["LastCupCount"]);
                     usageData.NextCoffeeBy = dataReader["NextCoffeeBy"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["NextCoffeeBy"]).Date;
                     usageData.NextCleanOn = dataReader["NextCleanOn"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["NextCleanOn"]).Date;
                     usageData.NextFilterEst = dataReader["NextFilterEst"] == DBNull.Value ? DateTime.Now.Date : Convert.ToDateTime(dataReader["NextFilterEst"]).Date;

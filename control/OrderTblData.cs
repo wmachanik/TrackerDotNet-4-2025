@@ -12,7 +12,7 @@ namespace TrackerDotNet.control
     public class OrderTblData
     {
         private int _OrderID;
-        private int _CustomerId;
+        private long _CustomerID;
         private DateTime _OrderDate;
         private DateTime _RoastDate;
         private int _ToBeDeliveredBy;
@@ -30,8 +30,8 @@ namespace TrackerDotNet.control
 
         public OrderTblData()
         {
-            this._OrderID = 0L;
-            this._CustomerId = 0L;
+            this._OrderID = 0;
+            this._CustomerID = 0;
             this._OrderDate = DateTime.MinValue;
             this._RoastDate = DateTime.MinValue;
             this._ToBeDeliveredBy = 0;
@@ -51,10 +51,10 @@ namespace TrackerDotNet.control
             set => this._OrderID = value;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
-            get => this._CustomerId;
-            set => this._CustomerId = value;
+            get => this._CustomerID;
+            set => this._CustomerID = value;
         }
 
         public DateTime OrderDate

@@ -17,7 +17,7 @@ namespace TrackerDotNet.control
         private const string CONST_SQL_SELECT = "SELECT CustomerID, CompanyName, CustomerTypeID, enabled, PredictionDisabled FROM CustomersTbl";
         private const string CONST_SQL_UPDATE = "UPDATE CustomersTbl SET CustomerTypeID = ?, PredictionDisabled = ? WHERE CustomerID = ?";
         private const string CONST_SQL_UPDATETYPEONLY = "UPDATE CustomersTbl SET CustomerTypeID = ? WHERE CustomerID = ? AND CustomerTypeID = ?";
-        private int _CustomerID;
+        private long _CustomerID;
         private string _CompanyName;
         private int _CustomerTypeID;
         private bool _IsEnabled;
@@ -25,14 +25,14 @@ namespace TrackerDotNet.control
 
         public ContactType()
         {
-            this._CustomerID = 0L;
+            this._CustomerID = 0;
             this._CompanyName = string.Empty;
             this._CustomerTypeID = 0;
             this._IsEnabled = false;
             this._PredictionDisabled = false;
         }
 
-        public int CustomerID
+        public long CustomerID
         {
             get => this._CustomerID;
             set => this._CustomerID = value;

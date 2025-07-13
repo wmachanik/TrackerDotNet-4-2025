@@ -22,7 +22,7 @@
   <asp:SqlDataSource ID="sdsOrderLine" runat="server" 
     ConnectionString="<%$ ConnectionStrings:Tracker08ConnectionString %>" 
     ProviderName="<%$ ConnectionStrings:Tracker08ConnectionString.ProviderName %>" 
-    SelectCommand="SELECT CustomersTbl.CompanyName, OrdersTbl.OrderDate, OrdersTbl.RoastDate, ItemTypeTbl.ItemDesc, OrdersTbl.QuantityOrdered, OrdersTbl.RequiredByDate FROM (((OrdersTbl LEFT OUTER JOIN ItemTypeTbl ON OrdersTbl.ItemTypeID = ItemTypeTbl.ItemTypeID) LEFT OUTER JOIN CustomersTbl ON OrdersTbl.CustomerId = CustomersTbl.CustomerID) LEFT OUTER JOIN PackagingTbl ON OrdersTbl.PackagingID = PackagingTbl.PackagingID) WHERE (OrdersTbl.OrderID = ?)">
+    SelectCommand="SELECT CustomersTbl.CompanyName, OrdersTbl.OrderDate, OrdersTbl.RoastDate, ItemTypeTbl.ItemDesc, OrdersTbl.QuantityOrdered, OrdersTbl.RequiredByDate FROM (((OrdersTbl LEFT OUTER JOIN ItemTypeTbl ON OrdersTbl.ItemTypeID = ItemTypeTbl.ItemTypeID) LEFT OUTER JOIN CustomersTbl ON OrdersTbl.CustomerID = CustomersTbl.CustomerID) LEFT OUTER JOIN PackagingTbl ON OrdersTbl.PackagingID = PackagingTbl.PackagingID) WHERE (OrdersTbl.OrderID = ?)">
     <SelectParameters>
       <asp:QueryStringParameter Name="?" QueryStringField="OrderId" />
     </SelectParameters>
