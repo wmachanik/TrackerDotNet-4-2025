@@ -36,7 +36,9 @@ namespace TrackerDotNet
             }
             // Log the error
             string logPath = Server.MapPath("~/App_Data/ErrorLog.txt");
-            string logEntry = DateTime.Now + " - " + lastError.ToString() + Environment.NewLine;
+            Exception root = lastError.InnerException ?? lastError;
+            string logEntry = $"[{DateTime.Now}]\n{root.GetType()}: {root.Message}\n{root.StackTrace}\n----------------------\n";
+
 
             using (var stream = new FileStream(logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
             using (var writer = new StreamWriter(stream))
@@ -45,31 +47,11 @@ namespace TrackerDotNet
             }
 
 
-            // Optional: redirect to a friendly error page
-            Response.Redirect("~/HttpErrorPage.aspx?msg=" + HttpUtility.UrlEncode(lastError.Message));
-
+            // Redirect to a friendly error page
+            Response.Redirect("~/HttpErrorPage.aspx?msg=" + HttpUtility.UrlEncode(root.Message), false);
+            HttpContext.Current.ApplicationInstance.CompleteRequest();
             Server.ClearError();
-            //if (HttpContext.Current != null)
-            //{
-            //    TrackerTools trackerTools = new TrackerTools();
-            //    Page handler = HttpContext.Current.Handler as Page;
-            //    string sessionErrorString = trackerTools.GetTrackerSessionErrorString();
-            //    if (!string.IsNullOrEmpty(sessionErrorString))
-            //    {
-            //        showMessageBox showMessageBox = new showMessageBox(handler, "App error", "ERROR: " + sessionErrorString);
-            //        trackerTools.SetTrackerSessionErrorString(string.Empty);
-            //    }
-            //    Exception lastError = this.Server.GetLastError();
-            //    if (lastError.GetType() == typeof(HttpException))
-            //    {
-            //        if (lastError.Message.Contains("NoCatch") || lastError.Message.Contains("maxUrlLength"))
-            //            return;
-            //        this.Server.Transfer("HttpErrorPage.aspx");
-            //    }
-            //    showMessageBox showMessageBox1 = new showMessageBox(handler, "App error", "ERROR: " + lastError.Message);
-            //    trackerTools.SetTrackerSessionErrorString(string.Empty);
-            //}
-            //this.Server.ClearError();
+
         }
 
         private void Session_Start(object sender, EventArgs e)

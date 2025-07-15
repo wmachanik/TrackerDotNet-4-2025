@@ -9,7 +9,7 @@ namespace TrackerDotNet
         {
             if (!IsPostBack)
             {
-                string errorMessage = HttpUtility.UrlDecode(Request.QueryString["msg"]);
+                string errorMessage = Server.HtmlEncode(Request.QueryString["msg"]);
                 if (!string.IsNullOrEmpty(errorMessage))
                 {
                     lblErrorMessage.Text = errorMessage;

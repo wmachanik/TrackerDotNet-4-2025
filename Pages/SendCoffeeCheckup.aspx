@@ -2,8 +2,6 @@
    CodeBehind="SendCoffeeCheckup.aspx.cs" Inherits="TrackerDotNet.Pages.SendCoffeeCheckup" %>
 
 <asp:Content ID="cntSendCoffeeCheckupHdr" ContentPlaceHolderID="HeadContent" runat="server">
-  <script type="text/javascript">
-</script>
 </asp:Content>
 <asp:Content ID="cntSendCoffeeCheckupBdy" ContentPlaceHolderID="MainContent" runat="server">
   <h1>Send Coffee Reminder to Customers</h1>

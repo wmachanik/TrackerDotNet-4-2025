@@ -34,7 +34,7 @@
           </tr>
           <tr>
             <td><asp:Button ID="btnMergQBAccData" runat="server" PostBackUrl="~/Tools/MergeCustomersFromQB.aspx" Text="Merge Customers From QB Data" /> </td>          
-            <td>&nbsp;</td>
+            <td><asp:Button ID="btnEmailDiagnostics" runat="server" Text="Email Diagnostics" PostBackUrl="~/Tools/EmailDiagnostics.aspx" ToolTip="Test SMTP and email settings" /></td>
           </tr>
         </tbody>
       </table>

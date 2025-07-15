@@ -18,7 +18,7 @@ using TrackerDotNet.control;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class SendCoffeeCheckup : Page
+    public partial  class SendCoffeeCheckup : Page
     {
         private const string CONST_SESSIONVAR_EXISTINGORDERS = "ExistingOrdersData";
         private const string CONST_PREPDATEMERGE = "[#PREPDATE#]";
