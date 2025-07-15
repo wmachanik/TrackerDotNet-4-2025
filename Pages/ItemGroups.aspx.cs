@@ -7,12 +7,12 @@
 using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.control;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class ItemGroups : Page
+    public partial class ItemGroups : Page
     {
         private const string CONST_SESSION_LASTIDSELECTED = "LastGroupIDSelected";
         protected System.Web.UI.ScriptManager scrmngItemGroups;

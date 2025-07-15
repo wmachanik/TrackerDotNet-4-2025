@@ -1,5 +1,6 @@
 <%@ Master Language="C#" AutoEventWireup="true"
   Inherits="PrintMasterPage" CodeBehind="Print.master.cs" %>
+<%@ Import Namespace="TrackerDotNet.Classes" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -33,7 +34,7 @@
   <table class="small" width="100%">
     <tr>
       <td>Date: 
-        <% Response.Write(String.Format("{0:yyyy-MMM-dd}", DateTime.Now.AddDays(1))); %>
+        <% Response.Write(String.Format("{0:yyyy-MMM-dd}", TimeZoneUtils.Now())); %>
       </td>
       <td class="hideWhenPrinting">
         <button id="btnPrint" title="Print" type="button" onclick="window.print()">Print</button>

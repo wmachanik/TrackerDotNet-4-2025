@@ -11,9 +11,11 @@ using System.Configuration;
 using System.Data;
 using System.Data.OleDb;
 using System.Globalization;
+using System.Linq;
+using System.Web;
 
 //- only form later versions #nullable disable
-namespace TrackerDotNet.classes
+namespace TrackerDotNet.Classes
 {
     public class TrackerDb : IDisposable
     {
@@ -82,21 +84,30 @@ namespace TrackerDotNet.classes
                 switch (dbType)
                 {
                     case DbType.Date:
-                        return Convert.ToDateTime(value).Date;
+                        var dateVal = Convert.ToDateTime(value).Date;
+                        if (dateVal < new DateTime(1900, 1, 1) || dateVal > new DateTime(2079, 12, 31))
+                        {
+                            AppLogger.WriteLog("database", $"Date value {dateVal} is outside Access supported range, using minimum date");
+                            return new DateTime(1900, 1, 1);
+                        }
+                        return dateVal;
 
                     case DbType.DateTime:
-                        DateTime dtVal;
-                        if (value is DateTime)
-                            dtVal = (DateTime)value;
-                        else
-                            dtVal = Convert.ToDateTime(value);
+                        DateTime dtVal = value is DateTime dt ? dt : Convert.ToDateTime(value);
+                        if (dtVal < new DateTime(1900, 1, 1) || dtVal > new DateTime(2079, 12, 31))
+                        {
+                            AppLogger.WriteLog("database", $"DateTime value {dtVal} is outside Access supported range, using minimum date");
+                            dtVal = new DateTime(1900, 1, 1);
+                        }
                         return dtVal.ToString("MM/dd/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
 
                     case DbType.Int16:
-                        return Convert.ToInt16(value);
+                        short shortVal = Convert.ToInt16(value);
+                        return shortVal;
 
                     case DbType.Int32:
-                        return Convert.ToInt32(value);
+                        int intVal = Convert.ToInt32(value);
+                        return intVal;
 
                     case DbType.Int64:
                         long longVal = Convert.ToInt64(value);
@@ -104,21 +115,12 @@ namespace TrackerDotNet.classes
                         {
                             return (int)longVal;
                         }
-                        return DBNull.Value;
-
-                    case DbType.Decimal:
-                    case DbType.Currency:
-                    case DbType.VarNumeric:
-                        return Convert.ToDecimal(value);
-
-                    case DbType.Double:
-                        return Convert.ToDouble(value);
-
-                    case DbType.Single:
-                        return Convert.ToSingle(value);
-
-                    case DbType.Boolean:
-                        return Convert.ToBoolean(value);
+                        // Only log if this is actually problematic (which it shouldn't be for normal customer IDs)
+                        if (EnableDetailedLogging)
+                        {
+                            AppLogger.WriteLog("database", $"Long value {longVal} exceeds int range, keeping as long");
+                        }
+                        return longVal;
 
                     case DbType.String:
                     case DbType.AnsiString:
@@ -128,6 +130,13 @@ namespace TrackerDotNet.classes
                         string strVal = Convert.ToString(value);
                         if (string.IsNullOrWhiteSpace(strVal))
                             return DBNull.Value;
+                        
+                        // Access has a 255 character limit for many string fields
+                        if (strVal.Length > 255)
+                        {
+                            AppLogger.WriteLog("database", $"String value truncated from {strVal.Length} to 255 characters");
+                            strVal = strVal.Substring(0, 255);
+                        }
                         return strVal;
 
                     case DbType.Guid:
@@ -149,8 +158,9 @@ namespace TrackerDotNet.classes
                         return value;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                AppLogger.WriteLog("database", $"Parameter conversion failed for DbType {dbType}, value '{value}' (Type: {value?.GetType().Name}): {ex.Message}");
                 return DBNull.Value;
             }
         }
@@ -288,7 +298,8 @@ namespace TrackerDotNet.classes
                 case DbType.Int32:
                     return OleDbType.Integer;
                 case DbType.Int64:
-                    return OleDbType.Integer;  // Access32-bit does nto support BigInt, but this is what it should be;
+                    // Use Integer for Access compatibility, but let PrepareValueForOleDb handle the conversion
+                    return OleDbType.Integer;
                 case DbType.Object:
                     return OleDbType.IDispatch;
                 case DbType.SByte:
@@ -318,16 +329,72 @@ namespace TrackerDotNet.classes
 
         private void Initialize() => this.Open();
 
+        private bool ValidateConnection()
+        {
+            try
+            {
+                if (this._TrackerDbConn == null)
+                {
+                    // Only log if detailed logging is enabled
+                    if (EnableDetailedLogging)
+                    {
+                        AppLogger.WriteLog("database", "Connection is null, reinitializing...");
+                    }
+                    this.Initialize();
+                    return this._TrackerDbConn != null;
+                }
+
+                if (this._TrackerDbConn.State == ConnectionState.Broken)
+                {
+                    // Always log broken connections as these are problems
+                    AppLogger.WriteLog("database", "Connection is broken, recreating...");
+                    this._TrackerDbConn.Close();
+                    this._TrackerDbConn.Dispose();
+                    this.Initialize();
+                    return this._TrackerDbConn?.State == ConnectionState.Closed;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog("database", $"Connection validation failed: {ex.Message}");
+                return false;
+            }
+        }
+
         public void Open()
         {
-            if (this._TrackerDbConn != null)
+            try
             {
-                if (this._TrackerDbConn.State == ConnectionState.Open)
-                    this._TrackerDbConn.Close();
-                this._TrackerDbConn.Dispose();
-                this._TrackerDbConn = (OleDbConnection)null;
+                if (this._TrackerDbConn != null)
+                {
+                    if (this._TrackerDbConn.State == ConnectionState.Open)
+                        this._TrackerDbConn.Close();
+                    this._TrackerDbConn.Dispose();
+                    this._TrackerDbConn = null;
+                }
+
+                string connectionString = ConfigurationManager.ConnectionStrings["Tracker08ConnectionString"]?.ConnectionString;
+                if (string.IsNullOrWhiteSpace(connectionString))
+                {
+                    throw new ConfigurationErrorsException("Connection string 'Tracker08ConnectionString' is missing or empty in configuration.");
+                }
+
+                this._TrackerDbConn = new OleDbConnection(connectionString);
+                
+                // Test the connection
+                this._TrackerDbConn.Open();
+                this._TrackerDbConn.Close();
+                
+                // Remove this line - only log on errors
+                // AppLogger.WriteLog("database", "Database connection initialized successfully");
             }
-            this._TrackerDbConn = !string.IsNullOrWhiteSpace(ConfigurationManager.ConnectionStrings["Tracker08ConnectionString"].ConnectionString) ? new OleDbConnection(ConfigurationManager.ConnectionStrings["Tracker08ConnectionString"].ConnectionString) : throw new Exception("A connection string named Tracker08ConnectionString with a valid connection string must exist in the <connectionStrings> configuration section for the application.");
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog("database", $"Failed to initialize database connection: {ex.Message}");
+                throw new Exception($"Database connection failed: {ex.Message}", ex);
+            }
         }
 
         public bool TableExists(string pTableName)
@@ -393,12 +460,12 @@ namespace TrackerDotNet.classes
                     }
                 }
 
-                for (int i = 0; i < _command.Parameters.Count; i++)
-                {
-                    OleDbParameter param = _command.Parameters[i];
-                    System.Diagnostics.Debug.WriteLine(
-                        $"Param[{i}]: Value={param.Value}, DbType={param.DbType}, OleDbType={param.OleDbType}");
-                }
+                //for (int i = 0; i < _command.Parameters.Count; i++)
+                //{
+                //    OleDbParameter param = _command.Parameters[i];
+                //    System.Diagnostics.Debug.WriteLine(
+                //        $"Param[{i}]: Value={param.Value}, DbType={param.DbType}, OleDbType={param.OleDbType}");
+                //}
 
                 this.numRecs = this._command.ExecuteNonQuery();
                 transaction.Commit();
@@ -460,6 +527,9 @@ namespace TrackerDotNet.classes
             return dataSet;
         }
 
+        private static readonly bool EnableDetailedLogging = 
+    ConfigurationManager.AppSettings["EnableDatabaseDetailedLogging"]?.ToLower() == "true";
+
         public IDataReader ExecuteSQLGetDataReader(string strSQL)
         {
             return this.ExecuteSQLGetDataReader(strSQL, this.WhereParams.Count == 0 ? (List<DBParameter>)null : this.WhereParams);
@@ -485,15 +555,97 @@ namespace TrackerDotNet.classes
             }
             catch (OleDbException ex)
             {
-                this.ErrorResult = $"SQL Error: {ex.Message}\nQuery: {strSQL}";
-
-                foreach (OleDbParameter p in this._command.Parameters)
-                {
-                    this.ErrorResult += $"\nParam: {p.Value} ({p.OleDbType})";
-                }
+                // Enhanced error message only when errors occur
+                this.ErrorResult = BuildDetailedErrorMessage(ex, strSQL, pWhereParams);
+            }
+            catch (Exception ex)
+            {
+                this.ErrorResult = $"Unexpected Error: {ex.Message}\nQuery: {strSQL}";
             }
 
             return dataReader;
+        }
+
+        public IDataReader ExecuteSQLGetDataReaderWithRetry(string strSQL, List<DBParameter> pWhereParams, int maxRetries = 3)
+        {
+            int retryCount = 0;
+            TimeSpan delay = TimeSpan.FromMilliseconds(100);
+
+            while (retryCount < maxRetries)
+            {
+                try
+                {
+                    if (!ValidateConnection())
+                    {
+                        throw new InvalidOperationException("Cannot establish valid database connection");
+                    }
+
+                    return ExecuteSQLGetDataReader(strSQL, pWhereParams);
+                }
+                catch (OleDbException ex) when (IsTransientError(ex) && retryCount < maxRetries - 1)
+                {
+                    retryCount++;
+                    AppLogger.WriteLog("database", $"Transient error on attempt {retryCount}, retrying in {delay.TotalMilliseconds}ms: {ex.Message}");
+                    
+                    System.Threading.Thread.Sleep(delay);
+                    delay = TimeSpan.FromMilliseconds(delay.TotalMilliseconds * 2); // Exponential backoff
+                    
+                    // Reset connection for retry
+                    try
+                    {
+                        this.Initialize();
+                    }
+                    catch (Exception initEx)
+                    {
+                        AppLogger.WriteLog("database", $"Failed to reinitialize connection for retry: {initEx.Message}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AppLogger.WriteLog("database", $"Non-retryable error: {ex.Message}");
+                    throw;
+                }
+            }
+
+            throw new Exception($"Failed to execute query after {maxRetries} attempts");
+        }
+
+        private bool IsTransientError(OleDbException ex)
+        {
+            // Common transient error patterns for Access/OleDb
+            var transientMessages = new[]
+            {
+                "timeout",
+                "connection",
+                "network",
+                "unavailable",
+                "busy",
+                "locked"
+            };
+
+            return transientMessages.Any(msg => ex.Message.ToLower().Contains(msg));
+        }
+
+        private string BuildDetailedErrorMessage(OleDbException ex, string strSQL, List<DBParameter> pWhereParams)
+        {
+            var errorDetails = new System.Text.StringBuilder();
+            errorDetails.AppendLine($"SQL Error: {ex.Message}");
+            errorDetails.AppendLine($"Query: {strSQL}");
+            
+            // Only include parameter details if command was created and has parameters
+            if (this._command?.Parameters.Count > 0 && pWhereParams?.Count > 0)
+            {
+                errorDetails.AppendLine("Parameters:");
+                int paramCount = Math.Min(this._command.Parameters.Count, pWhereParams.Count);
+                for (int i = 0; i < paramCount; i++)
+                {
+                    var param = this._command.Parameters[i];
+                    var originalParam = pWhereParams[i];
+                    errorDetails.AppendLine($"  [{i}] {originalParam.DataValue} ({originalParam.DataDbType}) -> {param.Value}");
+                }
+            }
+            
+            return errorDetails.ToString();
         }
 
         // Add these helper methods to your TrackerDb class
@@ -583,6 +735,7 @@ namespace TrackerDotNet.classes
             catch (OleDbException ex)
             {
                 this.ErrorResult = ex.Message;
+                HttpContext.Current.Session["DataAccessError"] = ex.Message;
                 throw;
             }
             finally
@@ -723,6 +876,59 @@ namespace TrackerDotNet.classes
         public void Dispose()
         {
             this.Close();
+        }
+
+        public bool TestConnection()
+        {
+            try
+            {
+                using (var testConn = new OleDbConnection(
+                    ConfigurationManager.ConnectionStrings["Tracker08ConnectionString"].ConnectionString))
+                {
+                    testConn.Open();
+                    using (var cmd = new OleDbCommand("SELECT COUNT(*) FROM MSysObjects WHERE Type=1", testConn))
+                    {
+                        cmd.ExecuteScalar();
+                    }
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog("database", $"Connection test failed: {ex.Message}");
+                return false;
+            }
+        }
+
+        public string GetDatabaseStatus()
+        {
+            try
+            {
+                if (!TestConnection())
+                    return "Database connection failed";
+                    
+                // Test basic query performance
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                using (var testConn = new OleDbConnection(
+                    ConfigurationManager.ConnectionStrings["Tracker08ConnectionString"].ConnectionString))
+                {
+                    testConn.Open();
+                    using (var cmd = new OleDbCommand("SELECT TOP 1 * FROM CustomersTbl", testConn))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            reader.Read();
+                        }
+                    }
+                }
+                stopwatch.Stop();
+                
+                return $"Database healthy - Query time: {stopwatch.ElapsedMilliseconds}ms";
+            }
+            catch (Exception ex)
+            {
+                return $"Database status check failed: {ex.Message}";
+            }
         }
     }
 }

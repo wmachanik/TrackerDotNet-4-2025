@@ -9,7 +9,7 @@ using System.IO;
 using System.Text;
 
 //- only form later versions #nullable disable
-namespace TrackerDotNet.classes
+namespace TrackerDotNet.Classes
 {
     public class LogFile
     {
@@ -36,7 +36,7 @@ namespace TrackerDotNet.classes
         {
             if (this._NewLine)
             {
-                this._LogLines.AppendFormat("{0:d}, ", (object)DateTime.Now.Date);
+                this._LogLines.AppendFormat("{0:d}, ", (object)TimeZoneUtils.Now().Date);
                 this._NewLine = false;
             }
             this._LogLines.Append(pLine);
@@ -81,7 +81,7 @@ namespace TrackerDotNet.classes
         public void AddLineToLog(string pLine)
         {
             if (this._NewLine)
-                this._LogLines.AppendFormat("{0:d}, ", (object)DateTime.Now.Date);
+                this._LogLines.AppendFormat("{0:d}, ", (object)TimeZoneUtils.Now().Date);
             this._LogLines.Append(pLine);
             this._LogLines.AppendLine();
             this._NewLine = true;

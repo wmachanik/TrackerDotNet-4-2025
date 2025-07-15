@@ -1473,4 +1473,30 @@ div.ajax__calendar_days table tr td {
     }
 }
 
-/*--- end of style sheet site.css*/
+
+.failedEmailsSection {
+    margin-top: 20px;
+    padding: 15px;
+    border: 2px solid #FF6B6B;
+    border-radius: 5px;
+    background-color: #FFF5F5;
+}
+
+.failedEmailsSection h3 {
+    color: #D63031;
+    margin-top: 0;
+}
+
+/* Only affect tables inside the failed emails section */
+.failedEmailsSection .TblZebra th {
+    background-color: #FF6B6B !important;
+    color: white !important;
+}
+
+.failedEmailsSection .TblZebra tr:nth-child(odd) {
+    background: #FFE6E6 !important;
+}
+
+.failedEmailsSection .TblZebra tr:nth-child(even) {
+    background: #FFCCCC !important;
+}

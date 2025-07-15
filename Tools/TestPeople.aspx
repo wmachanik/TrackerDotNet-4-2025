@@ -28,8 +28,8 @@
                 <SortedDescendingHeaderStyle BackColor="#15524A" />
               </asp:GridView>
   <asp:ObjectDataSource ID="odsPeople" runat="server"
-    TypeName="TrackerDotNet.control.PersonsTbl" 
-    DataObjectTypeName="TrackerDotNet.control.PersonsTbl"  
+    TypeName="TrackerDotNet.Controls.PersonsTbl" 
+    DataObjectTypeName="TrackerDotNet.Controls.PersonsTbl"  
     SelectMethod="GetAll" SortParameterName="SortBy"
     UpdateMethod="UpdatePerson" OldValuesParameterFormatString="original_{0}" 
     DeleteMethod="DeletePerson" InsertMethod="InsertPerson" >

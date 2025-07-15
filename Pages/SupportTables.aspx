@@ -34,10 +34,10 @@
   </asp:UpdatePanel>
 
 
- <asp:ObjectDataSource ID="odsItemTypeTbl" runat="server" TypeName="TrackerDotNet.control.ItemTypeTbl" 
+ <asp:ObjectDataSource ID="odsItemTypeTbl" runat="server" TypeName="TrackerDotNet.Controls.ItemTypeTbl" 
    SelectMethod="GetAll" SortParameterName="SortBy"
    UpdateMethod="UpdateItem" 
-   DataObjectTypeName="TrackerDotNet.control.ItemTypeTbl" 
+   DataObjectTypeName="TrackerDotNet.Controls.ItemTypeTbl" 
    OldValuesParameterFormatString="original_{0}" >
  </asp:ObjectDataSource>
 

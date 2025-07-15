@@ -11,7 +11,7 @@ using System.Web.UI.HtmlControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class LoadSendCoffeeCheckup : Page
+    public partial class LoadSendCoffeeCheckup : Page
     {
         private const string CONST_LOADTIMERFIRE = "LoadTimerFier";
         protected HtmlGenericControl DivLoading;

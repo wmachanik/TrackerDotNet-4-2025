@@ -11,7 +11,7 @@ using System.Web.UI;
 namespace TrackerDotNet.Account
 {
 
-    public class ChangePassword : Page
+    public partial class ChangePassword : Page
     {
         protected System.Web.UI.WebControls.ChangePassword ChangeUserPassword;
 

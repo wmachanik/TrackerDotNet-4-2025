@@ -1,4 +1,4 @@
-﻿<%@ Page Title="Log List" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="LogTable.aspx.cs" Inherits="TrackerDotNet.Pages.Log" %>
+﻿<%@ Page Title="Log List" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeFile="LogTable.aspx.cs" Inherits="TrackerDotNet.Pages.LogTable" %>
 <asp:Content ID="cntLogHdr" ContentPlaceHolderID="HeadContent" runat="server">
 </asp:Content>
 <asp:Content ID="cntLogBdy" ContentPlaceHolderID="MainContent" runat="server">
@@ -6,7 +6,7 @@
   <asp:ScriptManager ID="smLogSummary" runat="server"></asp:ScriptManager>
   <asp:UpdateProgress ID="uprgLogSummary" runat="server" AssociatedUpdatePanelID="upnlLogSummary" >
     <ProgressTemplate>
-      <img src="../images/animi/BlueArrowsUpdate.gif" alt="updating" width="16" height="16" />updating.....
+      <img src="../images/animi/BlueArrowsUpdate.gif" alt="updating" width="16" height="16" />updating...
     </ProgressTemplate>
   </asp:UpdateProgress>
   <div class="simpleLightBrownForm">
@@ -84,7 +84,7 @@
           </Columns>
         </asp:GridView>
         <asp:ObjectDataSource ID="odsLogTbl" runat="server" SelectMethod="GetAll" 
-          TypeName="TrackerDotNet.control.LogTbl">
+          TypeName="TrackerDotNet.Controls.LogTbl">
           <SelectParameters>
             <asp:Parameter DefaultValue="DateAdded" Name="SortBy" Type="String" />
           </SelectParameters>

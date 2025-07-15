@@ -8,8 +8,8 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 namespace TrackerDotNet.Tools
 {
@@ -782,7 +782,7 @@ namespace TrackerDotNet.Tools
 
         // ot set here as it should be false by default pCustomer.enabled = _NewCustomerAccInfo.enabled      
         
-        pCustomer.Notes = string.Format("Client added automatically by Account Merge date: {0:D}", DateTime.Now);
+        pCustomer.Notes = string.Format("Client added automatically by Account Merge date: {0:D}", TimeZoneUtils.Now());
         
         if (pCustomer.InsertCustomer(pCustomer))
         {

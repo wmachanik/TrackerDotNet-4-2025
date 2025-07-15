@@ -12,7 +12,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet
 {
-    public class MobileSiteMaster : MasterPage
+    public partial class MobileSiteMaster : MasterPage
     {
         protected ContentPlaceHolder HeadContent;
         protected HtmlForm frmMiniMain;

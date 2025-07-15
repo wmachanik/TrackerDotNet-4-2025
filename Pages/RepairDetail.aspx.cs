@@ -9,8 +9,9 @@ using System;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
+using TrackerDotNet.Managers;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
@@ -162,13 +163,13 @@ namespace TrackerDotNet.Pages
             if (this.ddlNewCompany.SelectedIndex <= 0)
                 return;
             DataItem.CustomerID = Convert.ToInt32(this.ddlNewCompany.SelectedValue);
-            DataItem.DateLogged = DateTime.Now.Date;
-            CustomersTbl customersByCustomerID = new CustomersTbl().GetCustomersByCustomerID(DataItem.CustomerID);
+            DataItem.DateLogged = TimeZoneUtils.Now().Date;
+            CustomersTbl customersByCustomerID = new CustomersTbl().GetCustomerByCustomerID(DataItem.CustomerID);
             DataItem.ContactName = customersByCustomerID.ContactFirstName;
             DataItem.ContactEmail = customersByCustomerID.EmailAddress;
             DataItem.MachineTypeID = customersByCustomerID.EquipType;
             DataItem.MachineSerialNumber = customersByCustomerID.MachineSN;
-            DataItem.DateLogged = DateTime.Now.Date;
+            DataItem.DateLogged = TimeZoneUtils.Now().Date;
             DataItem.InsertRepair(DataItem);
             this.pnlNewRepair.Visible = false;
             this.pnlRepairDetail.Visible = true;
@@ -179,22 +180,33 @@ namespace TrackerDotNet.Pages
 
         private void UpdateRecord()
         {
+            var repairManager = new RepairManager();
             RepairsTbl dataFromForm = this.GetDataFromForm();
-            string str = dataFromForm.UpdateRepair(dataFromForm, dataFromForm.RepairID);
-            int num = this.Session["RepairStatusID"] != null ? (int)this.Session["RepairStatusID"] : 0;
-            if (string.IsNullOrWhiteSpace(str))
+            int previousStatusId = this.Session["RepairStatusID"] != null ? (int)this.Session["RepairStatusID"] : 0;
+
+            // Handle the repair update including status change
+            string result = repairManager.HandleStatusChange(dataFromForm);
+
+            if (string.IsNullOrWhiteSpace(result))
             {
-                this.ltrlStatus.Text = "Record Updated";
-                if (dataFromForm.RepairStatusID == num)
-                    return;
-                dataFromForm.HandleAndUpdateRepairStatusChange(dataFromForm);
-                this.Session["RepairStatusID"] = (object)num;
+                // Success case
+                if (dataFromForm.RepairStatusID == previousStatusId)
+                {
+                    ltrlStatus.Text = MessageProvider.Get(MessageKeys.Common.SuccessGeneric);
+                }
+                else
+                {
+                    ltrlStatus.Text = MessageProvider.Get(MessageKeys.Repairs.StatusUpdateSuccess);
+                    Session["RepairStatusID"] = previousStatusId;
+                }
             }
             else
             {
-                this.ltrlStatus.Text = str;
-                this.upnlRepairDetail.Update();
+                // Error case
+                ltrlStatus.Text = result;
             }
+
+            upnlRepairDetail.Update();
         }
 
         private void ReturnToPrevPage() => this.ReturnToPrevPage(false);
@@ -210,6 +222,13 @@ namespace TrackerDotNet.Pages
         protected void btnUpdateAndReturn_Click(object sender, EventArgs e)
         {
             this.UpdateRecord();
+            string status = this.ltrlStatus.Text;
+
+            // Show popup only if there's a relevant message
+            if (!string.IsNullOrWhiteSpace(status) && !status.Contains("Record Updated"))
+            {
+                showMessageBox msgBox = new showMessageBox(this.Page, "Repair Status Update", status);
+            }
             this.ReturnToPrevPage();
         }
 

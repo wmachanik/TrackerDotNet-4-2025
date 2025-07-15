@@ -12,7 +12,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class Customers : Page
+    public partial class Customers : Page
     {
         private const string CONST_WHERECLAUSE_SESSIONVAR = "CustomerSummaryWhereFilter";
         protected ScriptManager smCustomerSummary;

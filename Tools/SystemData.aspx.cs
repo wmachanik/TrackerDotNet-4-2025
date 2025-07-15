@@ -1,44 +1,72 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using TrackerDotNet.Controls;
 
 namespace TrackerDotNet.Tools
 {
-  public partial class SystemData : System.Web.UI.Page
-  {
-    protected void Page_Load(object sender, EventArgs e)
+    public partial class SystemData : System.Web.UI.Page
     {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (!this.IsPostBack)
+            {
+                // Bind the data on first load
+                dvSystemData.DataBind();
+            }
+        }
 
-      
+        protected void dvSystemData_ItemUpdated(object sender, DetailsViewUpdatedEventArgs e)
+        {
+            if (e.Exception == null)
+            {
+                lblMessage.Text = "System data updated successfully.";
+                lblMessage.Visible = true;
+                dvSystemData.DataBind(); // Refresh the data
+            }
+            else
+            {
+                lblMessage.Text = "Error updating system data: " + e.Exception.Message;
+                lblMessage.ForeColor = System.Drawing.Color.Red;
+                lblMessage.Visible = true;
+                e.ExceptionHandled = true;
+            }
+        }
 
+        protected void dvSystemData_DataBound(object sender, EventArgs e)
+        {
+            // Clear any previous messages when data is bound
+            lblMessage.Visible = false;
+        }
+
+        protected string GetItemTypeName(object groupItemTypeId)
+        {
+            if (groupItemTypeId == null || groupItemTypeId == DBNull.Value)
+                return "None Selected";
+
+            int itemTypeId;
+            if (!int.TryParse(groupItemTypeId.ToString(), out itemTypeId) || itemTypeId <= 0)
+                return "None Selected";
+
+            try
+            {
+                ItemTypeTbl itemType = new ItemTypeTbl();
+                var itemTypes = itemType.GetAll();
+                
+                foreach (var item in itemTypes)
+                {
+                    if (item.ItemTypeID == itemTypeId)
+                    {
+                        return $"{item.ItemDesc} (ID: {item.ItemTypeID})";
+                    }
+                }
+                
+                return $"Unknown Item Type (ID: {itemTypeId})";
+            }
+            catch (Exception ex)
+            {
+                return $"Error loading item type: {ex.Message}";
+            }
+        }
     }
-    protected void dvSystemData_ItemCommand(object sender, DetailsViewCommandEventArgs e)
-    {
-      if (e.CommandName.Equals("Update"))
-      {
-        DetailsViewRow _EdittedRow = dvSystemData.Rows[dvSystemData.DataItemIndex];
-
-        CheckBox _DoReoccuringOrdersCheckBox = (CheckBox)_EdittedRow.FindControl("DoReoccuringOrdersCheckBox");
-        TextBox _LastReoccurringDateTextBox = (TextBox)_EdittedRow.FindControl("LastReoccurringDateTextBox");
-        TextBox _DateLastPrepDateCalcdTextBox = (TextBox)_EdittedRow.FindControl("DateLastPrepDateCalcdTextBox");
-        TextBox _MinReminderDateTextBox = (TextBox)_EdittedRow.FindControl("MinReminderDateTextBox");
-        TextBox _GroupItemTypeIDTextBox = (TextBox)_EdittedRow.FindControl("GroupItemTypeIDTextBox");
-        Label _IDLabel = (Label)_EdittedRow.FindControl("IDLabel");
-
-        control.SysDataTbl _SysData = new control.SysDataTbl();
-        _SysData.ID = Convert.ToInt32(_IDLabel.Text);
-        _SysData.DoReoccuringOrders = _DoReoccuringOrdersCheckBox.Checked;
-        _SysData.LastReoccurringDate = Convert.ToDateTime(_LastReoccurringDateTextBox.Text);
-        _SysData.DateLastPrepDateCalcd = Convert.ToDateTime(_DateLastPrepDateCalcdTextBox.Text);
-        _SysData.MinReminderDate = Convert.ToDateTime(_MinReminderDateTextBox.Text);
-        _SysData.GroupItemTypeID = Convert.ToInt32(_GroupItemTypeIDTextBox.Text);
-        _SysData.Update(_SysData);
-
-        dvSystemData.DataBind();
-      }
-    }
-  }
 }

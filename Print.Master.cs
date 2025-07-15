@@ -10,7 +10,7 @@ using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 
 // //- only form later versions #nullable disable --- not for this version of C#
-public class PrintMasterPage : MasterPage
+public partial class PrintMasterPage : MasterPage
 {
   protected HtmlHead Head1;
   protected ContentPlaceHolder HeadContent;

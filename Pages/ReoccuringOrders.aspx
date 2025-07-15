@@ -79,7 +79,7 @@
   </asp:UpdatePanel>
 
   <asp:ObjectDataSource ID="odsReoccuringOrderSummarys" 
-    TypeName="TrackerDotNet.control.ReoccuringOrderDAL"
+    TypeName="TrackerDotNet.Controls.ReoccuringOrderDAL"
     SortParameterName="SortBy"
     SelectMethod="GetAll"
     runat="server" OldValuesParameterFormatString="original_{0}">

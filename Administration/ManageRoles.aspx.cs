@@ -13,7 +13,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Administration
 {
-    public class ManageRoles : Page
+    public partial class ManageRoles : Page
     {
         protected GridView gvRolesManagement;
         protected Label MsgLabel;

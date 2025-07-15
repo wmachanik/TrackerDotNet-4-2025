@@ -6,6 +6,7 @@
 
 using AjaxControlToolkit;
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
 using System.Drawing;
@@ -13,9 +14,9 @@ using System.Web;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
-
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
+using TrackerDotNet.BusinessLogic;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
@@ -66,7 +67,7 @@ namespace TrackerDotNet.Pages
             if (!this.IsPostBack)
             {
                 long num = 1;
-                DateTime date = DateTime.Now.Date;
+                DateTime date = TimeZoneUtils.Now().Date;
                 string empty = string.Empty;
                 if (this.Request.QueryString["CustomerID"] != null)
                     num = (long)Convert.ToInt32(this.Request.QueryString["CustomerID"].ToString());
@@ -213,7 +214,33 @@ namespace TrackerDotNet.Pages
             dvOrderHeaderData.RoastDate = string.IsNullOrEmpty(str2) ? DateTime.MinValue : Convert.ToDateTime(str2).Date;
             return dvOrderHeaderData;
         }
+        protected void btnAdd_Click(object sender, EventArgs e)
+        {
+            OrderHeaderData headerData = this.Get_dvOrderHeaderData(false);
+            OrderTblData orderData = new OrderTblData
+            {
+                CustomerID = headerData.CustomerID,
+                OrderDate = headerData.OrderDate,
+                RoastDate = headerData.RoastDate,
+                RequiredByDate = headerData.RequiredByDate,
+                ToBeDeliveredBy = Convert.ToInt32(headerData.ToBeDeliveredBy),
+                PurchaseOrder = headerData.PurchaseOrder,
+                Confirmed = headerData.Confirmed,
+                InvoiceDone = headerData.InvoiceDone,
+                Done = headerData.Done,
+                Notes = headerData.Notes,
+                ItemTypeID = Convert.ToInt32(this.ddlNewItemDesc.SelectedValue),
+                QuantityOrdered = Convert.ToDouble(this.tbxNewQuantityOrdered.Text),
+                PackagingID = Convert.ToInt32(this.ddlNewPackaging.SelectedValue)
+            };
 
+            var manager = new TrackerDotNet.BusinessLogic.OrderManager();
+            string result = manager.AddOrderLine(headerData, orderData);
+
+            this.ltrlStatus.Text = string.IsNullOrWhiteSpace(result) ? "Item Added" : "Error adding item: " + result;
+            this.HideNewOrderItemPanel();
+        }
+        /*
         protected void btnAdd_Click(object sender, EventArgs e)
         {
             OrderTbl orderTbl = new OrderTbl();
@@ -241,13 +268,21 @@ namespace TrackerDotNet.Pages
             this.ltrlStatus.Text = string.IsNullOrWhiteSpace(str) ? "Item Added" : "Error adding item: " + str;
             this.HideNewOrderItemPanel();
         }
-
+        */
         protected void btnCancel_Click(object sender, EventArgs e) => this.HideNewOrderItemPanel();
 
         protected void Page_Unload(object sender, EventArgs e)
         {
         }
-
+        protected void gvOrderLines_OnItemDelete(object sender, EventArgs e)
+        {
+            string pDataValue = ((CommandEventArgs)e).CommandArgument.ToString();
+            var manager = new TrackerDotNet.BusinessLogic.OrderManager();
+            string result = manager.DeleteOrderItem(Convert.ToInt32(pDataValue));
+            this.ltrlStatus.Text = string.IsNullOrEmpty(result) ? "Item Deleted" : "Error deleting item: " + result;
+        }
+        /*
+         
         protected void gvOrderLines_OnItemDelete(object sender, EventArgs e)
         {
             string pDataValue = ((CommandEventArgs)e).CommandArgument.ToString();
@@ -258,7 +293,7 @@ namespace TrackerDotNet.Pages
             trackerDb.Close();
             this.ltrlStatus.Text = string.IsNullOrEmpty(str) ? "Item Deleted" : "Error deleting item: " + str;
         }
-
+        */
         protected void gvOrderLines_RowUpdated(object sender, GridViewUpdatedEventArgs e)
         {
             string empty = string.Empty;
@@ -304,7 +339,7 @@ namespace TrackerDotNet.Pages
                         if (orderHeaderData.OrderDate.Date != date.Date)
                         {
                             UsedItemGroupTbl usedItemGroupTbl = new UsedItemGroupTbl();
-                            foreach (Control row in this.gvOrderLines.Rows)
+                            foreach (GridViewRow row in this.gvOrderLines.Rows)
                             {
                                 DropDownList control = (DropDownList)row.FindControl("ddlItemDesc");
                                 usedItemGroupTbl.UpdateIfGroupItem(orderHeaderData.CustomerID, Convert.ToInt32(control.SelectedValue), orderHeaderData.RequiredByDate, date);
@@ -383,6 +418,274 @@ namespace TrackerDotNet.Pages
             return string.IsNullOrEmpty(pString) ? string.Empty : char.ToUpper(pString[0]).ToString() + pString.Substring(1);
         }
 
+        private string ResolveRecipientEmail(ContactEmailDetails details)
+        {
+            return !string.IsNullOrWhiteSpace(details.EmailAddress)
+                ? details.EmailAddress
+                : details.altEmailAddress;
+        }
+
+        private void AppendOrderItemsToEmailBody(EmailMailKitCls email)
+        {
+            email.AddToBody("<ul>");
+
+            foreach (GridViewRow row in gvOrderLines.Rows)
+            {
+                var itemDDL = (DropDownList)row.FindControl("ddlItemDesc");
+                var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
+                var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
+
+                string itemId = itemDDL.SelectedValue;
+                string itemName = itemDDL.SelectedItem.Text;
+                string qty = AddUnitsToQty(itemId, qtyLbl.Text);
+
+                if (GetItemSortOrderID(itemId) == 10)
+                {
+                    string notes = EmailUtils.CleanNoteText(dvOrderHeaderGetLabelValue("lblNotes"));
+                    email.AddFormatToBody("<li>{0}</li>", notes);
+                }
+                else
+                {
+                    if (packagingDDL.SelectedIndex == 0)
+                        email.AddFormatToBody(MessageProvider.Get("OrderItemFormatBasic"), qty, itemName);
+                    else
+                        email.AddFormatToBody(MessageProvider.Get("OrderItemFormatWithPrep"), qty, itemName, packagingDDL.SelectedItem.Text);
+                }
+            }
+
+            email.AddToBody("</ul>");
+        }
+
+        private void AppendOrderDetails(EmailMailKitCls email)
+        {
+            string poRef = dvOrderHeaderGetLabelValue("lblPurchaseOrder");
+            if (!string.IsNullOrWhiteSpace(poRef))
+            {
+                string poMsg = poRef.EndsWith("!!!PO required!!!")
+                    ? MessageProvider.Get("OrderConfirmationPORequired")
+                    : MessageProvider.Format("OrderConfirmationPOReceived", poRef);
+                email.AddStrAndNewLineToBody(poMsg);
+            }
+
+            var deliveryDDL = (DropDownList)this.dvOrderHeader.FindControl("ddlToBeDeliveredBy");
+            string deliveryDate = dvOrderHeaderGetLabelValue("lblRequiredByDate");
+            string deliveryOption = deliveryDDL.SelectedItem.Text;
+
+            string deliveryMsg = "";
+
+            if (deliveryOption == "Cllct")
+                deliveryMsg = MessageProvider.Format("OrderCollectionNote", deliveryDate);
+            else if (deliveryOption == "Cour")
+                deliveryMsg = MessageProvider.Format("OrderCourierNote", deliveryDate);
+            else
+                deliveryMsg = MessageProvider.Format("OrderDeliveryNote", deliveryDate);
+
+            email.AddStrAndNewLineToBody(deliveryMsg);
+        }
+
+        private string GetSenderInfo()
+        {
+            MembershipUser user = Membership.GetUser();
+            return string.IsNullOrWhiteSpace(user?.UserName)
+                ? "The Quaffee Team"
+                : $"The Quaffee Team ({UpCaseFirstLetter(user.UserName)})";
+        }
+        protected void btnConfirmOrder_Click(object sender, EventArgs e)
+        {
+            // Gather data from UI
+            // Get ContactEmailDetails from the selected contact in the DetailsView
+            var contactDDL = (DropDownList)this.dvOrderHeader.FindControl("ddlContacts");
+            ContactEmailDetails contact = GetEmailDetails(contactDDL.SelectedValue);
+
+            // Get OrderHeaderData using your existing helper
+            OrderHeaderData header = this.Get_dvOrderHeaderData(false);
+
+            // Build List<OrderLineData> from the GridView
+            var orderLines = new List<TrackerDotNet.Managers.OrderLineData>();
+            foreach (GridViewRow row in this.gvOrderLines.Rows)
+            {
+                var itemDDL = (DropDownList)row.FindControl("ddlItemDesc");
+                var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
+                var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
+
+                var line = new TrackerDotNet.Managers.OrderLineData
+                {
+                    ItemID = Convert.ToInt32(itemDDL.SelectedValue),
+                    ItemName = itemDDL.SelectedItem.Text,
+                    Qty = Convert.ToDouble(qtyLbl.Text),
+                    PackagingID = packagingDDL.SelectedIndex > 0 ? Convert.ToInt32(packagingDDL.SelectedValue) : 0,
+                    PackagingName = packagingDDL.SelectedIndex > 0 ? packagingDDL.SelectedItem.Text : string.Empty
+                };
+                orderLines.Add(line);
+            }
+
+            // Get notes from the order header
+            string notes = this.GetOrderHeaderNotes();
+
+            var emailManager = new TrackerDotNet.Managers.OrderDetailManager();
+            string statusMsg;
+            bool success = emailManager.SendOrderConfirmation(contact, header, orderLines, notes, out statusMsg);
+
+            ltrlStatus.Text = statusMsg;
+            // Show message box, update UI, etc.
+            new showMessageBox(this.Page, "Order Confirmation", statusMsg);
+            upnlNewOrderItem.Update();
+        }
+        /*
+        protected void btnConfirmOrder_Click(object sender, EventArgs e)
+        {
+            var contactDDL = (DropDownList)this.dvOrderHeader.FindControl("ddlContacts");
+            ContactEmailDetails details = GetEmailDetails(contactDDL.SelectedValue);
+
+            string recipientEmail = ResolveRecipientEmail(details);
+
+            if (string.IsNullOrWhiteSpace(recipientEmail))
+            {
+                ltrlStatus.Text = "No email address found.";
+                new showMessageBox(this.Page, "Email FAILED", ltrlStatus.Text);
+                upnlNewOrderItem.Update();
+                AppLogger.WriteLog("email", ltrlStatus.Text);
+                return;
+            }
+
+            var emailSettings = new EmailSettings();
+            emailSettings.SetRecipient(recipientEmail);
+
+            var email = new EmailMailKitCls(emailSettings);
+            email.IsTestMode = true;
+            email.AddCCFromAddress();
+            email.SetEmailSubject(MessageProvider.Get("OrderConfirmationSubject"));
+
+            string contactName = EmailUtils.GetFriendlyContactName(details);
+            email.AddFormatToBody(MessageProvider.Get("OrderConfirmationIntro"), contactName);
+
+            if (contactDDL.SelectedValue.Equals("9"))
+                email.AddStrAndNewLineToBody(MessageProvider.Get("OrderConfirmationLineIntro"));
+
+            AppendOrderItemsToEmailBody(email);
+            AppendOrderDetails(email);
+
+            string senderInfo = GetSenderInfo();
+            email.AddFormatToBody(MessageProvider.Get("OrderEmailFooter"), senderInfo);
+            email.AddToBody(MessageProvider.Get("DefaultEmailSignature"));
+
+            bool success = email.SendEmail();
+
+            string statusMsg = success
+                ? $"Email sent to {contactName}"
+                : $"Error sending email: {email.myResults.sResult}";
+
+            ltrlStatus.Text = statusMsg;
+            new showMessageBox(this.Page, "Order Confirmation", statusMsg);
+            upnlNewOrderItem.Update();
+            AppLogger.WriteLog("email", statusMsg);
+        }
+
+        /*
+        protected void btnConfirmOrder_Click(object sender, EventArgs e)
+        {
+            var contactDDL = (DropDownList)this.dvOrderHeader.FindControl("ddlContacts");
+            ContactEmailDetails emailDetails = this.GetEmailDetails(contactDDL.SelectedItem.Value);
+            if (emailDetails == null)
+                return;
+
+            string recipientEmail = !string.IsNullOrEmpty(emailDetails.EmailAddress)
+                ? emailDetails.EmailAddress
+                : emailDetails.altEmailAddress;
+
+            if (string.IsNullOrEmpty(recipientEmail))
+            {
+                ltrlStatus.Text = "No email address found.";
+                new showMessageBox(this.Page, "Email FAILED", ltrlStatus.Text);
+                upnlNewOrderItem.Update();
+                return;
+            }
+
+            var emailSettings = new EmailSettings();
+            emailSettings.SetRecipient(recipientEmail);
+
+            var email = new EmailMailKitCls(emailSettings);
+            email.SetEmailSubject(MessageProvider.Get("OrderConfirmationSubject"));
+            email.IsTestMode = true;
+            email.AddCCFromAddress();
+
+            string contactName = EmailUtils.GetFriendlyContactName(emailDetails);
+            email.AddFormatToBody(MessageProvider.Get("OrderConfirmationIntro"), contactName);
+
+            if (contactDDL.SelectedValue.Equals("9"))
+                email.AddStrAndNewLineToBody("We confirm your order below:");
+
+            email.AddToBody("<ul>");
+
+            foreach (GridViewRow row in gvOrderLines.Rows)
+            {
+                var itemDDL = (DropDownList)row.FindControl("ddlItemDesc");
+                var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
+                var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
+
+                string itemId = itemDDL.SelectedValue;
+                string itemName = itemDDL.SelectedItem.Text;
+                string qty = AddUnitsToQty(itemId, qtyLbl.Text);
+
+                if (GetItemSortOrderID(itemId) == 10)
+                {
+                    string notes = EmailUtils.CleanNoteText(dvOrderHeaderGetLabelValue("lblNotes"));
+                    email.AddFormatToBody("<li>{0}</li>", notes);
+                }
+                else
+                {
+                    if (packagingDDL.SelectedIndex == 0)
+                        email.AddFormatToBody("<li>{0} of {1}</li>", qty, itemName);
+                    else
+                        email.AddFormatToBody("<li>{0} of {1} - Preparation note: {2}</li>", qty, itemName, packagingDDL.SelectedItem.Text);
+                }
+            }
+
+            email.AddToBody("</ul>");
+
+            string poRef = dvOrderHeaderGetLabelValue("lblPurchaseOrder");
+            if (!string.IsNullOrEmpty(poRef))
+            {
+                string poMsg = poRef.EndsWith("!!!PO required!!!")
+                    ? MessageProvider.Get("OrderConfirmationPORequired")
+                    : MessageProvider.Format("OrderConfirmationPOReceived", poRef);
+                email.AddStrAndNewLineToBody(poMsg);
+            }
+
+            var deliveryDDL = (DropDownList)this.dvOrderHeader.FindControl("ddlToBeDeliveredBy");
+            string deliveryDate = dvOrderHeaderGetLabelValue("lblRequiredByDate");
+            string deliveryOption = deliveryDDL.SelectedItem.Text;
+
+            string deliveryMsg = "";
+
+            if (deliveryOption == "Cllct")
+                deliveryMsg = MessageProvider.Format("OrderCollectionNote", deliveryDate);
+            else if (deliveryOption == "Cour")
+                deliveryMsg = MessageProvider.Format("OrderCourierNote", deliveryDate);
+            else
+                deliveryMsg = MessageProvider.Format("OrderDeliveryNote", deliveryDate);
+
+            email.AddStrAndNewLineToBody(deliveryMsg);
+
+            MembershipUser user = Membership.GetUser();
+            string senderInfo = string.IsNullOrEmpty(user?.UserName)
+                ? "The Quaffee Team"
+                : $"The Quaffee Team ({UpCaseFirstLetter(user.UserName)})";
+
+            email.AddFormatToBody(MessageProvider.Get("OrderEmailFooter"), senderInfo);
+
+            string statusMsg = email.SendEmail()
+                ? $"Email sent to {contactName}"
+                : $"Error sending email: {email.myResults.sResult}";
+
+            ltrlStatus.Text = statusMsg;
+            new showMessageBox(this.Page, "Order Confirmation", statusMsg);
+            upnlNewOrderItem.Update();
+        }
+        */
+
+
+        /*
         protected void btnConfirmOrder_Click(object sender, EventArgs e)
         {
             DropDownList control1 = (DropDownList)this.dvOrderHeader.FindControl("ddlContacts");
@@ -396,13 +699,13 @@ namespace TrackerDotNet.Pages
             string pObj1 = this.dvOrderHeaderGetLabelValue("lblNotes");
             if (emailDetails.EmailAddress != "")
             {
-                emailCls.SetEmailFromTo("orders@quaffee.co.za", emailDetails.EmailAddress);
+                emailCls.SetLegacyEmailFromTo("orders@quaffee.co.za", emailDetails.EmailAddress);
                 if (emailDetails.altEmailAddress != "")
-                    emailCls.SetEmailCC(emailDetails.altEmailAddress);
+                    emailCls.SetLegacyEmailCC(emailDetails.altEmailAddress);
             }
             else if (emailDetails.altEmailAddress != "")
             {
-                emailCls.SetEmailFromTo("orders@quaffee.co.za", emailDetails.altEmailAddress);
+                emailCls.SetLegacyEmailFromTo("orders@quaffee.co.za", emailDetails.altEmailAddress);
             }
             else
             {
@@ -411,8 +714,8 @@ namespace TrackerDotNet.Pages
                 this.upnlNewOrderItem.Update();
                 return;
             }
-            emailCls.SetEmailBCC("orders@quaffee.co.za");
-            emailCls.SetEmailSubject("Order Confirmation");
+            emailCls.SetLegacyEmailBCC("orders@quaffee.co.za");
+            emailCls.SetLegacyEmailSubject("Order Confirmation");
             string str1 = "Coffee Lover";
             if (emailDetails.FirstName != "")
             {
@@ -422,12 +725,12 @@ namespace TrackerDotNet.Pages
             }
             else if (emailDetails.altFirstName != "")
                 str1 = emailDetails.altFirstName.Trim();
-            emailCls.AddStrAndNewLineToBody($"Dear {str1},<br />");
+            emailCls.AddStrAndNewLineToLegacyEmailBody($"Dear {str1},<br />");
             if (control1.SelectedValue.Equals("9"))
-                emailCls.AddStrAndNewLineToBody("We confirm you order below:");
+                emailCls.AddStrAndNewLineToLegacyEmailBody("We confirm you order below:");
             else
-                emailCls.AddStrAndNewLineToBody($"We confirm the following order for {control1.SelectedItem.Text}:");
-            emailCls.AddToBody("<ul>");
+                emailCls.AddStrAndNewLineToLegacyEmailBody($"We confirm the following order for {control1.SelectedItem.Text}:");
+            emailCls.AddToLegacyEmailBody("<ul>");
             foreach (GridViewRow row in this.gvOrderLines.Rows)
             {
                 DropDownList control3 = (DropDownList)row.FindControl("ddlItemDesc");
@@ -444,35 +747,35 @@ namespace TrackerDotNet.Pages
                         if (num >= 0)
                             pObj1 = $"{pObj1.Substring(0, length)};{pObj1.Substring(num + 2)}";
                     }
-                    emailCls.AddFormatToBody("<li>{0}</li>", (object)pObj1);
+                    emailCls.AddFormatToLegacyEmailBody("<li>{0}</li>", (object)pObj1);
                 }
                 else
                 {
                     string qty = this.AddUnitsToQty(control3.SelectedValue, control4.Text);
                     if (control5.SelectedIndex == 0)
-                        emailCls.AddFormatToBody("<li>{0} of {1}</li>", (object)qty, (object)control3.SelectedItem.Text);
+                        emailCls.AddFormatToLegacyEmailBody("<li>{0} of {1}</li>", (object)qty, (object)control3.SelectedItem.Text);
                     else
-                        emailCls.AddFormatToBody("<li>{0} of {1} - Preperation note: {2}</li>", (object)qty, (object)control3.SelectedItem.Text, (object)control5.SelectedItem.Text);
+                        emailCls.AddFormatToLegacyEmailBody("<li>{0} of {1} - Preperation note: {2}</li>", (object)qty, (object)control3.SelectedItem.Text, (object)control5.SelectedItem.Text);
                 }
             }
-            emailCls.AddStrAndNewLineToBody("</ul>");
+            emailCls.AddStrAndNewLineToLegacyEmailBody("</ul>");
             if (!string.IsNullOrEmpty(labelValue2))
             {
                 if (labelValue2.EndsWith("!!!PO required!!!"))
-                    emailCls.AddStrAndNewLineToBody("<b>NOTE</b>: We are still waiting for a Purchase Order number from you.<br />");
+                    emailCls.AddStrAndNewLineToLegacyEmailBody("<b>NOTE</b>: We are still waiting for a Purchase Order number from you.<br />");
                 else
-                    emailCls.AddStrAndNewLineToBody($"This order has purchase order: {labelValue2}, allocated to it.<br />");
+                    emailCls.AddStrAndNewLineToLegacyEmailBody($"This order has purchase order: {labelValue2}, allocated to it.<br />");
             }
             if (control2.SelectedItem.Text == "Cllct")
-                emailCls.AddStrAndNewLineToBody("The order will be ready for collection on: " + labelValue1);
+                emailCls.AddStrAndNewLineToLegacyEmailBody("The order will be ready for collection on: " + labelValue1);
             else if (control2.SelectedItem.Text == "Cour")
-                emailCls.AddStrAndNewLineToBody($"The order will be dispatched on: {labelValue1}.");
+                emailCls.AddStrAndNewLineToLegacyEmailBody($"The order will be dispatched on: {labelValue1}.");
             else
-                emailCls.AddStrAndNewLineToBody($"The order will be delivered on: {labelValue1}.");
+                emailCls.AddStrAndNewLineToLegacyEmailBody($"The order will be delivered on: {labelValue1}.");
             MembershipUser user = Membership.GetUser();
             string str2 = string.IsNullOrEmpty(user.UserName) ? "the Quaffee Team" : $" from the Quaffee Team ({this.UpCaseFirstLetter(user.UserName)})";
-            emailCls.AddStrAndNewLineToBody($"<br />Sent automatically by Quaffee's order and tracking System.<br /><br />Sincerely {str2} (orders@quaffee.co.za)");
-            if (emailCls.SendEmail())
+            emailCls.AddStrAndNewLineToLegacyEmailBody($"<br />Sent automatically by Quaffee's order and tracking System.<br /><br />Sincerely {str2} (orders@quaffee.co.za)");
+            if (emailCls.SendLegacyEmail())
             {
                 this.ltrlStatus.Text = "Email Sent to: " + str1;
             }
@@ -484,6 +787,7 @@ namespace TrackerDotNet.Pages
             showMessageBox showMessageBox1 = new showMessageBox(this.Page, "Email Confirmation", this.ltrlStatus.Text);
             this.upnlNewOrderItem.Update();
         }
+        */
 
         protected void OnDataBinding_ddlToBeDeliveredBy(object sender, EventArgs e)
         {
@@ -517,13 +821,55 @@ namespace TrackerDotNet.Pages
             this.gvOrderLines.DataBind();
             this.upnlOrderLines.Update();
         }
-
         protected void MarkItemAsInvoiced()
+        {
+            var manager = new TrackerDotNet.BusinessLogic.OrderManager();
+            manager.MarkItemAsInvoiced(
+                (long)this.Session["BoundCustomerID"],
+                ((DateTime)this.Session["BoundDeliveryDate"]).Date,
+                (string)this.Session["BoundNotes"]);
+            this.pnlOrderHeader.Update();
+        }
+        /*
+         protected void MarkItemAsInvoiced()
         {
             new OrderTbl().UpdateSetInvoiced(true, (long)this.Session["BoundCustomerID"], ((DateTime)this.Session["BoundDeliveryDate"]).Date, (string)this.Session["BoundNotes"]);
             this.pnlOrderHeader.Update();
         }
+        */
+        protected void btnOrderDelivered_Click(object sender, EventArgs e)
+        {
+            OrderHeaderData headerData = this.Get_dvOrderHeaderData(false);
+            var orderLines = new List<OrderManager.TempOrderLineData>();
+            ItemTypeTbl itemTypeTbl = new ItemTypeTbl();
 
+            foreach (GridViewRow row in this.gvOrderLines.Rows)
+            {
+                var itemDDL = (DropDownList)row.FindControl("ddlItemDesc");
+                var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
+                var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
+                var orderIdLbl = (Label)row.FindControl("lblOrderID");
+
+                var line = new OrderManager.TempOrderLineData
+                {
+                    ItemID = Convert.ToInt32(itemDDL.SelectedValue),
+                    Qty = Convert.ToDouble(qtyLbl.Text),
+                    PackagingID = Convert.ToInt32(packagingDDL.SelectedValue),
+                    ServiceTypeID = itemTypeTbl.GetServiceID(Convert.ToInt32(itemDDL.SelectedValue)),
+                    OriginalOrderID = Convert.ToInt32(orderIdLbl.Text)
+                };
+                orderLines.Add(line);
+            }
+
+            var manager = new TrackerDotNet.BusinessLogic.OrderManager();
+            bool success = manager.CompleteOrderDelivery(headerData, orderLines);
+
+            if (!success)
+                this.ltrlStatus.Text = "Error deleting Temp Table";
+            else
+                this.Response.Redirect("OrderDone.aspx");
+        }
+        /*
         protected void btnOrderDelivered_Click(object sender, EventArgs e)
         {
             OrderHeaderData dvOrderHeaderData = this.Get_dvOrderHeaderData(false);
@@ -557,7 +903,23 @@ namespace TrackerDotNet.Pages
             tempOrdersDal.Insert(pTempOrder);
             this.Response.Redirect("OrderDone.aspx");
         }
-
+        */
+        protected void btnUnDoDone_Click(object sender, EventArgs e)
+        {
+            var manager = new TrackerDotNet.BusinessLogic.OrderManager();
+            string empty = string.Empty;
+            foreach (TableRow row in this.gvOrderLines.Rows)
+            {
+                Label control = (Label)row.Cells[4].FindControl("lblOrderID");
+                empty += manager.UnDoOrderItem(Convert.ToInt32(control.Text));
+            }
+            this.ltrlStatus.Text = empty;
+            this.dvOrderHeader.DataBind();
+            this.pnlOrderHeader.Update();
+            this.gvOrderLines.DataBind();
+            this.upnlOrderLines.Update();
+        }
+        /*
         protected void btnUnDoDone_Click(object sender, EventArgs e)
         {
             string empty = string.Empty;
@@ -572,7 +934,7 @@ namespace TrackerDotNet.Pages
             this.gvOrderLines.DataBind();
             this.upnlOrderLines.Update();
         }
-
+        */
         protected void gvOrderLines_RowCommand(object sender, GridViewCommandEventArgs e)
         {
             bool flag = false;

@@ -1,77 +1,63 @@
 ﻿<%@ Page Title="System Data" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="SystemData.aspx.cs" Inherits="TrackerDotNet.Tools.SystemData" %>
+
 <asp:Content ID="cntSystemDataHdr" ContentPlaceHolderID="HeadContent" runat="server">
 </asp:Content>
-<asp:Content ID="cntSystemDataBdy" ContentPlaceHolderID="MainContent" runat="server">
-  <h1>System Data</h1>
-  <asp:DetailsView ID="dvSystemData" runat="server"  AutoGenerateRows="False" DataSourceID="odsSystemData"
-      CssClass="TblWhite" OnItemCommand="dvSystemData_ItemCommand" >
-    <Fields>
-           <asp:TemplateField HeaderText="Do Reoccuring Orders" 
-        SortExpression="DoReoccuringOrders">
-        <EditItemTemplate>
-          <asp:CheckBox ID="DoReoccuringOrdersCheckBox" runat="server" 
-            Checked='<%# Bind("DoReoccuringOrders") %>' />
-        </EditItemTemplate>
-        <ItemTemplate>
-          <asp:CheckBox ID="DoReoccuringOrdersCheckBox" runat="server" 
-            Checked='<%# Bind("DoReoccuringOrders") %>' Enabled="false" />
-        </ItemTemplate>
-      </asp:TemplateField>
-      <asp:TemplateField HeaderText="Last Reoccurring Date" 
-        SortExpression="LastReoccurringDate">
-        <EditItemTemplate>
-          <asp:TextBox ID="LastReoccurringDateTextBox" runat="server" 
-            Text='<%# Bind("LastReoccurringDate", "{0:d}") %>' />
-        </EditItemTemplate>
-        <ItemTemplate>
-          <asp:Label ID="LastReoccurringDateLabel" runat="server" 
-            Text='<%# Bind("LastReoccurringDate", "{0:d}") %>' />
-        </ItemTemplate>
-      </asp:TemplateField>
-      <asp:TemplateField HeaderText="Date Last Prep Date Calculated" 
-        SortExpression="DateLastPrepDateCalcd">
-        <EditItemTemplate>
-          <asp:TextBox ID="DateLastPrepDateCalcdTextBox" runat="server" 
-            Text='<%# Bind("DateLastPrepDateCalcd", "{0:d}") %>' 
-            ToolTip="set the minimum date that a reminder must be sent out, useful for when closed for extended periods" />
-        </EditItemTemplate>
-        <ItemTemplate>
-          <asp:Label ID="DateLastPrepDateCalcdLabel" runat="server" 
-            Text='<%# Bind("DateLastPrepDateCalcd", "{0:d}") %>' />
-        </ItemTemplate>
-      </asp:TemplateField>
-      <asp:TemplateField HeaderText="Min Reminder Date" SortExpression="MinReminderDate">
-        <EditItemTemplate>
-          <asp:TextBox ID="MinReminderDateTextBox" runat="server" Text='<%# Bind("MinReminderDate", "{0:d}") %>' />
-        </EditItemTemplate>
-        <ItemTemplate>
-          <asp:Label ID="MinReminderDateLabel" runat="server" 
-            Text='<%# Bind("MinReminderDate", "{0:d}") %>' />
-        </ItemTemplate>
-      </asp:TemplateField>
-      <asp:TemplateField HeaderText="Group Item Type #" SortExpression="GroupItemTypeID">
-        <EditItemTemplate>
-          <asp:TextBox ID="GroupItemTypeIDTextBox" runat="server" Text='<%# Bind("GroupItemTypeID") %>' />
-        </EditItemTemplate>
-        <ItemTemplate>
-          <asp:Label ID="GroupItemTypeIDLabel" runat="server" Text='<%# Bind("GroupItemTypeID") %>' />
-        </ItemTemplate>
-      </asp:TemplateField>
-      <asp:TemplateField HeaderText="ID" InsertVisible="False" SortExpression="ID">
-        <EditItemTemplate>
-          <asp:Label ID="IDLabel" runat="server" Text='<%# Eval("ID") %>' Enabled="false" />
-        </EditItemTemplate>
-        <ItemTemplate>
-          <asp:Label ID="IDLabel" runat="server" Text='<%# Bind("ID") %>' />
-        </ItemTemplate>
-      </asp:TemplateField>
-           <asp:CommandField ShowEditButton="True" />
-    </Fields>
-    </asp:DetailsView>
-    <asp:ObjectDataSource ID="odsSystemData" runat="server" 
-      DataObjectTypeName="TrackerDotNet.control.SysDataTbl" SelectMethod="GetAll" 
-      TypeName="TrackerDotNet.control.SysDataTbl" UpdateMethod="Update" OldValuesParameterFormatString="original_{0}">
-    </asp:ObjectDataSource>
-  <p>&nbsp;</p>
 
+<asp:Content ID="cntSystemDataBdy" ContentPlaceHolderID="MainContent" runat="server">
+    <h1>System Data</h1>
+
+    <asp:ObjectDataSource ID="odsSystemData" runat="server"
+        TypeName="TrackerDotNet.Controls.SysDataTbl"
+        SelectMethod="GetAll"
+        UpdateMethod="Update"
+        DataObjectTypeName="TrackerDotNet.Controls.SysDataTbl"></asp:ObjectDataSource>
+
+    <asp:ObjectDataSource ID="odsItemTypes" runat="server"
+        TypeName="TrackerDotNet.Controls.ItemTypeTbl"
+        SelectMethod="GetAll"></asp:ObjectDataSource>
+
+    <asp:DetailsView ID="dvSystemData" runat="server"
+        AutoGenerateRows="False"
+        DataSourceID="odsSystemData"
+        CssClass="TblWhite"
+        OnItemUpdated="dvSystemData_ItemUpdated"
+        OnDataBound="dvSystemData_DataBound">
+        <Fields>
+            <asp:BoundField DataField="ID" HeaderText="ID" ReadOnly="true" />
+
+            <asp:CheckBoxField DataField="DoReoccuringOrders"
+                HeaderText="Do Reoccuring Orders"
+                SortExpression="DoReoccuringOrders" />
+
+            <asp:BoundField DataField="LastReoccurringDate"
+                HeaderText="Last Reoccurring Date"
+                SortExpression="LastReoccurringDate"
+                DataFormatString="{0:d}"
+                ApplyFormatInEditMode="true" />
+
+            <asp:BoundField DataField="DateLastPrepDateCalcd"
+                HeaderText="Date Last Prep Date Calculated"
+                SortExpression="DateLastPrepDateCalcd"
+                DataFormatString="{0:d}"
+                ApplyFormatInEditMode="true" />
+
+            <asp:BoundField DataField="MinReminderDate"
+                HeaderText="Min Reminder Date"
+                SortExpression="MinReminderDate"
+                DataFormatString="{0:d}"
+                ApplyFormatInEditMode="true" />
+
+            <asp:BoundField DataField="GroupItemTypeID"
+                HeaderText="Group Item Type #"
+                SortExpression="GroupItemTypeID" />
+
+            <asp:BoundField DataField="InternalCustomerIds"
+                HeaderText="Internal Customer IDs"
+                SortExpression="InternalCustomerIds" />
+
+            <asp:CommandField ShowEditButton="True" />
+        </Fields>
+    </asp:DetailsView>
+
+    <asp:Label ID="lblMessage" runat="server" ForeColor="Green" Visible="false"></asp:Label>
 </asp:Content>

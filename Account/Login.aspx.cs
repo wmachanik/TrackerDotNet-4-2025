@@ -6,13 +6,14 @@
 
 using System;
 using System.Web;
+using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Account
 {
-    public class Login : Page
+    public partial class Login : Page
     {
         protected HyperLink RegisterHyperLink;
         protected System.Web.UI.WebControls.Login LoginUser;
@@ -21,5 +22,52 @@ namespace TrackerDotNet.Account
         {
             this.RegisterHyperLink.NavigateUrl = "Register.aspx?ReturnUrl=" + HttpUtility.UrlEncode(this.Request.QueryString["ReturnUrl"]);
         }
+        protected void LoginUser_LoggedIn(object sender, EventArgs e)
+        {
+            string username = LoginUser.UserName;
+
+            MembershipUser user = Membership.GetUser(username);
+            if (user == null) return;
+
+            Guid userId = (Guid)user.ProviderUserKey;
+
+            try
+            {
+                // Ensure table exists
+                TrackerDotNet.Classes.UserPreferencesHelper.EnsureUserPreferencesTableExists();
+
+                // Get preferences or fallback
+                var prefs = TrackerDotNet.Classes.UserPreferencesHelper.GetCurrentPreferencesForUser(userId);
+
+                // Store in Session
+                Session["UserPreferences"] = prefs;
+                // log that they are logged in
+                DateTime userNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, Session["UserTimeZoneInfo"] as TimeZoneInfo);
+                TrackerDotNet.Classes.AppLogger.WriteLog("logins", $"User '{LoginUser.UserName}' logged in at {userNow:yyyy-MM-dd HH:mm:ss} ({(Session["UserTimeZoneInfo"] as TimeZoneInfo)?.Id})");
+
+
+                // Optional shortcut: store just the TimeZoneInfo
+                Session["UserTimeZoneInfo"] = prefs.GetTimeZoneInfo();
+            }
+            catch (Exception ex)
+            {
+                // Fallback to default time zone only if DB fails
+                string defaultTzId = System.Configuration.ConfigurationManager.AppSettings["AppTimeZoneId"];
+                var defaultZone = TimeZoneInfo.FindSystemTimeZoneById(defaultTzId ?? "South Africa Standard Time");
+
+                Session["UserPreferences"] = new TrackerDotNet.Classes.UserPreferences
+                {
+                    UserId = userId,
+                    TimeZoneId = defaultZone.Id,
+                    Language = "en-ZA",
+                    LoadedOn = DateTime.UtcNow
+                };
+
+                Session["UserTimeZoneInfo"] = defaultZone;
+
+                TrackerDotNet.Classes.AppLogger.WriteLog("userprefs", $"Fallback to default zone for {username}: {ex.Message}");
+            }
+        }
     }
+
 }

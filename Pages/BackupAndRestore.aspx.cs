@@ -14,7 +14,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class BackupAndRestore : Page
+    public partial class BackupAndRestore : Page
     {
         protected Button btnSecurty2Local;
         protected Literal ltrlMsg;

@@ -109,9 +109,9 @@
         </asp:GridView>
         <asp:ObjectDataSource ID="odsRepairs" runat="server" 
           SortParameterName="SortBy" SelectMethod="GetAllRepairsOfStatus"
-          TypeName="TrackerDotNet.control.RepairsTbl" 
+          TypeName="TrackerDotNet.Controls.RepairsTbl" 
           OldValuesParameterFormatString="original_{0}" 
-          DataObjectTypeName="TrackerDotNet.control.RepairsTbl" 
+          DataObjectTypeName="TrackerDotNet.Controls.RepairsTbl" 
           DeleteMethod="DeleteRepair" InsertMethod="InsertRepair" 
           UpdateMethod="UpdateRepair" >
           <DeleteParameters>
@@ -120,11 +120,11 @@
           <SelectParameters>
             <asp:Parameter Name="SortBy"  Type="String" DefaultValue="" />
             <asp:ControlParameter ControlID="ddlRepairStatus" DefaultValue="" 
-              Name="pRepairStatus" PropertyName="SelectedValue" Type="String" />
+              Name="repairStatus" PropertyName="SelectedValue" Type="String" />
           </SelectParameters>
         </asp:ObjectDataSource>
         <asp:ObjectDataSource ID="odsRepairsStatuses" runat="server" 
-        SelectMethod="GetAll" TypeName="TrackerDotNet.control.RepairStatusesTbl" 
+        SelectMethod="GetAll" TypeName="TrackerDotNet.Controls.RepairStatusesTbl" 
           OldValuesParameterFormatString="original_{0}">
           <SelectParameters>
             <asp:Parameter DefaultValue="RepairStatusID" Name="SortBy" Type="String" />

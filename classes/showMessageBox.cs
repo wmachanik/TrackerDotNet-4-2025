@@ -7,7 +7,7 @@
 using System.Web.UI;
 
 //- only form later versions #nullable disable
-namespace TrackerDotNet.classes
+namespace TrackerDotNet.Classes
 {
     public class showMessageBox
     {

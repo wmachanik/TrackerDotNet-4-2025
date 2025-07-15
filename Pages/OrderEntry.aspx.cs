@@ -8,12 +8,12 @@ using System;
 using System.Data;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.control;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class OrderEntry : Page
+    public partial class OrderEntry : Page
     {
         private const int CONST_CUSTIDCOL = 2;
         private const int CONST_ROASTDATECOL = 4;

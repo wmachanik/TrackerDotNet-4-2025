@@ -10,12 +10,13 @@ using System.Net;
 using System.Net.Mail;
 using System.Text;
 using System.Web;
+using TrackerDotNet.Classes;
 
 // #nullable disable --- not for this version of C#
 public class EmailCls
 {
   public const string CONST_APPSETTING_FROMEMAILKEY = "SysEmailFrom";
-  public EmailCls.SendMailResults myResults;
+  public EmailCls.SendLeagacyMailResults myResults;
   private MailMessage myMsg;
   private StringBuilder sbMsgBody = new StringBuilder();
 
@@ -31,7 +32,7 @@ public class EmailCls
     this.myMsg.From = new MailAddress(ConfigurationManager.AppSettings["SysEmailFrom"]);
   }
 
-  public virtual bool SetEmailFromTo(string sFrom, string sTo)
+  public virtual bool SetLegacyEmailFromTo(string sFrom, string sTo)
   {
     try
     {
@@ -49,7 +50,7 @@ public class EmailCls
     }
   }
 
-  public virtual bool SetEmailFrom(string sFrom)
+  public virtual bool SetLegacyEmailFrom(string sFrom)
   {
     try
     {
@@ -65,9 +66,9 @@ public class EmailCls
     }
   }
 
-  public virtual bool SetEmailTo(string sTo) => this.SetEmailTo(sTo, false);
+  public virtual bool SetLegacyEmailTo(string sTo) => this.SetLegacyEmailTo(sTo, false);
 
-  public virtual bool SetEmailTo(string sTo, bool pOverWrite)
+  public virtual bool SetLegacyEmailTo(string sTo, bool pOverWrite)
   {
     try
     {
@@ -85,43 +86,43 @@ public class EmailCls
     }
   }
 
-  public virtual void SetEmailCC(string sCC) => this.myMsg.CC.Add(new MailAddress(sCC));
+  public virtual void SetLegacyEmailCC(string sCC) => this.myMsg.CC.Add(new MailAddress(sCC));
 
-  public virtual void SetEmailBCC(string sBCC) => this.myMsg.Bcc.Add(new MailAddress(sBCC));
+  public virtual void SetLegacyEmailBCC(string sBCC) => this.myMsg.Bcc.Add(new MailAddress(sBCC));
 
-  public virtual void SetEmailSubject(string sSubject) => this.myMsg.Subject = sSubject;
+  public virtual void SetLegacyEmailSubject(string sSubject) => this.myMsg.Subject = sSubject;
 
-  public virtual void AddToBody(string sBody) => this.sbMsgBody.Append(sBody);
+  public virtual void AddToLegacyEmailBody(string sBody) => this.sbMsgBody.Append(sBody);
 
-  public virtual void AddStrAndNewLineToBody(string sBody)
+  public virtual void AddStrAndNewLineToLegacyEmailBody(string sBody)
   {
     this.sbMsgBody.Append(sBody);
     this.sbMsgBody.Append("<br />");
   }
 
-  public virtual void AddFormatToBody(string pFormat, object pObj1)
+  public virtual void AddFormatToLegacyEmailBody(string pFormat, object pObj1)
   {
     this.sbMsgBody.AppendFormat(pFormat, pObj1);
   }
 
-  public virtual void AddFormatToBody(string pFormat, object pObj1, object pObj2)
+  public virtual void AddFormatToLegacyEmailBody(string pFormat, object pObj1, object pObj2)
   {
     this.sbMsgBody.AppendFormat(pFormat, pObj1, pObj2);
   }
 
-  public virtual void AddFormatToBody(string pFormat, object pObj1, object pObj2, object Obj3)
+  public virtual void AddFormatToLegacyEmailBody(string pFormat, object pObj1, object pObj2, object Obj3)
   {
     this.sbMsgBody.AppendFormat(pFormat, pObj1, pObj2, Obj3);
   }
 
-  public virtual void AddPDFAttachment(string pRelativePath)
+  public virtual void AddLegacyEmailPDFAttachment(string pRelativePath)
   {
     this.myMsg.Attachments.Add(new Attachment(HttpContext.Current.Server.MapPath(pRelativePath), "application/pdf"));
   }
 
-  public virtual bool SendEmail() => this.SendEmail(false);
+  public virtual bool SendLegacyEmail() => this.SendLegacyEmail(false);
 
-  public virtual bool SendEmail(bool bUseGoogle)
+  public virtual bool SendLegacyEmail(bool bUseGoogle)
   {
     try
     {
@@ -133,7 +134,7 @@ public class EmailCls
         string appSetting2 = ConfigurationManager.AppSettings["GMailPassword"];
         string appSetting3 = ConfigurationManager.AppSettings["GMailSMTP"];
         this.myMsg.CC.Add(new MailAddress(this.myMsg.From.Address, "CC to " + this.myMsg.From.Address));
-        this.myMsg.Subject = $"FROM: {this.myMsg.From.Address} sent: {DateTime.Now.Date.ToShortDateString()} re:{this.myMsg.Subject}";
+        this.myMsg.Subject = $"FROM: {this.myMsg.From.Address} sent: {TimeZoneUtils.Now().Date.ToShortDateString()} re:{this.myMsg.Subject}";
         this.myMsg.From = new MailAddress(appSetting1, "Reply to " + this.myMsg.From.Address);
         networkCredential = new NetworkCredential(appSetting1, appSetting2);
         smtpClient = new SmtpClient(appSetting3, 587);
@@ -172,7 +173,7 @@ public class EmailCls
     catch (Exception ex)
     {
       this.myResults.sResult = "ERROR: " + ex.Message;
-      return !bUseGoogle && this.SendEmail(true);
+      return !bUseGoogle && this.SendLegacyEmail(true);
     }
   }
 
@@ -197,7 +198,7 @@ public class EmailCls
     this.myMsg = (MailMessage) null;
   }
 
-  public struct SendMailResults
+  public struct SendLeagacyMailResults
   {
     public string sResult;
     public string sID;

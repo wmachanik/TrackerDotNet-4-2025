@@ -16,10 +16,18 @@
             <asp:DropDownList ID="ddlTables" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlTables_SelectedIndexChanged" />
             <br />
             <br />
-            <asp:GridView ID="gvStructure" runat="server" AutoGenerateColumns="true" />
+            <asp:Button ID="btnShowData" runat="server" Text="Show Top 10 Records" 
+                OnClick="btnShowData_Click" Visible="false" CssClass="btn" 
+                style="background-color: #007cba; color: white; padding: 5px 10px; border: none; border-radius: 3px;" />
+            <br />
+            <br />
+            <asp:GridView ID="gvStructure" runat="server" AutoGenerateColumns="true" 
+                CssClass="table" style="border-collapse: collapse; width: 100%;" 
+                HeaderStyle-BackColor="#f0f0f0" HeaderStyle-Font-Bold="true" 
+                RowStyle-BorderWidth="1px" RowStyle-BorderColor="#ddd" 
+                HeaderStyle-BorderWidth="1px" HeaderStyle-BorderColor="#ddd" />
         </div>
         <br />
-
     </form>
 </body>
 </html>

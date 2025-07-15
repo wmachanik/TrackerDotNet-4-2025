@@ -12,7 +12,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class ReoccuringOrders : Page
+    public partial class ReoccuringOrders : Page
     {
         private const string CONST_WHERECLAUSE_SESSIONVAR = "ReoccuringOrderSummaryWhereFilter";
         protected ScriptManager smReoccuringOrderSummary;

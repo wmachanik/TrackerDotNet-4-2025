@@ -4,7 +4,8 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 namespace TrackerDotNet.Tools
 {
@@ -14,8 +15,8 @@ namespace TrackerDotNet.Tools
     {
       if (!IsPostBack)
       {
-//        OldDeliveryDateTextBox.Text = String.Format("{0:d}", DateTime.Now.Date);
-        NewDeliveryDateTextBox.Text = String.Format("{0:d}", DateTime.Now.AddDays(1).Date);
+//        OldDeliveryDateTextBox.Text = String.Format("{0:d}", TimeZoneUtils.Now().Date);
+        NewDeliveryDateTextBox.Text = String.Format("{0:d}", TimeZoneUtils.Now().AddDays(1).Date);
       }
 
     }
@@ -31,7 +32,8 @@ namespace TrackerDotNet.Tools
       }
       else
       {
-        control.NextRoastDateByCityTbl _NRD = new NextRoastDateByCityTbl();
+
+        TrackerDotNet.Controls.NextRoastDateByCityTbl _NRD = new NextRoastDateByCityTbl();
         int _numRecs = 0;
         string _result = _NRD.MoveDeliveryDate(_OldDate, _NewDate, ref _numRecs);
 

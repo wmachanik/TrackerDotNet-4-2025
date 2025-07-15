@@ -22,7 +22,7 @@
                 DataSourceID="odsCityDeliveryDates" DataTextField="Date" DataValueField="Date"></asp:DropDownList>
               <asp:ObjectDataSource ID="odsCityDeliveryDates" runat="server" 
                 SelectMethod="GetAllDeliveryDates" 
-                TypeName="TrackerDotNet.control.NextRoastDateByCityTbl">
+                TypeName="TrackerDotNet.Controls.NextRoastDateByCityTbl">
               </asp:ObjectDataSource>
             </td>
           </tr>

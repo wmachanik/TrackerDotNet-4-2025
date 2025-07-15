@@ -9,8 +9,8 @@ using System;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 // TrackerDotNet.Pages.CustomerDetails
@@ -178,7 +178,7 @@ namespace TrackerDotNet.Pages
                     this.accPaymentTermsDropDownList.DataBind();
                     this.accPriceLevelsDropDownList.DataBind();
                     this.gvItems.Sort("Date", SortDirection.Descending);
-                    this.PutDataOnForm(customersTbl.GetCustomersByCustomerID(this.GetCustomerIDFromRequest(), ""));
+                    this.PutDataOnForm(customersTbl.GetCustomerByCustomerID(this.GetCustomerIDFromRequest(), ""));
                 }
                 else
                     this.SetButtonStatus(false);
@@ -202,7 +202,7 @@ namespace TrackerDotNet.Pages
             if (this.Request.QueryString["Focus_AccInfo"] == null || !this.Request.QueryString["Focus_AccInfo"].StartsWith("Y", StringComparison.OrdinalIgnoreCase))
                 return;
             this.tabcCustomer.ActiveTabIndex = 0;
-            this.Page.SetFocus((Control)this.accFullCoNameTextBox);
+            this.Page.SetFocus(this.accFullCoNameTextBox);
             this.uppnlTabContainer.Update();
         }
 
@@ -520,7 +520,7 @@ namespace TrackerDotNet.Pages
 
         protected void btnForceNext_Click(object sender, EventArgs e)
         {
-            new ClientUsageTbl().ForceNextCoffeeDate(new TrackerTools().GetClosestNextRoastDate(DateTime.Now.AddDays(14.0).Date).AddDays(3.0), this.StringToInt64(this.CompanyIDLabel.Text));
+            new ClientUsageTbl().ForceNextCoffeeDate(new TrackerTools().GetClosestNextRoastDate(TimeZoneUtils.Now().AddDays(14.0).Date).AddDays(3.0), this.StringToInt64(this.CompanyIDLabel.Text));
             new CustomersTbl().IncrementReminderCount(this.StringToInt64(this.CompanyIDLabel.Text));
             this.dgCustomerUsage.DataBind();
             string script = $"showMessage('{$"{this.CompanyNameTextBox.Text} force to skip a week of prediction"}');";
@@ -646,6 +646,48 @@ namespace TrackerDotNet.Pages
                 {
                     showMessageBox showMessageBox = new showMessageBox(this.Page, "Insert", "Error inserting: " + str);
                 }
+            }
+        }
+
+        protected void btnForceCheckup_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                long customerID = Convert.ToInt64(this.CompanyIDLabel.Text);
+                if (customerID <= 0)
+                {
+                    var errorMsg = new showMessageBox(this.Page, "Error", "No customer selected");
+                    return;
+                }
+
+                // Force the customer's next coffee date to be within checkup range (5 days from now)
+                DateTime forceDate = TimeZoneUtils.Now().Date.AddDays(5);
+                
+                ClientUsageTbl clientUsage = new ClientUsageTbl();
+                bool result = clientUsage.ForceNextCoffeeDate(forceDate, customerID);
+                
+                if (result)
+                {
+                    // Reset reminder count so they're eligible for reminders
+                    CustomersTbl customersTbl = new CustomersTbl();
+                    customersTbl.ResetReminderCount(customerID);
+                    
+                    // Refresh the usage display
+                    this.upnlNextItems.Update();
+                    
+                    var successMsg = new showMessageBox(this.Page, 
+                        "Force Checkup", 
+                        $"Customer {customerID} has been forced into next checkup cycle. Next coffee date set to {forceDate:d}");
+                }
+                else
+                {
+                    var errorMsg = new showMessageBox(this.Page, "Error", $"Failed to force checkup for customer id: {customerID}");
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog("customerdetails", $"Error in btnForceCheckup_Click: {ex.Message}");
+                var errorMsg = new showMessageBox(this.Page, "Error", $"Error forcing checkup: {ex.Message}");
             }
         }
     }

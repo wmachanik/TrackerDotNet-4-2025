@@ -7,7 +7,7 @@
 using System.Data;
 
 //- only form later versions #nullable disable
-namespace TrackerDotNet.classes
+namespace TrackerDotNet.Classes
 {
     public class DBParameter
     {

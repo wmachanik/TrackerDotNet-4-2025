@@ -11,7 +11,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class CoffeeRequired : Page
+    public partial class CoffeeRequired : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {

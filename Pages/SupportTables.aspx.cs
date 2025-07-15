@@ -12,7 +12,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class SupportTables : Page
+    public partial class SupportTables : Page
     {
         protected ScriptManager smSupporTables;
         protected UpdateProgress uprgSupporTables;

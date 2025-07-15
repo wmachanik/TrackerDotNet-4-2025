@@ -11,7 +11,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Account
 {
-    public class RecoverPassword : Page
+    public partial class RecoverPassword : Page
     {
         protected PasswordRecovery TrackerPasswordRecovery;
 

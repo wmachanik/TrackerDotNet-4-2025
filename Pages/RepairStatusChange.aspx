@@ -52,7 +52,7 @@
       <img src="../images/animi/QuaffeeProgress.gif" alt="please wait..." />
     </ProgressTemplate>
   </asp:UpdateProgress>
-  <asp:ObjectDataSource ID="odsEquipTypes" runat="server" TypeName="TrackerDotNet.control.EquipTypeTbl"
+  <asp:ObjectDataSource ID="odsEquipTypes" runat="server" TypeName="TrackerDotNet.Controls.EquipTypeTbl"
       SortParameterName="SortBy" SelectMethod="GetAll"
       OldValuesParameterFormatString="original_{0}">
       <SelectParameters>
@@ -60,7 +60,7 @@
       </SelectParameters>
   </asp:ObjectDataSource>
   <asp:ObjectDataSource ID="odsRepairStatuses" runat="server" SortParameterName="SortBy"
-    SelectMethod="GetAll" TypeName="TrackerDotNet.control.RepairStatusesTbl">
+    SelectMethod="GetAll" TypeName="TrackerDotNet.Controls.RepairStatusesTbl">
     <SelectParameters>
       <asp:Parameter DefaultValue="SortOrder" Name="SortBy" Type="String" />
     </SelectParameters>

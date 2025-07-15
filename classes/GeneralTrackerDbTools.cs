@@ -7,10 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using TrackerDotNet.control;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
-namespace TrackerDotNet.classes
+namespace TrackerDotNet.Classes
 {
     public class GeneralTrackerDbTools
     {
@@ -146,7 +146,7 @@ namespace TrackerDotNet.classes
             if (pClientUsageData.UsageDate > DateTime.MinValue)
             {
                 double aveConsumption = this.GetAveConsumption(pCustomerID);
-                int int32 = Convert.ToInt32((DateTime.Now.Date - this.RemoveHolidayPeriodFromDate(pCustomerID, pClientUsageData.UsageDate, 2).Date).TotalDays);
+                int int32 = Convert.ToInt32((TimeZoneUtils.Now().Date - this.RemoveHolidayPeriodFromDate(pCustomerID, pClientUsageData.UsageDate, 2).Date).TotalDays);
                 a = !pIsCoffee || pClientUsageData.LastQty == 0.0 ? (double)pClientUsageData.LastCount + (double)int32 * aveConsumption : (double)pClientUsageData.LastCount + pClientUsageData.LastQty * 100.0;
             }
             return Convert.ToInt32(Math.Round(a));
@@ -334,7 +334,7 @@ namespace TrackerDotNet.classes
                 double num = this.CalcAveConsumption(pCustomerID);
                 if (num <= 0.0)
                     num = 5.0;
-                DateTime date = DateTime.Now.AddDays(20.0).Date;
+                DateTime date = TimeZoneUtils.Now().AddDays(20.0).Date;
                 new ClientUsageTbl().Update(new ClientUsageTbl()
                 {
                     CustomerID = pCustomerID,

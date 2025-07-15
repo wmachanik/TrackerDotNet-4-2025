@@ -162,14 +162,14 @@
     </ContentTemplate>
   </asp:UpdatePanel>
 
-  <asp:ObjectDataSource ID="odsCompanys" runat="server" TypeName="TrackerDotNet.control.CompanyNames"
+  <asp:ObjectDataSource ID="odsCompanys" runat="server" TypeName="TrackerDotNet.Controls.CompanyNames"
     SelectMethod="GetAll" OldValuesParameterFormatString="original_{0}">
   </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsCompanyDemos" runat="server" TypeName="TrackerDotNet.control.CompanyNames"
+  <asp:ObjectDataSource ID="odsCompanyDemos" runat="server" TypeName="TrackerDotNet.Controls.CompanyNames"
     SelectMethod="GetAllDemo"
     OldValuesParameterFormatString="original_{0}">
   </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsEquipTypes" runat="server" TypeName="TrackerDotNet.control.EquipTypeTbl"
+  <asp:ObjectDataSource ID="odsEquipTypes" runat="server" TypeName="TrackerDotNet.Controls.EquipTypeTbl"
       SortParameterName="SortBy" SelectMethod="GetAll"
       OldValuesParameterFormatString="original_{0}">
       <SelectParameters>
@@ -178,19 +178,19 @@
   </asp:ObjectDataSource>
 
   <asp:ObjectDataSource ID="odsRepairFaults" runat="server" SelectMethod="GetAll" 
-    SortParameterName="SortBy" TypeName="TrackerDotNet.control.RepairFaultsTbl">
+    SortParameterName="SortBy" TypeName="TrackerDotNet.Controls.RepairFaultsTbl">
     <SelectParameters>
       <asp:Parameter DefaultValue="SortOrder" Name="SortBy" Type="String" />
     </SelectParameters>
   </asp:ObjectDataSource>
   <asp:ObjectDataSource ID="odsRepairStatuses" runat="server" SortParameterName="SortBy"
-    SelectMethod="GetAll" TypeName="TrackerDotNet.control.RepairStatusesTbl">
+    SelectMethod="GetAll" TypeName="TrackerDotNet.Controls.RepairStatusesTbl">
     <SelectParameters>
       <asp:Parameter DefaultValue="SortOrder" Name="SortBy" Type="String" />
     </SelectParameters>
   </asp:ObjectDataSource>
   <asp:ObjectDataSource ID="odsMachineConditions" runat="server" SortParameterName="SortBy"
-    SelectMethod="GetAll" TypeName="TrackerDotNet.control.MachineConditionsTbl">
+    SelectMethod="GetAll" TypeName="TrackerDotNet.Controls.MachineConditionsTbl">
     <SelectParameters>
       <asp:SessionParameter Name="SortBy" SessionField="SortOrder" Type="String" />
     </SelectParameters>

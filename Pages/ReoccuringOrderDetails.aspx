@@ -108,17 +108,17 @@
     ProviderName="<%$ ConnectionStrings:Tracker08ConnectionString.ProviderName %>" 
     SelectCommand="SELECT [CompanyName], [CustomerID] FROM [CustomersTbl] ORDER BY [enabled], [CompanyName]">
   </asp:SqlDataSource>
-  <asp:ObjectDataSource ID="odsItems" runat="server" TypeName="TrackerDotNet.control.ItemTypeTbl"
+  <asp:ObjectDataSource ID="odsItems" runat="server" TypeName="TrackerDotNet.Controls.ItemTypeTbl"
       SortParameterName="SortBy" SelectMethod="GetAll"
       OldValuesParameterFormatString="original_{0}">
       <SelectParameters>
         <asp:Parameter DefaultValue="[ItemEnabled], [SortOrder], ItemDesc" Name="SortBy" Type="String" />
       </SelectParameters>
   </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsReoccuranceTypes" runat="server" TypeName="TrackerDotNet.control.ReoccuranceTypeTbl"
+  <asp:ObjectDataSource ID="odsReoccuranceTypes" runat="server" TypeName="TrackerDotNet.Controls.ReoccuranceTypeTbl"
     SelectMethod="GetAll" OldValuesParameterFormatString="original_{0}">
    </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsPackagingTypes" runat="server" TypeName="TrackerDotNet.control.PackagingTbl"
+  <asp:ObjectDataSource ID="odsPackagingTypes" runat="server" TypeName="TrackerDotNet.Controls.PackagingTbl"
       SortParameterName="SortBy" SelectMethod="GetAll"
       OldValuesParameterFormatString="original_{0}">
       <SelectParameters>

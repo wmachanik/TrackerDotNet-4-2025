@@ -8,13 +8,13 @@ using AjaxControlToolkit;
 using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class ReoccuringOrderDetails : Page
+    public partial class ReoccuringOrderDetails : Page
     {
         private static string prevPage = string.Empty;
         protected Label lblReoccuringOrderID;

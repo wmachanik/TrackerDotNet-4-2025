@@ -45,8 +45,14 @@
     <Reference Include="AjaxControlToolkit, Version=20.1.0.0, Culture=neutral, PublicKeyToken=28f01b0e84b6d53e, processorArchitecture=MSIL">
       <HintPath>packages\AjaxControlToolkit.20.1.0\lib\net40\AjaxControlToolkit.dll</HintPath>
     </Reference>
+    <Reference Include="BouncyCastle.Cryptography, Version=2.0.0.0, Culture=neutral, PublicKeyToken=072edcf4a5328938, processorArchitecture=MSIL">
+      <HintPath>packages\BouncyCastle.Cryptography.2.5.1\lib\net461\BouncyCastle.Cryptography.dll</HintPath>
+    </Reference>
     <Reference Include="HtmlAgilityPack, Version=1.12.1.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
       <HintPath>packages\HtmlAgilityPack.1.12.1\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
+    <Reference Include="MailKit, Version=4.13.0.0, Culture=neutral, PublicKeyToken=4e064fe7c44a8f1b, processorArchitecture=MSIL">
+      <HintPath>packages\MailKit.4.13.0\lib\net48\MailKit.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\lib\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
@@ -54,6 +60,33 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm, Version=5.8.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Data.Edm.5.8.5\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="MimeKit, Version=4.13.0.0, Culture=neutral, PublicKeyToken=bede1c8a46c66814, processorArchitecture=MSIL">
+      <HintPath>packages\MimeKit.4.13.0\lib\net48\MimeKit.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Buffers, Version=4.0.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.6.0\lib\net462\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Formats.Asn1, Version=8.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Formats.Asn1.8.0.1\lib\net462\System.Formats.Asn1.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.6.0\lib\net462\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.6.0\lib\net462\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.0\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security" />
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Threading.Tasks.Extensions.4.6.0\lib\net462\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -83,10 +116,76 @@
     <Content Include="Administration\ResetPasswordHelper.aspx" />
     <Content Include="Administration\UserInformation.aspx" />
     <Content Include="App_Data\QuaffeeTracker08.mdb" />
+    <Content Include="App_Data\SQLCommands001.xml" />
     <Content Include="Default.aspx" />
     <Content Include="DisableClient.aspx" />
     <Content Include="Global.asax" />
     <Content Include="HttpErrorPage.aspx" />
+    <Content Include="images\animi\arrv_white.gif" />
+    <Content Include="images\animi\arr_white.gif" />
+    <Content Include="images\animi\BlueArrowsUpdate.gif" />
+    <Content Include="images\animi\ctree_6a.gif" />
+    <Content Include="images\animi\Firew14a.gif" />
+    <Content Include="images\animi\fireworksRightToLeft.gif" />
+    <Content Include="images\animi\img_progress.gif" />
+    <Content Include="images\animi\LimitedStock.gif" />
+    <Content Include="images\animi\NoLongerAvailable.gif" />
+    <Content Include="images\animi\QuaffeeProgress.gif" />
+    <Content Include="images\Big_frog.gif" />
+    <Content Include="images\BTN.jpg" />
+    <Content Include="images\Bullets\BeanBullet.gif" />
+    <Content Include="images\Bullets\BeanBullet.JPG" />
+    <Content Include="images\Bullets\BeanBulletSmall.gif" />
+    <Content Include="images\Bullets\BeanBullet_um.JPG" />
+    <Content Include="images\Bullets\Bullet1.jpg" />
+    <Content Include="images\Bullets\Bullet2.jpg" />
+    <Content Include="images\Bullets\Bullet3.jpg" />
+    <Content Include="images\Bullets\Bullet4.jpg" />
+    <Content Include="images\Bullets\Bullet5.jpg" />
+    <Content Include="images\Bullets\bullet_triangle_green.png" />
+    <Content Include="images\Bullets\GreenBlock.gif" />
+    <Content Include="images\Bullets\GreenCircle.gif" />
+    <Content Include="images\bullet_ball_glass_green.ico" />
+    <Content Include="images\icon\QonTIcon.ico" />
+    <Content Include="images\imgButtons\AddButtonCaps.gif" />
+    <Content Include="images\imgButtons\AddItem.gif" />
+    <Content Include="images\imgButtons\ArrowUpDown.gif" />
+    <Content Include="images\imgButtons\arrow_down.gif" />
+    <Content Include="images\imgButtons\arrow_up.gif" />
+    <Content Include="images\imgButtons\Calculator.gif" />
+    <Content Include="images\imgButtons\Calendar.gif" />
+    <Content Include="images\imgButtons\CalendarBtn.png" />
+    <Content Include="images\imgButtons\CancelButton.gif" />
+    <Content Include="images\imgButtons\CancelItem.gif" />
+    <Content Include="images\imgButtons\Clock.gif" />
+    <Content Include="images\imgButtons\CopyItem.gif" />
+    <Content Include="images\imgButtons\CutItem.gif" />
+    <Content Include="images\imgButtons\DelItem.gif" />
+    <Content Include="images\imgButtons\DoneButton.gif" />
+    <Content Include="images\imgButtons\EditButton.gif" />
+    <Content Include="images\imgButtons\EditItem.gif" />
+    <Content Include="images\imgButtons\FirstPage.gif" />
+    <Content Include="images\imgButtons\GreenPlus.gif" />
+    <Content Include="images\imgButtons\InvoicedButton.gif" />
+    <Content Include="images\imgButtons\Item.gif" />
+    <Content Include="images\imgButtons\LastPage.gif" />
+    <Content Include="images\imgButtons\LockItem.gif" />
+    <Content Include="images\imgButtons\MoveOnADay.gif" />
+    <Content Include="images\imgButtons\NextPage.gif" />
+    <Content Include="images\imgButtons\OpenItem.gif" />
+    <Content Include="images\imgButtons\PasteItem.gif" />
+    <Content Include="images\imgButtons\Picture.gif" />
+    <Content Include="images\imgButtons\PrevPage.gif" />
+    <Content Include="images\imgButtons\SelectItem.gif" />
+    <Content Include="images\imgButtons\Shield.gif" />
+    <Content Include="images\imgButtons\Trashcan.gif" />
+    <Content Include="images\imgButtons\UnlockItem.gif" />
+    <Content Include="images\imgButtons\UpdateButton.gif" />
+    <Content Include="images\imgButtons\UpdateItem.gif" />
+    <Content Include="images\imgButtons\Wait.gif" />
+    <Content Include="images\imgButtons\World.gif" />
+    <Content Include="images\logo\QuaffeeLogoSmall.jpg" />
+    <Content Include="images\logo\QuaffeeLogoWeb.jpg" />
     <Content Include="Pages\BackupAndRestore.aspx" />
     <Content Include="Pages\ClientList.aspx" />
     <Content Include="Pages\CoffeeRequired.aspx" />
@@ -97,7 +196,6 @@
     <Content Include="Pages\GroupItemDetail.aspx" />
     <Content Include="Pages\ItemGroups.aspx" />
     <Content Include="Pages\LeaveApp.aspx" />
-    <Content Include="Pages\LoadSendCoffeeCheckup.aspx" />
     <Content Include="Pages\LogTable.aspx" />
     <Content Include="Pages\Lookups.aspx" />
     <Content Include="Pages\NewOrderDetail.aspx" />
@@ -109,7 +207,6 @@
     <Content Include="Pages\OrderSheet.aspx" />
     <Content Include="Pages\OrderVineyard2Buiten.aspx" />
     <Content Include="Pages\PreperationSummary.aspx" />
-    <Content Include="Pages\Print.aspx" />
     <Content Include="Pages\QuaffeeCoffeeTastingSheet.aspx" />
     <Content Include="Pages\ReoccuringOrderDetails.aspx" />
     <Content Include="Pages\ReoccuringOrders.aspx" />
@@ -123,15 +220,18 @@
     <Content Include="Pages\SupportTables.aspx" />
     <Content Include="Pages\TestPage.aspx" />
     <Content Include="Pages\ThisWeeksOrder.aspx" />
-    <Content Include="classes\Web.config" />
+    <Content Include="Classes\Web.config" />
     <None Include="Scripts\jquery-1.4.1-vsdoc.js" />
     <Content Include="Scripts\jquery-1.4.1.js" />
     <Content Include="Scripts\jquery-1.4.1.min.js" />
     <Content Include="smpttester\index.aspx" />
+    <Content Include="Styles\MobileSite.css" />
     <Content Include="Styles\Site.css" />
     <Content Include="Styles\_old_Site.css" />
     <Content Include="test\About.aspx" />
     <Content Include="test\AutoClassMaker.aspx" />
+    <Content Include="Tools\EmailDiagnostics.aspx" />
+    <Content Include="Tools\EmailDiagnostics.css" />
     <Content Include="test\PrintingTblHeadersTest.htm" />
     <Content Include="test\ShowTableStruct.aspx" />
     <Content Include="test\SQLCommands.xml" />
@@ -221,88 +321,107 @@
     <Compile Include="Administration\UserInformation.aspx.designer.cs">
       <DependentUpon>UserInformation.aspx</DependentUpon>
     </Compile>
-    <Compile Include="classes\CheckBrowser.cs" />
-    <Compile Include="classes\DateTimeExtensions.cs" />
-    <Compile Include="classes\DBParameter.cs" />
-    <Compile Include="classes\EmailCls.cs" />
-    <Compile Include="classes\GeneralTrackerDbTools.cs" />
-    <Compile Include="classes\GridViewGroup.cs" />
-    <Compile Include="classes\GridViewGroupList.cs" />
-    <Compile Include="classes\GridViewHelper.cs" />
-    <Compile Include="classes\GridViewSummary.cs" />
-    <Compile Include="classes\GridViewSummaryList.cs" />
-    <Compile Include="classes\LogFile.cs" />
-    <Compile Include="classes\showMessageBox.cs" />
-    <Compile Include="classes\TrackerDb.cs" />
-    <Compile Include="classes\TrackerTools.cs" />
-    <Compile Include="control\ActiveDeliveryData.cs" />
-    <Compile Include="control\CityPrepDaysTbl.cs" />
-    <Compile Include="control\CityTblDAL.cs" />
-    <Compile Include="control\CityTblData.cs" />
-    <Compile Include="control\ClientUsageFromTempOrder.cs" />
-    <Compile Include="control\ClientUsageLinesTbl.cs" />
-    <Compile Include="control\ClientUsageTbl.cs" />
-    <Compile Include="control\CompanyNames.cs" />
-    <Compile Include="control\ContactEmailDetails.cs" />
-    <Compile Include="control\ContactsThatMayNeedNextWeek.cs" />
-    <Compile Include="control\ContactsThayMayNeedData.cs" />
-    <Compile Include="control\ContactToRemindDetails.cs" />
-    <Compile Include="control\ContactToRemindWithItems.cs" />
-    <Compile Include="control\ContactType.cs" />
-    <Compile Include="control\CustomerDAL.cs" />
-    <Compile Include="control\CustomerData.cs" />
-    <Compile Include="control\CustomersAccInfoTbl.cs" />
-    <Compile Include="control\CustomersTbl.cs" />
-    <Compile Include="control\CustomerSummary.cs" />
-    <Compile Include="control\CustomerSummaryDAL.cs" />
-    <Compile Include="control\CustomersWithDatesAndUsageTbl.cs" />
-    <Compile Include="control\CustomerTrackedServiceItems.cs" />
-    <Compile Include="control\CustomerTypeTbl.cs" />
-    <Compile Include="control\DeliveryItemsTbl.cs" />
-    <Compile Include="control\EquipTypeTbl.cs" />
-    <Compile Include="control\InvoiceTypeTbl.cs" />
-    <Compile Include="control\ItemContactRequires.cs" />
-    <Compile Include="control\ItemGroupTbl.cs" />
-    <Compile Include="control\ItemTypeTbl.cs" />
-    <Compile Include="control\ItemUnitsTbl.cs" />
-    <Compile Include="control\ItemUsageTbl.cs" />
-    <Compile Include="control\LogTbl.cs" />
-    <Compile Include="control\MachineConditionsTbl.cs" />
-    <Compile Include="control\NextRoastDateByCityTbl.cs" />
-    <Compile Include="control\OrderCheck.cs" />
-    <Compile Include="control\OrderCheckData.cs" />
-    <Compile Include="control\OrderCls.cs" />
-    <Compile Include="control\OrderData.cs" />
-    <Compile Include="control\OrderDataControl.cs" />
-    <Compile Include="control\OrderDetailDAL.cs" />
-    <Compile Include="control\OrderDetailData.cs" />
-    <Compile Include="control\OrderHeaderData.cs" />
-    <Compile Include="control\OrderItemTbl.cs" />
-    <Compile Include="control\OrderTbl.cs" />
-    <Compile Include="control\OrderTblData.cs" />
-    <Compile Include="control\PackagingTbl.cs" />
-    <Compile Include="control\PaymentTermsTbl.cs" />
-    <Compile Include="control\PersonsTbl.cs" />
-    <Compile Include="control\PriceLevelsTbl.cs" />
-    <Compile Include="control\ReoccuranceTypeTbl.cs" />
-    <Compile Include="control\ReoccuringOrderDAL.cs" />
-    <Compile Include="control\ReoccuringOrderExtData.cs" />
-    <Compile Include="control\ReoccuringOrderTbl.cs" />
-    <Compile Include="control\RepairFaultsTbl.cs" />
-    <Compile Include="control\RepairStatusesTbl.cs" />
-    <Compile Include="control\RepairsTbl.cs" />
-    <Compile Include="control\SectionTypesTbl.cs" />
-    <Compile Include="control\SendCheckEmailTextsData.cs" />
-    <Compile Include="control\SentRemindersLogTbl.cs" />
-    <Compile Include="control\SysDataTbl.cs" />
-    <Compile Include="control\TempCoffeeCheckup.cs" />
-    <Compile Include="control\TempOrdersDAL.cs" />
-    <Compile Include="control\TempOrdersData.cs" />
-    <Compile Include="control\TempOrdersHeaderTbl.cs" />
-    <Compile Include="control\TempOrdersLinesTbl.cs" />
-    <Compile Include="control\TrackedServiceItemTbl.cs" />
-    <Compile Include="control\TransactionTypesTbl.cs" />
-    <Compile Include="control\UsedItemGroupTbl.cs" />
+    <Compile Include="Classes\BatchSendResult.cs" />
+    <Compile Include="Classes\DeliveryDateCalculator.cs" />
+    <Compile Include="Controls\OrderCheckTbl.cs" />
+    <Compile Include="Controls\ServiceTypeTbl.cs" />
+    <Compile Include="Managers\CoffeeCheckupEmailManager.cs" />
+    <Compile Include="Classes\MessageType.cs" />
+    <Compile Include="Managers\CoffeeCheckupManager.cs" />
+    <Compile Include="Managers\CustomerManager.cs" />
+    <Compile Include="Managers\DisableClientManager.cs" />
+    <Compile Include="Classes\MessageKeys.cs" />
+    <Compile Include="Managers\OrderDetailManager .cs" />
+    <Compile Include="Managers\OrderDoneManager.cs" />
+    <Compile Include="Managers\OrderManager.cs" />
+    <Compile Include="Classes\AppLogger.cs" />
+    <Compile Include="Classes\CheckBrowser.cs" />
+    <Compile Include="Classes\DateTimeExtensions.cs" />
+    <Compile Include="Classes\DBParameter.cs" />
+    <Compile Include="Classes\EmailMailKitCls.cs" />
+    <Compile Include="Classes\EmailUtils.cs" />
+    <Compile Include="Classes\GeneralTrackerDbTools.cs" />
+    <Compile Include="Classes\GridViewGroup.cs" />
+    <Compile Include="Classes\GridViewGroupList.cs" />
+    <Compile Include="Classes\GridViewHelper.cs" />
+    <Compile Include="Classes\GridViewSummary.cs" />
+    <Compile Include="Classes\GridViewSummaryList.cs" />
+    <Compile Include="Classes\LogFile.cs" />
+    <Compile Include="Classes\MessageProvider.cs" />
+    <Compile Include="Classes\showMessageBox.cs" />
+    <Compile Include="Classes\TimeZoneUtils.cs" />
+    <Compile Include="Classes\TrackerDb.cs" />
+    <Compile Include="Classes\TrackerTools.cs" />
+    <Compile Include="Classes\UserPreferences.cs" />
+    <Compile Include="Classes\UserPreferencesHelper.cs" />
+    <Compile Include="Controls\ActiveDeliveryData.cs" />
+    <Compile Include="Controls\CityPrepDaysTbl.cs" />
+    <Compile Include="Controls\CityTblDAL.cs" />
+    <Compile Include="Controls\CityTblData.cs" />
+    <Compile Include="Controls\ClientUsageFromTempOrder.cs" />
+    <Compile Include="Controls\ClientUsageLinesTbl.cs" />
+    <Compile Include="Controls\ClientUsageTbl.cs" />
+    <Compile Include="Controls\CompanyNames.cs" />
+    <Compile Include="Controls\ContactEmailDetails.cs" />
+    <Compile Include="Controls\ContactsThatMayNeedNextWeek.cs" />
+    <Compile Include="Controls\ContactsThayMayNeedData.cs" />
+    <Compile Include="Controls\ContactToRemindDetails.cs" />
+    <Compile Include="Controls\ContactToRemindWithItems.cs" />
+    <Compile Include="Controls\ContactType.cs" />
+    <Compile Include="Controls\CustomerDAL.cs" />
+    <Compile Include="Controls\CustomerData.cs" />
+    <Compile Include="Controls\CustomersAccInfoTbl.cs" />
+    <Compile Include="Controls\CustomersTbl.cs" />
+    <Compile Include="Controls\CustomerSummary.cs" />
+    <Compile Include="Controls\CustomerSummaryDAL.cs" />
+    <Compile Include="Controls\CustomersWithDatesAndUsageTbl.cs" />
+    <Compile Include="Controls\CustomerTrackedServiceItems.cs" />
+    <Compile Include="Controls\CustomerTypeTbl.cs" />
+    <Compile Include="Controls\DeliveryItemsTbl.cs" />
+    <Compile Include="Controls\EquipTypeTbl.cs" />
+    <Compile Include="Controls\InvoiceTypeTbl.cs" />
+    <Compile Include="Controls\ItemContactRequires.cs" />
+    <Compile Include="Controls\ItemGroupTbl.cs" />
+    <Compile Include="Controls\ItemTypeTbl.cs" />
+    <Compile Include="Controls\ItemUnitsTbl.cs" />
+    <Compile Include="Controls\ItemUsageTbl.cs" />
+    <Compile Include="Controls\LogTbl.cs" />
+    <Compile Include="Controls\MachineConditionsTbl.cs" />
+    <Compile Include="Controls\NextRoastDateByCityTbl.cs" />
+    <Compile Include="Controls\OrderCheck.cs" />
+    <Compile Include="Controls\OrderCheckData.cs" />
+    <Compile Include="Controls\OrderCls.cs" />
+    <Compile Include="Controls\OrderData.cs" />
+    <Compile Include="Controls\OrderDataControl.cs" />
+    <Compile Include="Controls\OrderDetailDAL.cs" />
+    <Compile Include="Controls\OrderDetailData.cs" />
+    <Compile Include="Controls\OrderHeaderData.cs" />
+    <Compile Include="Controls\OrderItemTbl.cs" />
+    <Compile Include="Controls\OrderTbl.cs" />
+    <Compile Include="Controls\OrderTblData.cs" />
+    <Compile Include="Controls\PackagingTbl.cs" />
+    <Compile Include="Controls\PaymentTermsTbl.cs" />
+    <Compile Include="Controls\PersonsTbl.cs" />
+    <Compile Include="Controls\PriceLevelsTbl.cs" />
+    <Compile Include="Controls\ReoccuranceTypeTbl.cs" />
+    <Compile Include="Controls\ReoccuringOrderDAL.cs" />
+    <Compile Include="Controls\ReoccuringOrderExtData.cs" />
+    <Compile Include="Controls\ReoccuringOrderTbl.cs" />
+    <Compile Include="Controls\RepairFaultsTbl.cs" />
+    <Compile Include="Controls\RepairStatusesTbl.cs" />
+    <Compile Include="Controls\RepairsTbl.cs" />
+    <Compile Include="Controls\SectionTypesTbl.cs" />
+    <Compile Include="Controls\SendCheckEmailTextsData.cs" />
+    <Compile Include="Controls\SentRemindersLogTbl.cs" />
+    <Compile Include="Controls\SysDataTbl.cs" />
+    <Compile Include="Controls\TempCoffeeCheckup.cs" />
+    <Compile Include="Controls\TempOrdersDAL.cs" />
+    <Compile Include="Controls\TempOrdersData.cs" />
+    <Compile Include="Controls\TempOrdersHeaderTbl.cs" />
+    <Compile Include="Controls\TempOrdersLinesTbl.cs" />
+    <Compile Include="Controls\TrackedServiceItemTbl.cs" />
+    <Compile Include="Controls\TransactionTypesTbl.cs" />
+    <Compile Include="Controls\UsedItemGroupTbl.cs" />
     <Compile Include="DataSets\CustomersCls.cs" />
     <Compile Include="DataSets\CustomersDataSet.cs" />
     <Compile Include="DataSets\TrackerDataSet.cs" />
@@ -316,7 +435,7 @@
     <Compile Include="DisableClient.aspx.designer.cs">
       <DependentUpon>DisableClient.aspx</DependentUpon>
     </Compile>
-    <Compile Include="DisableClient.cs">
+    <Compile Include="DisableClient.aspx.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Global.asax.cs">
@@ -329,6 +448,7 @@
     <Compile Include="HttpErrorPage.aspx.designer.cs">
       <DependentUpon>HttpErrorPage.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Managers\RepairManager.cs" />
     <Compile Include="MobileSite.Master.cs">
       <DependentUpon>MobileSite.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -402,14 +522,8 @@
     <Compile Include="Pages\LeaveApp.aspx.designer.cs">
       <DependentUpon>LeaveApp.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Pages\LoadSendCoffeeCheckup.aspx.cs">
-      <DependentUpon>LoadSendCoffeeCheckup.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Pages\LoadSendCoffeeCheckup.aspx.designer.cs">
-      <DependentUpon>LoadSendCoffeeCheckup.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\Log.cs">
+    <Compile Include="Pages\LogTable.aspx.cs">
+      <DependentUpon>LogTable.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Pages\LogTable.aspx.designer.cs">
@@ -468,9 +582,6 @@
     </Compile>
     <Compile Include="Pages\PreperationSummary.aspx.designer.cs">
       <DependentUpon>PreperationSummary.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\Print.aspx.designer.cs">
-      <DependentUpon>Print.aspx</DependentUpon>
     </Compile>
     <Compile Include="Pages\QuaffeeCoffeeTastingSheet.aspx.cs">
       <DependentUpon>QuaffeeCoffeeTastingSheet.aspx</DependentUpon>
@@ -562,6 +673,16 @@
       <DependentUpon>Print.master</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resources\Messages.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Messages.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Resources\UIMessages.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>UIMessages.resx</DependentUpon>
+    </Compile>
     <Compile Include="Site.Master.cs">
       <DependentUpon>Site.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -578,6 +699,13 @@
     <Compile Include="test\AutoClassMaker.aspx.designer.cs">
       <DependentUpon>AutoClassMaker.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Tools\EmailDiagnostics.aspx.cs">
+      <DependentUpon>EmailDiagnostics.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Tools\EmailDiagnostics.aspx.designer.cs">
+      <DependentUpon>EmailDiagnostics.aspx</DependentUpon>
+    </Compile>
     <Compile Include="test\ShowTableStruct.aspx.cs">
       <DependentUpon>ShowTableStruct.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -591,6 +719,7 @@
     <Compile Include="Tools\AutoClassMaker.aspx.designer.cs">
       <DependentUpon>AutoClassMaker.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Classes\EmailSettings.cs" />
     <Compile Include="Tools\GenMachineKeys.aspx.designer.cs">
       <DependentUpon>GenMachineKeys.aspx</DependentUpon>
     </Compile>
@@ -650,6 +779,17 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Messages.resx">
+      <SubType>Designer</SubType>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Messages2.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\UIMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>UIMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

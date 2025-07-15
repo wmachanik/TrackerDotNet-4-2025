@@ -8,8 +8,8 @@ using AjaxControlToolkit;
 using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages

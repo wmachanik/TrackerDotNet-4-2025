@@ -13,13 +13,13 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class DeliverySheet : Page
+    public partial class DeliverySheet : Page
     {
         public const string CONST_SESSION_SHEETDATE = "DeliverySheetDate";
         public const string CONST_SESSION_DELIVERTBY = "DeliverySheetDeliveryBy";
@@ -97,7 +97,7 @@ namespace TrackerDotNet.Pages
         {
             bool pPrintForm = this.Request.QueryString["Print"] != null && this.Request.QueryString["Print"].ToString() == "Y";
             if (this.Session["DeliverySheetDateItemSelected"] == null)
-                this.Session["DeliverySheetDateItemSelected"] = (object)$"{DateTime.Now.Date}";
+                this.Session["DeliverySheetDateItemSelected"] = (object)$"{TimeZoneUtils.Now().Date}";
             if (!this.IsPostBack)
             {
                 Button control = (Button)this.pnlDeliveryDate.FindControl("btnFind");

@@ -33,8 +33,8 @@
       </table>
    </div>
 
-  <asp:ObjectDataSource ID="odsDistinctOrders" runat="server" TypeName="TrackerDotNet.control.OrderData" 
-    SelectMethod="GetDistinctOrders" OldValuesParameterFormatString="original_{0}" DataObjectTypeName="TrackerDotNet.control.OrderData" UpdateMethod="UpdateOrderData" >
+  <asp:ObjectDataSource ID="odsDistinctOrders" runat="server" TypeName="TrackerDotNet.Controls.OrderData" 
+    SelectMethod="GetDistinctOrders" OldValuesParameterFormatString="original_{0}" DataObjectTypeName="TrackerDotNet.Controls.OrderData" UpdateMethod="UpdateOrderData" >
     <SelectParameters>
       <asp:ControlParameter ControlID="chkbxOrderDone" Name="pOrderDone" 
         PropertyName="Checked" Type="Boolean" 
@@ -126,12 +126,12 @@
   <br />
 
 
-  <asp:ObjectDataSource ID="odsCompanys" runat="server" TypeName="TrackerDotNet.control.CompanyNames"
+  <asp:ObjectDataSource ID="odsCompanys" runat="server" TypeName="TrackerDotNet.Controls.CompanyNames"
     SelectMethod="GetAll" OldValuesParameterFormatString="original_{0}">
   </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsPersons" runat="server" TypeName="TrackerDotNet.control.PersonsTbl"
+  <asp:ObjectDataSource ID="odsPersons" runat="server" TypeName="TrackerDotNet.Controls.PersonsTbl"
       SortParameterName="SortBy" SelectMethod="GetAll"
-      OldValuesParameterFormatString="original_{0}" DataObjectTypeName="TrackerDotNet.control.PersonsTbl" DeleteMethod="DeletePerson" InsertMethod="InsertPerson" UpdateMethod="UpdatePerson">
+      OldValuesParameterFormatString="original_{0}" DataObjectTypeName="TrackerDotNet.Controls.PersonsTbl" DeleteMethod="DeletePerson" InsertMethod="InsertPerson" UpdateMethod="UpdatePerson">
       <DeleteParameters>
           <asp:Parameter Name="pPersonID" Type="Int32" />
       </DeleteParameters>
@@ -139,7 +139,7 @@
         <asp:Parameter DefaultValue="Abreviation" Name="SortBy" Type="String" />
       </SelectParameters>
    </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsItems" runat="server" TypeName="TrackerDotNet.control.ItemTypeTbl"
+  <asp:ObjectDataSource ID="odsItems" runat="server" TypeName="TrackerDotNet.Controls.ItemTypeTbl"
       SortParameterName="SortBy" SelectMethod="GetAll"
       OldValuesParameterFormatString="original_{0}">
       <SelectParameters>

@@ -10,8 +10,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Tools
@@ -143,7 +143,7 @@ namespace TrackerDotNet.Tools
             ClientUsageLinesTbl clientUsageLinesTbl = new ClientUsageLinesTbl();
             ItemUsageTbl itemUsageTbl = new ItemUsageTbl();
             ContactType contactType = new ContactType();
-            string fileName = $"SetClientType_{DateTime.Now:ddMMyyyy_HHmm}.txt";
+            string fileName = $"SetClientType_{TimeZoneUtils.Now():ddMMyyyy_HHmm}.txt";
             string filePath = Server.MapPath("~/App_Data/" + fileName);
             this._ColsStream = new StreamWriter(filePath, false);
             this._ColsStream.WriteLine("Task, Company Name, origType, newType, PredDisabled");

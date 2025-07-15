@@ -7,13 +7,13 @@
 using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class GroupItemDetail : Page
+    public partial class GroupItemDetail : Page
     {
         public const string CONST_QRYSTR_GROUPITEMID = "ItemTypeID";
         private const string CONST_SESSION_RETURNURL = "ReturnItemGroupURL";

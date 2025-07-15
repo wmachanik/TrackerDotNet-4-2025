@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 
 //- only form later versions #nullable disable
-namespace TrackerDotNet.classes
+namespace TrackerDotNet.Classes
 {
     public class CheckBrowser
     {

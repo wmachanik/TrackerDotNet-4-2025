@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
+using TrackerDotNet.Classes;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
@@ -35,11 +35,19 @@ namespace TrackerDotNet.Pages
         protected Button ForwardBtn;
         protected GridView gvPreperationSummary;
         protected Literal ltrlDates;
-
+        protected void Page_PreInit(object sender, EventArgs e)
+        {
+            bool flag = new CheckBrowser().fBrowserIsMobile();
+            this.Session["RunningOnMoble"] = (object)flag;
+            if (flag)
+                this.MasterPageFile = "~/MobileSite.master";
+            else
+                this.MasterPageFile = "~/Site.master";
+        }
         protected List<DateTime> ListOfDatesOnDoW(DayOfWeek pDoW)
         {
             List<DateTime> dateTimeList = new List<DateTime>();
-            DateTime date = DateTime.Now.AddDays((double)(pDoW - DateTime.Now.DayOfWeek)).Date;
+            DateTime date = TimeZoneUtils.Now().AddDays((double)(pDoW - TimeZoneUtils.Now().DayOfWeek)).Date;
             for (int index = 0; index < 12; ++index)
                 dateTimeList.Add(date.AddDays((double)(7 * index - 63 /*0x3F*/)));
             return dateTimeList;
@@ -69,8 +77,8 @@ namespace TrackerDotNet.Pages
 
         protected void ResetDates()
         {
-            this.tbxDateFrom.Text = $"{this.GetFirstDoW(DateTime.Now):d}";
-            this.tbxDateTo.Text = $"{this.GetLastDoW(DateTime.Now):d}";
+            this.tbxDateFrom.Text = $"{this.GetFirstDoW(TimeZoneUtils.Now()):d}";
+            this.tbxDateTo.Text = $"{this.GetLastDoW(TimeZoneUtils.Now()):d}";
             this.ZeroViewStateVals();
         }
 

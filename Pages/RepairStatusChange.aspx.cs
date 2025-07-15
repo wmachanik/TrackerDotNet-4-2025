@@ -9,8 +9,9 @@ using System;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
+using TrackerDotNet.Managers;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
@@ -91,13 +92,29 @@ namespace TrackerDotNet.Pages
             int int32 = Convert.ToInt32(this.ddlRepairStatuses.SelectedValue);
             if (pRepair.RepairStatusID == int32)
                 return;
+            
             pRepair.RepairStatusID = int32;
-            pRepair.HandleAndUpdateRepairStatusChange(pRepair);
+            
+            // Use RepairManager instead of calling method on RepairsTbl
+            var repairManager = new RepairManager();
+            string result = repairManager.HandleStatusChange(pRepair);
+            
+            if (!string.IsNullOrWhiteSpace(result))
+                this.ltrlStatus.Text = result;
+            else
+                this.ltrlStatus.Text = MessageProvider.Get(MessageKeys.Repairs.StatusUpdateSuccess);
         }
 
         protected void btnUpdateAndReturn_Click(object sender, EventArgs e)
         {
             this.UpdateRecord();
+            string status = this.ltrlStatus.Text;
+
+            // Show popup only if there's a relevant message
+            if (!string.IsNullOrWhiteSpace(status) && !status.Contains("Record Updated"))
+            {
+                showMessageBox msgBox = new showMessageBox(this.Page, "Repair Status Update", status);
+            }
             this.ReturnToPrevPage();
         }
 

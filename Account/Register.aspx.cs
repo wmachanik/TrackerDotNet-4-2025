@@ -12,7 +12,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Account
 {
-    public class Register : Page
+    public partial class Register : Page
     {
         protected CreateUserWizard RegisterUser;
         protected CreateUserWizardStep RegisterUserWizardStep;

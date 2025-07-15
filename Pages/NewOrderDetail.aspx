@@ -273,7 +273,7 @@
   </asp:SqlDataSource>
 
   <asp:ObjectDataSource ID="odsOrderDetail" runat="server" 
-    TypeName="TrackerDotNet.control.OrderDetailDAL" SelectMethod="LoadOrderDetailData"
+    TypeName="TrackerDotNet.Controls.OrderDetailDAL" SelectMethod="LoadOrderDetailData"
     UpdateMethod="UpdateOrderDetails" 
     StartRowIndexParameterName="StartRowIndex" 
     MaximumRowsParameterName="MaximumRows" 

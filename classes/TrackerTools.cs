@@ -8,10 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Web;
-using TrackerDotNet.control;
+using TrackerDotNet.Controls; 
 
 //- only form later versions #nullable disable
-namespace TrackerDotNet.classes
+namespace TrackerDotNet.Classes
 {
     public class TrackerTools
     {
@@ -97,11 +97,11 @@ namespace TrackerDotNet.classes
             return dayOfWeek <= pRoastDayOfWeek ? 7 + num : 14 + num;
         }
 
-        public int NumDaysTillNextRoast() => this.GetDaysToRoastDate(DateTime.Now.Date);
+        public int NumDaysTillNextRoast() => this.GetDaysToRoastDate(TimeZoneUtils.Now().Date);
 
         public int NumDaysTillNextRoast(DayOfWeek pRoastDayOfWeek)
         {
-            return this.GetDaysToRoastDate(DateTime.Now.Date, pRoastDayOfWeek);
+            return this.GetDaysToRoastDate(TimeZoneUtils.Now().Date, pRoastDayOfWeek);
         }
 
         public DateTime RemoveTimePortion(DateTime pDate) => pDate.Date;
@@ -120,8 +120,8 @@ namespace TrackerDotNet.classes
 
         public bool RoastDateIsBtw(DateTime pRoastDate, long pOrderId)
         {
-            DateTime closestNextRoastDate1 = this.GetClosestNextRoastDate(DateTime.Now.AddDays(-7.0), DayOfWeek.Monday);
-            DateTime closestNextRoastDate2 = this.GetClosestNextRoastDate(DateTime.Now.Date, DayOfWeek.Monday);
+            DateTime closestNextRoastDate1 = this.GetClosestNextRoastDate(TimeZoneUtils.Now().AddDays(-7.0), DayOfWeek.Monday);
+            DateTime closestNextRoastDate2 = this.GetClosestNextRoastDate(TimeZoneUtils.Now().Date, DayOfWeek.Monday);
             return closestNextRoastDate1 <= pRoastDate && pRoastDate < closestNextRoastDate2;
         }
 
@@ -131,12 +131,12 @@ namespace TrackerDotNet.classes
             IDataReader dataReader = new TrackerDb().ExecuteSQLGetDataReader("SELECT DateLastPrepDateCalcd FROM SysDataTbl WHERE (ID = 1)");
             if (dataReader != null && dataReader.Read())
             {
-                DateTime dateTime = DateTime.Now.Date;
+                DateTime dateTime = TimeZoneUtils.Now().Date;
                 if (dateTime.Hour >= 14)
                     dateTime = dateTime.AddDays(1.0);
                 flag = dateTime.Date == Convert.ToDateTime(dataReader["DateLastPrepDateCalcd"].ToString()).Date;
+                dataReader.Close();
             }
-            dataReader.Close();
             return flag;
         }
 
@@ -207,7 +207,7 @@ namespace TrackerDotNet.classes
             DateTime minValue = DateTime.MinValue;
             TrackerTools.PrepAndDeliveryData prepAndDeliveryData1 = new TrackerTools.PrepAndDeliveryData();
             TrackerTools.PrepAndDeliveryData prepAndDeliveryData2 = new TrackerTools.PrepAndDeliveryData();
-            DateTime pForThisDate1 = DateTime.Now.Date;
+            DateTime pForThisDate1 = TimeZoneUtils.Now().Date;
             if (pForThisDate1.Hour >= 14)
                 pForThisDate1 = pForThisDate1.AddDays(1.0);
             int num = 0;
@@ -233,7 +233,7 @@ namespace TrackerDotNet.classes
     {
       new DBParameter()
       {
-        DataValue = (object) DateTime.Now.Date,
+        DataValue = (object) TimeZoneUtils.Now().Date,
         DataDbType = DbType.Date
       }
     });

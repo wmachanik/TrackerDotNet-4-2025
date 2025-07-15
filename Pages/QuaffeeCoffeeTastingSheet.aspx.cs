@@ -10,7 +10,7 @@ using System.Web.UI;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class QuaffeeCoffeeTastingSheet : Page
+    public partial class QuaffeeCoffeeTastingSheet : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {

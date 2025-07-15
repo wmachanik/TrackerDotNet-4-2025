@@ -32,7 +32,7 @@
         <tr>
             <td>&nbsp;</td>
             <td>
-                <a href="Pages/LoadSendCoffeeCheckup.aspx">Send Reminders</a></td>
+                <a href="Pages/SendCoffeeCheckup.aspx">Send Reminders</a></td>
         </tr>
         <tr>
             <td colspan="2">

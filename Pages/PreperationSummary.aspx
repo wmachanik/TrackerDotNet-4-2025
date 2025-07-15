@@ -15,7 +15,7 @@
         <tr>
           <td class="TblLHCol-first">Date From:</td>
           <td>
-            <asp:TextBox ID="tbxDateFrom" runat="server" Text='<%# System.DateTime.Now %>'    />
+            <asp:TextBox ID="tbxDateFrom" runat="server" Text='<%# TrackerDotNet.Classes.TimeZoneUtils.Now() %>'    />
             <ajaxToolkit:CalendarExtender ID="tbxDateFrom_CalendarExtender" runat="server"
               Enabled="True" TargetControlID="tbxDateFrom"  >
             </ajaxToolkit:CalendarExtender>

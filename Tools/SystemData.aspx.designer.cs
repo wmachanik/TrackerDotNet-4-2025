@@ -15,6 +15,24 @@ namespace TrackerDotNet.Tools
     {
 
         /// <summary>
+        /// odsSystemData control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.ObjectDataSource odsSystemData;
+
+        /// <summary>
+        /// odsItemTypes control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.ObjectDataSource odsItemTypes;
+
+        /// <summary>
         /// dvSystemData control.
         /// </summary>
         /// <remarks>
@@ -24,12 +42,12 @@ namespace TrackerDotNet.Tools
         protected global::System.Web.UI.WebControls.DetailsView dvSystemData;
 
         /// <summary>
-        /// odsSystemData control.
+        /// lblMessage control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.ObjectDataSource odsSystemData;
+        protected global::System.Web.UI.WebControls.Label lblMessage;
     }
 }

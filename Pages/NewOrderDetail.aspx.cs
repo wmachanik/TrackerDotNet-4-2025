@@ -8,12 +8,15 @@ using AjaxControlToolkit;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Web;
 using System.Web.Security;
+
+//using System.Web.Forms;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.classes;
-using TrackerDotNet.control;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
@@ -77,9 +80,9 @@ namespace TrackerDotNet.Pages
         protected SqlDataSource sdsDeliveryBy;
         protected SqlDataSource sdsItems;
         protected SqlDataSource sdsPackagingTypes;
-        protected Label lblCustomerID;
-        protected Label lblDeliveryDate;
-        protected Timer tmrOrderItem;
+        //protected Label lblCustomerID;
+        //protected Label lblDeliveryDate;
+        //protected Timer tmrOrderItem;
 
         protected void SetContactByID(string pCoNameID)
         {
@@ -96,8 +99,14 @@ namespace TrackerDotNet.Pages
             else
             {
                 this.ddlContacts.SelectedValue = "9";
-                TextBox tbxNotes = this.tbxNotes;
-                tbxNotes.Text = $"{tbxNotes.Text}ID note found: {pCoNameID}: ";
+                if (tbxNotes == null)
+                {
+                    AppLogger.WriteLog("orders", "tbxNotes is null in SetContactByID.");
+                }
+                else
+                {
+                    tbxNotes.Text = $"{tbxNotes.Text}ID note found: {pCoNameID}: ";
+                }            
             }
         }
 
@@ -272,9 +281,9 @@ namespace TrackerDotNet.Pages
         {
             if (this.IsPostBack)
                 return;
-            DateTime dateTime = DateTime.Now.Date;
+            DateTime dateTime = TimeZoneUtils.Now().Date;
             this.tbxOrderDate.Text = dateTime.ToShortDateString();
-            dateTime = DateTime.Now.Date;
+            dateTime = TimeZoneUtils.Now().Date;
             int num = dateTime.DayOfWeek <= DayOfWeek.Tuesday || dateTime.DayOfWeek >= DayOfWeek.Friday ? (dateTime.DayOfWeek >= DayOfWeek.Wednesday ? (dateTime.DayOfWeek >= DayOfWeek.Friday ? (int)(8 - dateTime.DayOfWeek) : (int)(3 - dateTime.DayOfWeek)) : (int)(1 - dateTime.DayOfWeek)) : (int)(3 - dateTime.DayOfWeek);
             dateTime = dateTime.AddDays((double)num);
             this.tbxRoastDate.Text = dateTime.ToShortDateString();
@@ -440,9 +449,17 @@ namespace TrackerDotNet.Pages
         {
             if (!(Membership.GetUser().UserName.ToLower() == "warren"))
                 return;
-            foreach (Control row in this.gvOrderLines.Rows)
-                this.DeleteOrderItem(((Label)row.FindControl("lblOrderID")).Text);
-            this.Response.Redirect("DeliverySheet.aspx");
+                
+            foreach (GridViewRow row in gvOrderLines.Rows)
+            {
+                Label orderIdLabel = (Label)row.FindControl("lblOrderID");
+                if (orderIdLabel != null)
+                {
+                    DeleteOrderItem(orderIdLabel.Text);
+                }
+            }
+            
+            Response.Redirect("DeliverySheet.aspx");
         }
 
         protected void tbxNotes_TextChanged(object sender, EventArgs e) => this.SetUpdateBools();
@@ -536,36 +553,51 @@ namespace TrackerDotNet.Pages
 
         private TrackerTools.ContactPreferedItems SetPrepAndDeliveryValues(long pCustomerID)
         {
-            DateTime date = DateTime.Now.Date;
+            DateTime date = TimeZoneUtils.Now().Date;
             TrackerTools trackerTools = new TrackerTools();
             DateTime dateByCustomerID = trackerTools.GetNextRoastDateByCustomerID(pCustomerID, ref date);
-            TrackerTools.ContactPreferedItems contactPreferedItems = trackerTools.RetrieveCustomerPrefs(pCustomerID);
+            var sw = Stopwatch.StartNew();
+            var prefs = trackerTools.RetrieveCustomerPrefs(pCustomerID);
+            AppLogger.WriteLog("orders", $"RetrieveCustomerPrefs started for CustomerID: {pCustomerID}");
             this.tbxRoastDate.Text = $"{dateByCustomerID:d}";
             this.tbxRequiredByDate.Text = $"{date:d}";
-            int num = new PersonsTbl().IsNormalDeliveryDoW(contactPreferedItems.PreferredDeliveryByID, (int)(date.DayOfWeek + 1)) ? contactPreferedItems.PreferredDeliveryByID : 3;
-            if (!num.Equals(contactPreferedItems.PreferredDeliveryByID))
+            int num = new PersonsTbl().IsNormalDeliveryDoW(prefs.PreferredDeliveryByID, (int)(date.DayOfWeek + 1)) ? prefs.PreferredDeliveryByID : 3;
+            if (!num.Equals(prefs.PreferredDeliveryByID))
             {
                 TextBox tbxNotes = this.tbxNotes;
                 tbxNotes.Text = $"{tbxNotes.Text}{(this.tbxNotes.Text.Length > 0 ? " " : "")}!!!default delivery person changed due to DoW calculation";
+                AppLogger.WriteLog("orders", "Changes to default delivery person:"+ tbxNotes.Text);
             }
             if (this.ddlToBeDeliveredBy.Items.FindByValue(num.ToString()) != null)
                 this.ddlToBeDeliveredBy.SelectedValue = num.ToString();
-            if (contactPreferedItems.RequiresPurchOrder)
+            if (prefs.RequiresPurchOrder)
                 this.tbxPurchaseOrder.Text = "!!!PO required!!!";
-            return contactPreferedItems;
+            return prefs;
         }
 
         protected void ddlContacts_SelectedIndexChanged(object sender, EventArgs e)
         {
-            TrackerTools.ContactPreferedItems contactPreferedItems = this.SetPrepAndDeliveryValues(Convert.ToInt32(((ListControl)sender).SelectedValue));
-            if (this.ddlNewItemDesc.SelectedIndex == -1)
+            try
             {
-                if (this.ddlNewItemDesc.Items.FindByValue(contactPreferedItems.PreferedItem.ToString()) != null)
-                    this.ddlNewItemDesc.SelectedValue = contactPreferedItems.PreferedItem.ToString();
-                this.tbxNewQuantityOrdered.Text = contactPreferedItems.PreferedQty.ToString();
+                ltrlStatus.Text = "Loading customer preferences...";
+                AppLogger.WriteLog("orders", $"ddlContacts_SelectedIndexChanged started for CustomerID: {((ListControl)sender).SelectedValue}");
+                var contactPreferedItems = this.SetPrepAndDeliveryValues(Convert.ToInt32(((ListControl)sender).SelectedValue));
+                if (this.ddlNewItemDesc.SelectedIndex == -1)
+                {
+                    if (this.ddlNewItemDesc.Items.FindByValue(contactPreferedItems.PreferedItem.ToString()) != null)
+                        this.ddlNewItemDesc.SelectedValue = contactPreferedItems.PreferedItem.ToString();
+                    this.tbxNewQuantityOrdered.Text = contactPreferedItems.PreferedQty.ToString();
+                }
+                this.upnlOrderSummary.Update();
+                this.SetUpdateBools();
+                ltrlStatus.Text = "Customer preferences loaded.";
+                AppLogger.WriteLog("orders", $"ddlContacts_SelectedIndexChanged completed for CustomerID: {((ListControl)sender).SelectedValue}");
             }
-            this.upnlOrderSummary.Update();
-            this.SetUpdateBools();
+            catch (Exception ex)
+            {
+                ltrlStatus.Text = "Error loading customer preferences. Please try again or contact support.";
+                AppLogger.WriteLog("orders", $"Error in ddlContacts_SelectedIndexChanged for CustomerID: {((ListControl)sender).SelectedValue}: {ex}");
+            }
         }
 
         protected void tbxOrderDate_TextChanged(object sender, EventArgs e) => this.SetUpdateBools();

@@ -297,7 +297,7 @@
           </ContentTemplate>
         </asp:UpdatePanel>
         <asp:ObjectDataSource ID="odsItemUnits" runat="server" SelectMethod="GetAll" 
-          TypeName="TrackerDotNet.control.ItemUnitsTbl" 
+          TypeName="TrackerDotNet.Controls.ItemUnitsTbl" 
           OldValuesParameterFormatString="original_{0}">
           <SelectParameters>
             <asp:Parameter DefaultValue="UnitOfMeasure" Name="SortBy" Type="String" />
@@ -687,9 +687,9 @@
               </tr>
             </table>
               <asp:ObjectDataSource ID="odsCityDays" runat="server" 
-                DataObjectTypeName="TrackerDotNet.control.CityPrepDaysTbl" 
+                DataObjectTypeName="TrackerDotNet.Controls.CityPrepDaysTbl" 
                 InsertMethod="InsertCityPrepDay" SelectMethod="GetAllByCityId" 
-                TypeName="TrackerDotNet.control.CityPrepDaysTbl" 
+                TypeName="TrackerDotNet.Controls.CityPrepDaysTbl" 
                 UpdateMethod="UpdateCityPrepDay" 
                 OldValuesParameterFormatString="original_{0}">
                 <SelectParameters>
@@ -1151,14 +1151,14 @@
       <asp:Parameter Name="UoMID"  Type="Int32" />
     </InsertParameters>
   </asp:SqlDataSource>
-  <asp:ObjectDataSource ID="odsAllItems" runat="server" SelectMethod="GetAll" TypeName="TrackerDotNet.control.ItemTypeTbl"
+  <asp:ObjectDataSource ID="odsAllItems" runat="server" SelectMethod="GetAll" TypeName="TrackerDotNet.Controls.ItemTypeTbl"
     OldValuesParameterFormatString="original_{0}">
     <SelectParameters>
       <asp:Parameter DefaultValue="ItemDesc" Name="SortBy" Type="String" />
     </SelectParameters>
   </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsPeople" runat="server" TypeName="TrackerDotNet.control.PersonsTbl"
-    DataObjectTypeName="TrackerDotNet.control.PersonsTbl" SelectMethod="GetAll" SortParameterName="SortBy"
+  <asp:ObjectDataSource ID="odsPeople" runat="server" TypeName="TrackerDotNet.Controls.PersonsTbl"
+    DataObjectTypeName="TrackerDotNet.Controls.PersonsTbl" SelectMethod="GetAll" SortParameterName="SortBy"
     UpdateMethod="UpdatePerson" OldValuesParameterFormatString="original_{0}" DeleteMethod="DeletePerson"
     InsertMethod="InsertPerson">
     <SelectParameters>
@@ -1171,8 +1171,8 @@
   <asp:SqlDataSource ID="sdsUserNames" runat="server" 
     ConnectionString="<%$ ConnectionStrings:ApplicationServices %>" 
     SelectCommand="SELECT [UserName] AS SecurityUsername FROM [vw_aspnet_Users]" />
-  <asp:ObjectDataSource ID="odsEquipTypes" runat="server" TypeName="TrackerDotNet.control.EquipTypeTbl"
-    DataObjectTypeName="TrackerDotNet.control.EquipTypeTbl" SelectMethod="GetAll" SortParameterName="SortBy"
+  <asp:ObjectDataSource ID="odsEquipTypes" runat="server" TypeName="TrackerDotNet.Controls.EquipTypeTbl"
+    DataObjectTypeName="TrackerDotNet.Controls.EquipTypeTbl" SelectMethod="GetAll" SortParameterName="SortBy"
     UpdateMethod="UpdateEquipItem" OldValuesParameterFormatString="original_{0}" InsertMethod="InsertEquipObj"
     OnInserting="odsEquipTypes_OnInserting">
     <SelectParameters>
@@ -1182,8 +1182,8 @@
       <asp:Parameter DbType="Object" Name="objEquipType" Type="Object" />
     </InsertParameters>
   </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsInvoiceTypes" runat="server" TypeName="TrackerDotNet.control.InvoiceTypeTbl"
-    DataObjectTypeName="TrackerDotNet.control.InvoiceTypeTbl" SelectMethod="GetAll" SortParameterName="SortBy"
+  <asp:ObjectDataSource ID="odsInvoiceTypes" runat="server" TypeName="TrackerDotNet.Controls.InvoiceTypeTbl"
+    DataObjectTypeName="TrackerDotNet.Controls.InvoiceTypeTbl" SelectMethod="GetAll" SortParameterName="SortBy"
     UpdateMethod="Update" OldValuesParameterFormatString="original_{0}" InsertMethod="Insert" DeleteMethod="Delete">
     <DeleteParameters>
       <asp:Parameter Name="pInvoiceTypeID" Type="Int32" />
@@ -1196,8 +1196,8 @@
       <asp:Parameter Name="pOrignal_InvoiceTypeID" Type="Int32" />
     </UpdateParameters>
   </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsPaymentTerms" runat="server" TypeName="TrackerDotNet.control.PaymentTermsTbl"
-    DataObjectTypeName="TrackerDotNet.control.PaymentTermsTbl" SelectMethod="GetAll" SortParameterName="SortBy"
+  <asp:ObjectDataSource ID="odsPaymentTerms" runat="server" TypeName="TrackerDotNet.Controls.PaymentTermsTbl"
+    DataObjectTypeName="TrackerDotNet.Controls.PaymentTermsTbl" SelectMethod="GetAll" SortParameterName="SortBy"
     UpdateMethod="Update" OldValuesParameterFormatString="original_{0}" InsertMethod="Insert" DeleteMethod="Delete">
     <DeleteParameters>
       <asp:Parameter Name="pPaymentTermID" Type="Int32" />
@@ -1210,8 +1210,8 @@
       <asp:Parameter Name="pOrignal_PaymentTermID" Type="Int32" />
     </UpdateParameters>
   </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsPriceLevels" runat="server" TypeName="TrackerDotNet.control.PriceLevelsTbl"
-    DataObjectTypeName="TrackerDotNet.control.PriceLevelsTbl" SelectMethod="GetAll" SortParameterName="SortBy"
+  <asp:ObjectDataSource ID="odsPriceLevels" runat="server" TypeName="TrackerDotNet.Controls.PriceLevelsTbl"
+    DataObjectTypeName="TrackerDotNet.Controls.PriceLevelsTbl" SelectMethod="GetAll" SortParameterName="SortBy"
     UpdateMethod="Update" OldValuesParameterFormatString="original_{0}" InsertMethod="Insert" DeleteMethod="Delete">
     <DeleteParameters>
       <asp:Parameter Name="pPriceLevelID" Type="Int32" />
@@ -1249,8 +1249,8 @@
       <asp:Parameter Name="RoastingDay" Type="Int32" />
     </UpdateParameters>
   </asp:SqlDataSource>
-  <asp:ObjectDataSource runat="server" SelectMethod="GetAll" TypeName="TrackerDotNet.control.PackagingTbl"
-    ID="odsPackaging" SortParameterName="SortBy" DataObjectTypeName="TrackerDotNet.control.PackagingTbl"
+  <asp:ObjectDataSource runat="server" SelectMethod="GetAll" TypeName="TrackerDotNet.Controls.PackagingTbl"
+    ID="odsPackaging" SortParameterName="SortBy" DataObjectTypeName="TrackerDotNet.Controls.PackagingTbl"
     InsertMethod="InsertPackaging" OldValuesParameterFormatString="original_{0}" UpdateMethod="UpdatePackaging">
     <SelectParameters>
       <asp:Parameter Name="SortBy" Type="String" DefaultValue="Description" />

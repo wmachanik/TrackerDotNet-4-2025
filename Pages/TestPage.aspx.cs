@@ -12,7 +12,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
-    public class TestPage : Page
+    public partial class TestPage : Page
     {
         protected HtmlForm form1;
         protected GridView GridView1;

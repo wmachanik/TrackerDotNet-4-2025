@@ -12,7 +12,7 @@ using System.Web.UI.WebControls;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Administration
 {
-    public class ManageUsers : Page
+    public partial class ManageUsers : Page
     {
         protected GridView gvUserAccounts;
 

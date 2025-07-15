@@ -54,7 +54,7 @@
                   <ItemTemplate>
                     <asp:DropDownList ID="ddlContacts" runat="server" DataSourceID="sdsCompanys" 
                       DataTextField="CompanyName" DataValueField="CustomerID" Enabled="false" AppendDataBoundItems="true"
-                      SelectedValue='<%# Bind("CustomerID") == null ? "0" : Bind("CustomerID") %>'>
+                      SelectedValue='<%# Eval("CustomerID") == null ? "0" : Eval("CustomerID") %>'>
                       <asp:ListItem Value="0">none</asp:ListItem>
                     </asp:DropDownList>
                   </ItemTemplate>
@@ -214,11 +214,11 @@
                 </asp:TemplateField>
                 <asp:TemplateField HeaderText="QTY" SortExpression="QuantityOrdered">
                   <EditItemTemplate>
-                    <asp:TextBox ID="tbxQuantityOrdered" runat="server" Text='<%# Bind("QuantityOrdered") %>' Width="2em" />
+                   <asp:TextBox ID="tbxQuantityOrdered" runat="server" Text='<%# Bind("QuantityOrdered") %>' Width="2em" MaxLength="6"  />
                     <asp:Label ID="lblItemUoM" runat="server" Text='<%# GetItemUoMObj(Eval("ItemTypeID")) %>' CssClass="small" />
                   </EditItemTemplate>
                   <ItemTemplate>
-                    <asp:Label ID="lblQuantityOrdered" runat="server" Text='<%# Bind("QuantityOrdered") %>' />
+                    <asp:Label ID="lblQuantityOrdered" runat="server" Text='<%# String.Format("{0:0.###}",Eval("QuantityOrdered")) %>' />
                     <asp:Label ID="lblItemUoM" runat="server" Text='<%# GetItemUoMObj(Eval("ItemTypeID")) %>' CssClass="small" />
                   </ItemTemplate>
                 </asp:TemplateField>
@@ -334,7 +334,7 @@
     </tr>
   </table>
 
-  <asp:ObjectDataSource ID="odsOrderSummary" runat="server" TypeName="TrackerDotNet.control.OrderItemTbl"
+  <asp:ObjectDataSource ID="odsOrderSummary" runat="server" TypeName="TrackerDotNet.Controls.OrderItemTbl"
     EnablePaging="True" SelectMethod="LoadOrderSummary" 
     StartRowIndexParameterName="StartRowIndex" 
     MaximumRowsParameterName="MaximumRows"  
@@ -382,7 +382,7 @@ Update:
     SelectCommand="SELECT [CompanyName], [CustomerID] FROM [CustomersTbl] ORDER BY [enabled], [CompanyName]">
   </asp:SqlDataSource>
   <asp:ObjectDataSource ID="odsOrderDetail" runat="server" 
-    TypeName="TrackerDotNet.control.OrderDetailDAL" SelectMethod="LoadOrderDetailData"
+    TypeName="TrackerDotNet.Controls.OrderDetailDAL" SelectMethod="LoadOrderDetailData"
     UpdateMethod="UpdateOrderDetails" 
     StartRowIndexParameterName="StartRowIndex" 
     MaximumRowsParameterName="MaximumRows" 
@@ -415,7 +415,7 @@ Update:
     ProviderName="<%$ ConnectionStrings:Tracker08ConnectionString.ProviderName %>"     
     SelectCommand="SELECT [PersonID], [Abreviation] FROM [PersonsTbl] ORDER BY [Enabled], [Abreviation]">
   </asp:SqlDataSource>
-  <asp:ObjectDataSource ID="odsItemTypes" runat="server" SelectMethod="GetAllItemDesc" TypeName="TrackerDotNet.control.ItemTypeTbl" />
+  <asp:ObjectDataSource ID="odsItemTypes" runat="server" SelectMethod="GetAllItemDesc" TypeName="TrackerDotNet.Controls.ItemTypeTbl" />
 
  <%--   SelectCommand="SELECT [ItemTypeID], [ItemDesc] FROM [ItemTypeTbl] ORDER BY [ItemEnabled], [SortOrder], [ItemDesc]"> --%>
   <asp:SqlDataSource ID="sdsPackagingTypes" runat="server" 

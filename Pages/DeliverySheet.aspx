@@ -46,7 +46,7 @@
     <asp:ObjectDataSource ID="odsActiveRoastDates" runat="server" 
       OldValuesParameterFormatString="original_{0}" 
       SelectMethod="GetActiveDeliveryDates" 
-      TypeName="TrackerDotNet.control.ActiveDeliveryData">
+      TypeName="TrackerDotNet.Controls.ActiveDeliveryData">
     </asp:ObjectDataSource>   
    <br />
    </asp:Panel>

@@ -123,21 +123,21 @@
     </Triggers>
   </asp:UpdatePanel>
   <%# GiveInStatus() %>
-  <asp:ObjectDataSource ID="odsItemGroups" runat="server" TypeName="TrackerDotNet.control.ItemTypeTbl"
+  <asp:ObjectDataSource ID="odsItemGroups" runat="server" TypeName="TrackerDotNet.Controls.ItemTypeTbl"
     SelectMethod="GetAllGroupTypeItems" OldValuesParameterFormatString="original_{0}"></asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsItemsNotInGroup" runat="server" TypeName="TrackerDotNet.control.ItemTypeTbl"
+  <asp:ObjectDataSource ID="odsItemsNotInGroup" runat="server" TypeName="TrackerDotNet.Controls.ItemTypeTbl"
     SelectMethod="GetAllItemsNotInItemGroup" OldValuesParameterFormatString="original_{0}">
     <SelectParameters>
       <asp:ControlParameter ControlID="ddlGroupItems" Name="pGroupItemTypeID" PropertyName="SelectedValue" Type="Int32" />
     </SelectParameters>
   </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsItemInGroup" runat="server" DataObjectTypeName="TrackerDotNet.control.ItemGroupTbl"
+  <asp:ObjectDataSource ID="odsItemInGroup" runat="server" DataObjectTypeName="TrackerDotNet.Controls.ItemGroupTbl"
     DeleteMethod="DeleteItemGroup" InsertMethod="InsertItemGroup" SelectMethod="GetAllByGroupItemTypeID" SortParameterName="SortBy"
-    TypeName="TrackerDotNet.control.ItemGroupTbl" UpdateMethod="UpdateItemGroup">
+    TypeName="TrackerDotNet.Controls.ItemGroupTbl" UpdateMethod="UpdateItemGroup">
     <SelectParameters>
       <asp:ControlParameter ControlID="ddlGroupItems" Name="pGroupItemID" PropertyName="SelectedValue" Type="Int32" />
       <asp:Parameter Name="SortBy" Type="String" />
     </SelectParameters>
   </asp:ObjectDataSource>
-  <asp:ObjectDataSource ID="odsItemTypes" runat="server" SelectMethod="GetAllItemDesc" TypeName="TrackerDotNet.control.ItemTypeTbl" />
+  <asp:ObjectDataSource ID="odsItemTypes" runat="server" SelectMethod="GetAllItemDesc" TypeName="TrackerDotNet.Controls.ItemTypeTbl" />
 </asp:Content>

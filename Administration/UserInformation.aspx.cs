@@ -8,11 +8,12 @@ using System;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using TrackerDotNet.Classes;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Administration
 {
-    public class UserInformation : Page
+    public partial class UserInformation : Page
     {
         protected Label lblUserName;
         protected CheckBox cbxUserIsApproved;
@@ -34,24 +35,56 @@ namespace TrackerDotNet.Administration
             foreach (string str in Roles.GetRolesForUser(this.Request.QueryString["user"]))
                 this.UserRolesCheckBoxList.Items.FindByValue(str).Selected = true;
         }
-
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (this.Page.IsPostBack)
+            if (IsPostBack)
                 return;
-            string username = this.Request.QueryString["user"];
-            if (string.IsNullOrEmpty(username))
-                this.Response.Redirect("ManageUsers.aspx");
+
+            string username = Request.QueryString["user"];
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                Response.Redirect("ManageUsers.aspx");
+                return;
+            }
+
             MembershipUser user = Membership.GetUser(username);
             if (user == null)
-                this.Response.Redirect("ManageUsers.aspx");
-            this.lblUserName.Text = user.UserName;
-            this.cbxUserIsApproved.Checked = user.IsApproved;
-            this.lblUserLockedOut.Text = user.LastLockoutDate.Year >= 2000 ? user.LastLockoutDate.ToShortDateString() : "no";
-            this.btnUnlockUser.Visible = user.IsLockedOut;
-            this.OnlineLabel.Text = user.IsOnline ? "online" : "offline";
-            this.LastLoginDateLabel.Text = $"{user.LastLoginDate:d}";
-            this.EmailLabel.Text = user.Email;
+            {
+                Response.Redirect("ManageUsers.aspx");
+                return;
+            }
+
+            lblUserName.Text = user.UserName;
+            cbxUserIsApproved.Checked = user.IsApproved;
+            lblUserLockedOut.Text = user.LastLockoutDate.Year >= 2000 ? user.LastLockoutDate.ToShortDateString() : "no";
+            btnUnlockUser.Visible = user.IsLockedOut;
+            OnlineLabel.Text = user.IsOnline ? "online" : "offline";
+            LastLoginDateLabel.Text = $"{user.LastLoginDate:d}";
+            EmailLabel.Text = user.Email;
+
+            try
+            {
+                Guid userId = (Guid)user.ProviderUserKey;
+
+                TrackerDotNet.Classes.UserPreferencesHelper.EnsureUserPreferencesTableExists();
+                var prefs = TrackerDotNet.Classes.UserPreferencesHelper.GetCurrentPreferencesForUser(userId);
+
+                ddlTimeZone.DataSource = TimeZoneInfo.GetSystemTimeZones();
+                ddlTimeZone.DataTextField = "DisplayName";
+                ddlTimeZone.DataValueField = "Id";
+                ddlTimeZone.DataBind();
+
+                if (ddlTimeZone.Items.FindByValue(prefs.TimeZoneId) != null)
+                    ddlTimeZone.SelectedValue = prefs.TimeZoneId;
+                else
+                    ddlTimeZone.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                ddlTimeZone.Items.Clear();
+                ddlTimeZone.Items.Add(new ListItem("Unavailable"));
+                AppLogger.WriteLog("userprefs", $"Error loading time zone for user {username}: {ex.Message}");
+            }
         }
 
         protected void cbxUserIsApproved_CheckedChanged(object sender, EventArgs e)
@@ -89,8 +122,24 @@ namespace TrackerDotNet.Administration
         protected void btnUpdateUser_Click(object sender, EventArgs e)
         {
             this.UpdateUserRoles();
-            this.Response.Redirect("~/Administration/ManageUsers.aspx");
+
+            string username = lblUserName.Text;
+            MembershipUser user = Membership.GetUser(username);
+            if (user != null)
+            {
+                Guid userId = (Guid)user.ProviderUserKey;
+
+                var prefs = TrackerDotNet.Classes.UserPreferencesHelper.GetCurrentPreferencesForUser(userId);
+                prefs.TimeZoneId = ddlTimeZone.SelectedValue;
+
+                TrackerDotNet.Classes.UserPreferencesHelper.SaveOrUpdatePreferences(prefs); 
+
+                AppLogger.WriteLog("userprefs", $"Updated time zone for user '{username}' to '{prefs.TimeZoneId}'");
+            }
+
+            Response.Redirect("~/Administration/ManageUsers.aspx");
         }
+
 
         protected void btnDeleteUser_Click(object sender, EventArgs e)
         {

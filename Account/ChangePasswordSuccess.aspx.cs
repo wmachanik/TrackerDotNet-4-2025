@@ -10,7 +10,7 @@ using System.Web.UI;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Account
 {
-    public class ChangePasswordSuccess : Page
+    public partial class ChangePasswordSuccess : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
