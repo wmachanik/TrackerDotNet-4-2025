@@ -47,7 +47,11 @@ namespace TrackerDotNet.Controls
         {
             List<ReoccuringOrderExtData> all = new List<ReoccuringOrderExtData>();
             TrackerDb trackerDb = new TrackerDb();
-            string strSQL = "SELECT ReoccuringOrderTbl.ID, CustomersTbl.CustomerID, ReoccuranceType, [Value], ItemRequiredID, QtyRequired, DateLastDone, NextDateRequired, RequireUntilDate, PackagingID, ReoccuringOrderTbl.Enabled, ReoccuringOrderTbl.Notes, CustomersTbl.CompanyName, ItemTypeTbl.ItemDesc AS ItemTypeDesc, ReoccuranceTypeTbl.Type AS ReoccuranceTypeDesc  FROM (((ReoccuringOrderTbl LEFT OUTER JOIN ItemTypeTbl ON ReoccuringOrderTbl.ItemRequiredID = ItemTypeTbl.ItemTypeID)   LEFT OUTER JOIN CustomersTbl ON ReoccuringOrderTbl.CustomerID = CustomersTbl.CustomerID)   LEFT OUTER JOIN ReoccuranceTypeTbl ON ReoccuringOrderTbl.ReoccuranceType = ReoccuranceTypeTbl.ID)";
+            string strSQL = "SELECT ReoccuringOrderTbl.ID, CustomersTbl.CustomerID, ReoccuranceType, [Value], ItemRequiredID, QtyRequired, DateLastDone, NextDateRequired, RequireUntilDate, PackagingID, " +
+                "ReoccuringOrderTbl.Enabled, ReoccuringOrderTbl.Notes, CustomersTbl.CompanyName, ItemTypeTbl.ItemDesc AS ItemTypeDesc, ReoccuranceTypeTbl.Type AS ReoccuranceTypeDesc  " +
+                "FROM (((ReoccuringOrderTbl LEFT OUTER JOIN ItemTypeTbl ON ReoccuringOrderTbl.ItemRequiredID = ItemTypeTbl.ItemTypeID)" +
+                "   LEFT OUTER JOIN CustomersTbl ON ReoccuringOrderTbl.CustomerID = CustomersTbl.CustomerID)" +
+                "   LEFT OUTER JOIN ReoccuranceTypeTbl ON ReoccuringOrderTbl.ReoccuranceType = ReoccuranceTypeTbl.ID)";
             string str = "";
             switch (IsEnabled)
             {
@@ -96,7 +100,8 @@ namespace TrackerDotNet.Controls
         public ReoccuringOrderTbl GetByReoccuringOrderByID(int pReoccuringID)
         {
             ReoccuringOrderTbl reoccuringOrderById = (ReoccuringOrderTbl)null;
-            string strSQL = "SELECT CustomerID, ReoccuranceType, [Value], ItemRequiredID, QtyRequired, DateLastDone, NextDateRequired, RequireUntilDate, PackagingID, DeliveryByID, Enabled, Notes  FROM ReoccuringOrderTbl WHERE ID = ?";
+            string strSQL = "SELECT CustomerID, ReoccuranceType, [Value], ItemRequiredID, QtyRequired, DateLastDone, NextDateRequired, RequireUntilDate, " +
+                "                   PackagingID, DeliveryByID, Enabled, Notes FROM ReoccuringOrderTbl WHERE ID = ?";
             TrackerDb trackerDb = new TrackerDb();
             trackerDb.AddWhereParams((object)pReoccuringID, DbType.Int32, "@RecoccuringID");
             IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader(strSQL);

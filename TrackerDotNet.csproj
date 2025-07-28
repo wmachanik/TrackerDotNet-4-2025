@@ -784,7 +784,7 @@
     <EmbeddedResource Include="Resources\Messages.resx">
       <SubType>Designer</SubType>
       <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Messages2.Designer.cs</LastGenOutput>
+      <LastGenOutput>Messages1.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\UIMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>

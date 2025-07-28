@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MobileSite.Master" AutoEventWireup="true" CodeBehind="RepairStatusChange.aspx.cs" Inherits="TrackerDotNet.Pages.RepairStatusChange" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="RepairStatusChange.aspx.cs" Inherits="TrackerDotNet.Pages.RepairStatusChange" %>
 <asp:Content ID="cntRepairStatusChangeHdr" ContentPlaceHolderID="HeadContent" runat="server">
 </asp:Content>
 <asp:Content ID="cntRepairStatusChangeBdy" ContentPlaceHolderID="MainContent" runat="server">

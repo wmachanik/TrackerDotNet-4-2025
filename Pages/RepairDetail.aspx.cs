@@ -64,10 +64,10 @@ namespace TrackerDotNet.Pages
 
         protected void Page_PreInit(object sender, EventArgs e)
         {
-            if (new CheckBrowser().fBrowserIsMobile())
-                this.MasterPageFile = "~/MobileSite.master";
-            else
-                this.MasterPageFile = "~/Site.master";
+            //if (new CheckBrowser().fBrowserIsMobile())
+            //    this.MasterPageFile = "~/MobileSite.master";
+            //else
+            //    this.MasterPageFile = "~/Site.master";
         }
 
         protected void Page_Load(object sender, EventArgs e)

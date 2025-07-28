@@ -158,7 +158,7 @@ namespace TrackerDotNet.BusinessLogic
             emailSettings.SetRecipient(recipient);
 
             var email = new EmailMailKitCls(emailSettings);
-            email.AddCCFromAddress();
+            email.AddSysCCFAddress();
             email.SetEmailSubject(MessageProvider.Get(MessageKeys.Order.StatusSubject));
 
             string contactName = !string.IsNullOrWhiteSpace(customer.ContactFirstName)

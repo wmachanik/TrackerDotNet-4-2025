@@ -220,10 +220,10 @@
     <value>Dear {0}&lt;br /&gt;&lt;p&gt;Thank you for ordering from Quaffee. &lt;/p&gt;</value>
   </data>
   <data name="Order.ItemFormatBasic" xml:space="preserve">
-    <value>{0} - Qty: {1}</value>
+    <value>&lt;li&gt;{0} - Qty: {1}&lt;/li&gt;</value>
   </data>
   <data name="Order.ItemFormatWithPrep" xml:space="preserve">
-    <value>{0} ({1}) - Qty: {2}</value>
+    <value>&lt;li&gt;{0} ({1}) - Qty: {2}&lt;/li&gt;</value>
   </data>
   <data name="Order.CompletedTitle" xml:space="preserve">
     <value>Order Completed</value>

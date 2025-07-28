@@ -21,12 +21,12 @@ namespace TrackerDotNet
 
         protected void Page_PreInit(object sender, EventArgs e)
         {
-            bool flag = new CheckBrowser().fBrowserIsMobile();
-            this.Session["RunningOnMoble"] = (object)flag;
-            if (flag)
-                this.MasterPageFile = "~/MobileSite.master";
-            else
-                this.MasterPageFile = "~/Site.master";
+           bool flag = new CheckBrowser().fBrowserIsMobile();
+           this.Session["RunningOnMoble"] = (object)flag;
+            //if (flag)
+            //    this.MasterPageFile = "~/MobileSite.master";
+            //else
+            //    this.MasterPageFile = "~/Site.master";
         }
 
         protected void Page_Load(object sender, EventArgs e)

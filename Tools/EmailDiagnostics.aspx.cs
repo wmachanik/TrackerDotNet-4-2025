@@ -66,7 +66,8 @@ namespace TrackerDotNet.Tools
                 ddlSocketOption.SelectedValue,
                 int.TryParse(txtTimeout.Text, out var t) ? t : 10000,
                 txtFrom.Text.Trim(),
-                txtTo.Text.Trim()
+                txtTo.Text.Trim(),
+                null
             );
         }
         protected void btnSend_Click(object sender, EventArgs e)
@@ -218,7 +219,8 @@ namespace TrackerDotNet.Tools
                                 socketOption: option,
                                 timeout: 15000,
                                 staticSettings.from,
-                                staticSettings.to
+                                staticSettings.to,
+                                null
                             );
 
                             var email = new EmailMailKitCls(comboSettings);

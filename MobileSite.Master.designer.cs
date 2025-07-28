@@ -51,21 +51,12 @@ namespace TrackerDotNet
         protected global::System.Web.UI.WebControls.HyperLink hlCustomers;
 
         /// <summary>
-        /// hlReports control.
+        /// hlLookups control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HyperLink hlReports;
-
-        /// <summary>
-        /// hlAdmin control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.HyperLink hlAdmin;
+        protected global::System.Web.UI.WebControls.HyperLink hlLookups;
     }
 }

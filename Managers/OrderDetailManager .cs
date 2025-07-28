@@ -25,7 +25,7 @@ namespace TrackerDotNet.Managers
             emailSettings.SetRecipient(recipientEmail);
 
             var email = new EmailMailKitCls(emailSettings);
-            email.AddCCFromAddress();
+            email.AddSysCCFAddress();
             email.SetEmailSubject(MessageProvider.Get(MessageKeys.Order.ConfirmatonSubject));
 
             // 1. Greeting

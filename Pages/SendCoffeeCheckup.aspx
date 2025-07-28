@@ -12,7 +12,7 @@
                     // Trigger auto-prep
                     __doPostBack('<%= btnPrepData.UniqueID %>', '');
                 }
-            }, 1000); // Wait 1 second for page to fully load
+            }, 500); // Wait 1 second for page to fully load
         }
 
         // Call when page loads
@@ -90,6 +90,9 @@
                 <asp:Literal ID="ltrlStatus" Text="" runat="server" />
                 <div class="simpleLightBrownForm" style="text-align: center">
                     <div class="simpleLightBrownForm" style="text-align: center">
+                        <asp:Label ID="Label1" runat="server" Text="Reminder Window (days):" AssociatedControlID="ddlReminderWindow" CssClass="small" />
+                        <asp:DropDownList ID="ddlReminderWindow" style="min-width: 16px" runat="server" CssClass="small" AutoPostBack="true" OnSelectedIndexChanged="ddlReminderWindow_SelectedIndexChanged" />
+                        &nbsp;&nbsp;&nbsp;&nbsp;
                         <!-- Make prep data button visible for auto-prep to work -->
                         <asp:Button ID="btnPrepData" Text="Prep Data" runat="server"
                             OnClick="btnPrepData_Click" Visible="true"
@@ -117,10 +120,6 @@
     </div>
     <h2>Customers to receive the checkup/reminder</h2>
     <!-- Customer status area -->
-    <div style="padding: 5px; background-color: #f8f9fa; border-radius: 3px; margin-bottom: 10px;">
-        <asp:Literal ID="ltrlCustomerStatus" runat="server" Text="Preparing customer data automatically..." />
-    </div>
-
     <div class="simpleLightBrownForm small">
         <table border="0">
             <tr style="text-align: center; font-size: large">

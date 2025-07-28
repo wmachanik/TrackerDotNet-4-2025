@@ -16,6 +16,7 @@ public class EmailSettings
     public int Timeout { get; private set; }
     public string FromAddress { get; private set; }
     public string ToAddress { get; private set; }
+    public string CcAddress { get; private set; } // New property for SysCCEmailAddress
 
     private bool isInitialized = false;
     /// <summary>
@@ -39,7 +40,7 @@ public class EmailSettings
     /// </summary>
     public EmailSettings(string smtpHost, int smtpPort, string smtpUser, string smtpPass,
                          bool enableSSL, string socketOption, int timeout,
-                         string fromAddress, string toAddress)
+                         string fromAddress, string toAddress, string ccAddress)
     {
         SmtpHost = smtpHost;
         SmtpPort = smtpPort;
@@ -50,6 +51,7 @@ public class EmailSettings
         Timeout = timeout;
         FromAddress = fromAddress;
         ToAddress = toAddress;
+        CcAddress = ccAddress;
 
         isInitialized = true;
     }
@@ -63,6 +65,10 @@ public class EmailSettings
         try
         {
             FromAddress = ConfigurationManager.AppSettings["SysEmailFrom"];
+            CcAddress = ConfigurationManager.AppSettings["SysCCEmailAddress"];
+            if (string.IsNullOrWhiteSpace(CcAddress))
+                CcAddress = FromAddress; // Fallback to FromAddress if not set
+
             ToAddress = ConfigurationManager.AppSettings["EMailLogIn"];
             SmtpUser = ConfigurationManager.AppSettings["EMailLogIn"];
             SmtpPass = ConfigurationManager.AppSettings["EMailPassword"];
@@ -114,7 +120,7 @@ public class EmailSettings
     /// </summary>
     public void LoadFromParameters(string host, int port, string user, string pass,
                                    bool enableSSL, string socketOption, int timeout,
-                                   string from, string to)
+                                   string from, string to, string cc)
     {
         SmtpHost = host;
         SmtpPort = port;
@@ -125,6 +131,7 @@ public class EmailSettings
         Timeout = timeout;
         FromAddress = from;
         ToAddress = to;
+        CcAddress = cc == null ? from : cc;  // if null send set to from 
 
         isInitialized = true;
     }
@@ -132,11 +139,14 @@ public class EmailSettings
     /// <summary>
     /// Updates common fields such as credentials and address info without full reload.
     /// </summary>
-    public void UpdateCommonSettings(string newUser, string newPass, string newFrom = null, string newTo = null)
+    public void UpdateCommonSettings(string newUser, string newPass, string newFrom = null, string newTo = null, string newCc = null)
     {
         SmtpUser = newUser;
         SmtpPass = newPass;
         if (!string.IsNullOrEmpty(newFrom)) FromAddress = newFrom;
         if (!string.IsNullOrEmpty(newTo)) ToAddress = newTo;
+        if (string.IsNullOrWhiteSpace(newCc))
+            newCc = FromAddress; // Fallback to FromAddress if not set
+        if (!string.IsNullOrEmpty(newCc)) CcAddress = newCc;
     }
 }

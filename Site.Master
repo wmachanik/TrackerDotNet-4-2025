@@ -11,15 +11,6 @@
     <meta name="viewport" content="min-width=340px, width=device-width,initial-scale=1.0, minimum-scale=0.5, user-scalable=yes" />
     <meta name="MobileOptimized" content="width" />
     <meta name="HandheldFriendly" content="true" />
-    <style type="text/css">
-        @media (max-width: 768px) {
-            .menu ul ul {
-                position: static;
-                display: block;
-                width: 100%;
-            }
-        }
-    </style>
     <asp:ContentPlaceHolder ID="HeadContent" runat="server">
     </asp:ContentPlaceHolder>
 
@@ -27,6 +18,30 @@
         function showAppMessage(thisMessage) {
             alert(thisMessage);
         }
+    </script>
+    <script type="text/javascript">
+        function toggleMobileNav() {
+            var nav = document.getElementById('mobileNavMenu');
+            var hamburger = document.getElementById('mobileHamburger');
+            nav.classList.toggle('mobile-menu-open');
+            hamburger.classList.toggle('open');
+        }
+        document.addEventListener('click', function (event) {
+            var nav = document.getElementById('mobileNavMenu');
+            var hamburger = document.getElementById('mobileHamburger');
+            if (nav && hamburger && !nav.contains(event.target) && !hamburger.contains(event.target)) {
+                nav.classList.remove('mobile-menu-open');
+                hamburger.classList.remove('open');
+            }
+        });
+        window.addEventListener('resize', function () {
+            var nav = document.getElementById('mobileNavMenu');
+            var hamburger = document.getElementById('mobileHamburger');
+            if (window.innerWidth > 768 && nav && hamburger) {
+                nav.classList.remove('mobile-menu-open');
+                hamburger.classList.remove('open');
+            }
+        });
     </script>
 </head>
 <body>
@@ -38,7 +53,7 @@
                         <h1>QO<span style="font-variant: normal">n</span>T</h1>
                     </td>
                     <td style="width: 98%; vertical-align: bottom; padding: 0 10px;">
-                        <div class="clear menuBG" style="padding-bottom: 4px">
+                        <div id="menuWrapper" class="clear menuBG" style="padding-bottom: 4px">
                             <asp:Menu ID="NavigationMenu" runat="server"
                                 CssClass="menu" RenderingMode="List"
                                 StaticSelectedStyle-CssClass="StaticSelectedStyle"
@@ -51,7 +66,7 @@
                                 <DynamicMenuItemStyle ForeColor="White" HorizontalPadding="5px" VerticalPadding="2px" />
                                 <DynamicMenuStyle BackColor="#201606" VerticalPadding="2px" HorizontalPadding="2px" BorderColor="Transparent" BorderStyle="Solid" />
                                 <Items>
-                                    <asp:MenuItem NavigateUrl="~/Default.aspx" Text="Home" />
+                                    <asp:MenuItem NavigateUrl="~/Default.aspx" Text="🏠" />
                                     <asp:MenuItem NavigateUrl="~/Pages/Customers.aspx" Text="Contacts" ToolTip="Contact List"
                                         Value="Contacts">
                                         <asp:MenuItem NavigateUrl="~/Pages/Customers.aspx" Text="Customers"
@@ -114,7 +129,7 @@
                             </asp:Menu>
                         </div>
                     </td>
-                    <td class="loginDisplay" >
+                    <td class="loginDisplay">
                         <asp:LoginView ID="HeadLoginView" runat="server" EnableViewState="false">
                             <AnonymousTemplate>
                                 [ <a href="~/Account/Login.aspx" id="HeadLoginStatus" runat="server">Log In</a>
@@ -123,9 +138,7 @@
                             <LoggedInTemplate>
                                 Welcome <span class="bold">
                                     <asp:LoginName ID="HeadLoginName" runat="server" />
-                                </span>! [
-              <asp:LoginStatus ID="HeadLoginStatus" runat="server" LogoutAction="Redirect" LogoutText="Log Out"
-                  LogoutPageUrl="~/" />
+                                </span>! [<asp:LoginStatus ID="HeadLoginStatus" runat="server" LogoutAction="Redirect" LogoutText="Log Out" LogoutPageUrl="~/" />
                                 ]
                             </LoggedInTemplate>
                         </asp:LoginView>
@@ -135,6 +148,40 @@
                 </tr>
             </table>
         </div>
+        <!-- Mobile Header/Menu -->
+        <div class="mobile-header-content">
+            <span class="mobile-title">QO<span style="font-variant: normal">n</span>T</span>
+            <button type="button" id="mobileHamburger" class="hamburger-button" onclick="toggleMobileNav()" aria-label="Open menu">
+                <div class="hamburger-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+        </div>
+        <nav id="mobileNavMenu" class="mobile-nav-menu">
+            <ul class="mobile-nav-list">
+                <li><a href="/Default.aspx">🏠 Home</a></li>
+                <li><a href="/Pages/Customers.aspx">👥 Customers</a></li>
+                <li><a href="/Pages/NewOrderDetail.aspx">📋 New Order</a></li>
+                <li><a href="/Pages/DeliverySheet.aspx">🚚 Deliveries</a></li>
+                <li><a href="/Pages/Repairs.aspx">🔧 Repairs</a></li>
+                <li><a href="/Pages/Lookups.aspx">📊 Lookup Tables</a></li>
+                <li>
+                    <asp:LoginView ID="MobileLoginView" runat="server">
+                        <AnonymousTemplate>
+                            <a href="/Account/Login.aspx" class="mobile-login-link">🔑 Login</a>
+                        </AnonymousTemplate>
+                        <LoggedInTemplate>
+                            <span class="mobile-login-user">
+                                <asp:LoginName ID="MobileLoginName" runat="server" />
+                            </span>
+                            <a href="/Account/Logout.aspx" class="mobile-login-link">Log Out</a>
+                        </LoggedInTemplate>
+                    </asp:LoginView>
+                </li>
+            </ul>
+        </nav>
         <div class="page">
             <div class="main">
                 <asp:ContentPlaceHolder ID="MainContent" runat="server" />

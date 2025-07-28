@@ -22,14 +22,14 @@ namespace TrackerDotNet.Pages
       bool _RunningOnMobile = _CheckBrowser.fBrowserIsMobile();
       Session[CheckBrowser.CONST_SESSION_RUNNINGONMOBILE] = _RunningOnMobile;
 
-      if (_RunningOnMobile)
-      {
-        this.MasterPageFile = "~/MobileSite.master";
-      }
-      else
-      {
-        this.MasterPageFile = "~/Site.master";
-      }
+      //if (_RunningOnMobile)
+      //{
+      //  this.MasterPageFile = "~/MobileSite.master";
+      //}
+      //else
+      //{
+      //  this.MasterPageFile = "~/Site.master";
+      //}
     }
 
     protected void Page_Load(object sender, EventArgs e)

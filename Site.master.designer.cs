@@ -51,6 +51,15 @@ namespace TrackerDotNet
         protected global::System.Web.UI.WebControls.LoginView HeadLoginView;
 
         /// <summary>
+        /// MobileLoginView control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LoginView MobileLoginView;
+
+        /// <summary>
         /// MainContent control.
         /// </summary>
         /// <remarks>

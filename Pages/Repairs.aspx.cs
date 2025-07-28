@@ -43,10 +43,10 @@ namespace TrackerDotNet.Pages
         {
             bool flag = new CheckBrowser().fBrowserIsMobile();
             this.Session["RunningOnMoble"] = (object)flag;
-            if (flag)
-                this.MasterPageFile = "~/MobileSite.master";
-            else
-                this.MasterPageFile = "~/Site.master";
+            //if (flag)
+            //    this.MasterPageFile = "~/MobileSite.master";
+            //else
+            //    this.MasterPageFile = "~/Site.master";
         }
 
         protected void Page_Load(object sender, EventArgs e)

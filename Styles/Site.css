@@ -79,7 +79,6 @@ h6 {
 }
 
 
-/* PRIMARY LAYOUT ELEMENTS   
 ----------------------------------------------------------*/
 
 .page {
@@ -268,10 +267,6 @@ h6 {
         /*background-color: #302a20;*/
     }
 
-        .menu ul ul li a:hover {
-            /*background-color: #595939 !important;*/
-        }
-
 /* Responsive menu */
 @media (max-width: 768px) {
     .menu ul {
@@ -310,11 +305,10 @@ h6 {
 
 /* ======================= */
 /* END OF MENU STYLES */
-/* ======================= */
 
 
 /* FORM ELEMENTS   
-----------------------------------------------------------*/
+    ----------------------------------------------------------*/
 
 fieldset {
     margin: 1em 0px;
@@ -358,7 +352,7 @@ div.accountInfo {
 
 
 /* MISC  
-----------------------------------------------------------*/
+    ----------------------------------------------------------*/
 
 .title {
     display: block;
@@ -671,10 +665,10 @@ table.TblSimple {
     border-radius: 15px;
     padding: 10px 10px;
     /*
-    -webkit-border-radius: 15px;
-    -moz-border-radius: 15px;
-    -o-border-radius: 15px;
-*/
+        -webkit-border-radius: 15px;
+        -moz-border-radius: 15px;
+        -o-border-radius: 15px;
+    */
 }
 
 .TblSimple th {
@@ -1438,41 +1432,39 @@ div.ajax__calendar_days table tr td {
         border-color: #999;
         color: #000;
     }
-
 }
 
+/* Make images and containers scale */
+img, .responsive-container {
+    max-width: 100%;
+    height: auto;
+}
 
-
-/* Add these mobile improvements */
+/* Responsive navigation */
 @media (max-width: 768px) {
-    /* Fix table display */
-    table, .TblSimple, .TblWhite, .TblZebra {
-        display: block;
-        overflow-x: auto;
-    }
-    /* Improve form elements */
-    input[type='text'],
-    input[type='password'],
-    select,
-    textarea {
-        width: 100%;
-        box-sizing: border-box;
-    }
-    /* Fix header padding */
-    .header {
-        padding: 0px 5px;
-    }
-    /* Adjust main content area */
-    .main {
-        padding: 0px 5px;
-        margin: 8px 0;
+    .main-nav, .sidebar {
+        display: none;
     }
 
-    .loginDisplay {
-        padding-right: 10px !important;
+    .mobile-nav {
+        display: block;
+    }
+
+    .main-content {
+        padding: 10px;
     }
 }
 
+/* Desktop styles */
+@media (min-width: 769px) {
+    .main-nav {
+        display: block;
+    }
+
+    .mobile-nav {
+        display: none;
+    }
+}
 
 .failedEmailsSection {
     margin-top: 20px;
@@ -1482,21 +1474,157 @@ div.ajax__calendar_days table tr td {
     background-color: #FFF5F5;
 }
 
-.failedEmailsSection h3 {
-    color: #D63031;
-    margin-top: 0;
+    .failedEmailsSection h3 {
+        color: #D63031;
+        margin-top: 0;
+    }
+
+    /* Only affect tables inside the failed emails section */
+    .failedEmailsSection .TblZebra th {
+        background-color: #FF6B6B !important;
+        color: white !important;
+    }
+
+    .failedEmailsSection .TblZebra tr:nth-child(odd) {
+        background: #FFE6E6 !important;
+    }
+
+    .failedEmailsSection .TblZebra tr:nth-child(even) {
+        background: #FFCCCC !important;
+    }
+
+.responsive-row {
+    display: flex;
+    flex-wrap: wrap;
 }
 
-/* Only affect tables inside the failed emails section */
-.failedEmailsSection .TblZebra th {
-    background-color: #FF6B6B !important;
-    color: white !important;
+.responsive-col {
+    flex: 1 1 300px;
+    margin: 10px;
 }
 
-.failedEmailsSection .TblZebra tr:nth-child(odd) {
-    background: #FFE6E6 !important;
+@media (max-width: 600px) {
+    .responsive-row {
+        flex-direction: column;
+    }
 }
 
-.failedEmailsSection .TblZebra tr:nth-child(even) {
-    background: #FFCCCC !important;
+/* Hide mobile header/menu by default (desktop) */
+.mobile-header-content,
+.mobile-header,
+.mobile-nav-menu {
+    display: none !important;
+}
+
+/* Show and style on mobile only */
+@media (max-width: 768px) {
+    .header {
+        display: none !important;
+    }
+
+    .mobile-header-content {
+        position: relative;
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 56px;
+        padding: 0 12px;
+        background: #302a20;
+    }
+
+    .mobile-title {
+        font-size: xx-large;
+        font-weight: bold;
+        color: green;
+        display: flex;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+    }
+
+    .hamburger-icon span {
+        display: block;
+        height: 4px;
+        width: 28px;
+        background: #fff;
+        border-radius: 2px;
+        margin: 4px 0;
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .hamburger-button.open .hamburger-icon span:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+
+    .hamburger-button.open .hamburger-icon span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .hamburger-button.open .hamburger-icon span:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+
+    .hamburger-button {
+        margin-left: 16px;
+        z-index: 102;
+        background: none;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        height: 40px;
+    }
+
+    .hamburger-icon span {
+        background: #fff;
+    }
+
+    .mobile-nav-menu {
+        display: block !important;
+        position: fixed;
+        top: 56px; /* or 0 if you want it at the very top */
+        left: 0;
+        right: 0;
+        min-width: 220px;
+        width: 100vw;
+        background: #fff;
+        z-index: 9999;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        border-radius: 0 0 6px 6px;
+        padding: 8px 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+        .mobile-nav-menu.mobile-menu-open {
+            max-height: 600px;
+        }
+
+        .mobile-nav-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mobile-nav-menu li {
+            padding: 12px 20px;
+            margin: 0;
+            border-bottom: 1px solid #eee;
+            font-size: 1.1em;
+            text-align: left;
+        }
+
+            .mobile-nav-menu li:last-child {
+                border-bottom: none;
+            }
+
+        .mobile-nav-menu a {
+            color: #302a20;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+        }
 }

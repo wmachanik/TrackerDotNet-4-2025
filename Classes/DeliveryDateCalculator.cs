@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using TrackerDotNet.Controls;
 
 namespace TrackerDotNet.Classes
@@ -10,12 +11,18 @@ namespace TrackerDotNet.Classes
     public class DeliveryDateCalculator
     {
         private readonly TrackerTools _trackerTools;
-        
+        private readonly CityTblDAL _cityTblDAL;
+
+        public const int WEEKLY_INTERVAL = 1;
+        public const int BIWEEKLY_INTERVAL = 2;
+        public const int TRI_WEEKLY_INTERVAL = 3;
+        // Add more as needed
         public DeliveryDateCalculator()
         {
             _trackerTools = new TrackerTools();
+            _cityTblDAL = new CityTblDAL();
         }
-        
+
         /// <summary>
         /// Calculates the optimal delivery date for a monthly recurring order
         /// </summary>
@@ -30,17 +37,17 @@ namespace TrackerDotNet.Classes
                 AppLogger.WriteLog("email", MessageProvider.Format(
                     MessageKeys.DeliveryCalculation.CalculatingMonthlyDelivery,
                     customerId, targetDayOfMonth));
-                
+
                 // Step 1: Calculate the next occurrence of target day
                 DateTime nextTargetDate = CalculateNextMonthlyOccurrence(targetDayOfMonth, lastOrderDate);
-                
+
                 // Step 2: Get customer's optimal delivery date based on city schedule
-                DateTime optimalDeliveryDate = FindOptimalCityDeliveryDate(customerId, nextTargetDate);
-                
+                DateTime optimalDeliveryDate = FindClosestCityDeliveryDate(customerId, nextTargetDate, TimeZoneUtils.Now());  //use todays date as a minimum
+
                 AppLogger.WriteLog("email", MessageProvider.Format(
                     MessageKeys.DeliveryCalculation.OptimalDateCalculated,
                     nextTargetDate, optimalDeliveryDate));
-                
+
                 return optimalDeliveryDate;
             }
             catch (Exception ex)
@@ -48,12 +55,12 @@ namespace TrackerDotNet.Classes
                 AppLogger.WriteLog("email", MessageProvider.Format(
                     MessageKeys.DeliveryCalculation.ErrorCalculatingDelivery,
                     customerId, ex.Message));
-                
+
                 // Fallback: return next month occurrence without optimization
                 return CalculateNextMonthlyOccurrence(targetDayOfMonth, lastOrderDate);
             }
         }
-        
+
         /// <summary>
         /// Calculates the optimal delivery date for a weekly recurring order
         /// </summary>
@@ -68,14 +75,14 @@ namespace TrackerDotNet.Classes
                 AppLogger.WriteLog("email", MessageProvider.Format(
                     MessageKeys.DeliveryCalculation.CalculatingWeeklyDelivery,
                     customerId, weekInterval));
-                
+
                 DateTime nextWeeklyDate = lastOrderDate.AddDays(weekInterval * 7);
-                DateTime optimalDate = FindOptimalCityDeliveryDate(customerId, nextWeeklyDate);
-                
+                DateTime optimalDate = FindClosestCityDeliveryDate(customerId, nextWeeklyDate, TimeZoneUtils.Now());
+
                 AppLogger.WriteLog("email", MessageProvider.Format(
                     MessageKeys.DeliveryCalculation.WeeklyDateCalculated,
                     nextWeeklyDate, optimalDate));
-                
+
                 return optimalDate;
             }
             catch (Exception ex)
@@ -83,11 +90,11 @@ namespace TrackerDotNet.Classes
                 AppLogger.WriteLog("email", MessageProvider.Format(
                     MessageKeys.DeliveryCalculation.ErrorCalculatingWeekly,
                     customerId, ex.Message));
-                
+
                 return lastOrderDate.AddDays(weekInterval * 7);
             }
         }
-        
+
         /// <summary>
         /// Calculates the roast date from a delivery date (typically 1-2 days before)
         /// </summary>
@@ -97,19 +104,19 @@ namespace TrackerDotNet.Classes
             {
                 // Standard business rule: roast 1 day before delivery
                 DateTime roastDate = deliveryDate.AddDays(-1);
-                
+
                 // Ensure roast date is not in the past
                 DateTime today = TimeZoneUtils.Now().Date;
-                
+
                 if (roastDate < today)
                 {
                     roastDate = today;
                 }
-                
+
                 AppLogger.WriteLog("email", MessageProvider.Format(
                     MessageKeys.DeliveryCalculation.RoastDateCalculated,
                     deliveryDate, roastDate));
-                
+
                 return roastDate;
             }
             catch (Exception ex)
@@ -117,11 +124,11 @@ namespace TrackerDotNet.Classes
                 AppLogger.WriteLog("email", MessageProvider.Format(
                     MessageKeys.DeliveryCalculation.ErrorCalculatingRoastDate,
                     deliveryDate, ex.Message));
-                
+
                 return deliveryDate.AddDays(-1); // Simple fallback
             }
         }
-        
+
         /// <summary>
         /// Calculates the next occurrence of a specific day of month
         /// </summary>
@@ -264,5 +271,57 @@ namespace TrackerDotNet.Classes
                 return targetDate;
             }
         }
+        
+        /// <summary>
+        /// Finds the closest delivery date for a customer based on their city's prep/delivery schedule and a target date.
+        /// </summary>
+            private DateTime FindClosestCityDeliveryDate(long customerId, DateTime targetDate, DateTime minDate)
+            {
+                int cityId = _cityTblDAL.GetCityIdByCustomerId(customerId);
+                if (cityId == 0)
+                    return targetDate;
+
+                List<CityPrepDaysTbl> prepDays = _cityTblDAL.GetPrepRulesForCity(cityId);
+                if (prepDays == null || prepDays.Count == 0)
+                    return targetDate;
+
+                DateTime closestDelivery = DateTime.MinValue;
+                double minDiff = double.MaxValue;
+
+                foreach (var prep in prepDays)
+                {
+                    // --- Check NEXT delivery date (forward) ---
+                    int daysToAdd = ((int)prep.PrepDayOfWeekID - (int)targetDate.DayOfWeek + 7) % 7;
+                    DateTime nextPrep = targetDate.AddDays(daysToAdd);
+                    DateTime nextDelivery = nextPrep.AddDays(prep.DeliveryDelayDays);
+
+                    if (nextDelivery >= minDate)
+                    {
+                        double diff = Math.Abs((nextDelivery - targetDate).TotalDays);
+                        if (diff < minDiff)
+                        {
+                            minDiff = diff;
+                            closestDelivery = nextDelivery;
+                        }
+                    }
+
+                    // --- Check PREVIOUS delivery date (backward) ---
+                    int daysToSubtract = ((int)targetDate.DayOfWeek - (int)prep.PrepDayOfWeekID + 7) % 7;
+                    DateTime prevPrep = targetDate.AddDays(-daysToSubtract);
+                    DateTime prevDelivery = prevPrep.AddDays(prep.DeliveryDelayDays);
+
+                    if (prevDelivery >= minDate)
+                    {
+                        double diff = Math.Abs((prevDelivery - targetDate).TotalDays);
+                        if (diff < minDiff)
+                        {
+                            minDiff = diff;
+                            closestDelivery = prevDelivery;
+                        }
+                    }
+                }
+
+                return closestDelivery == DateTime.MinValue ? targetDate : closestDelivery;
+            }
     }
 }

@@ -1,4 +1,4 @@
-﻿
+﻿// Type: TrackerDotNet.Pages.DeliverySheet
 // Type: TrackerDotNet.Pages.DeliverySheet
 // Assembly: TrackerDotNet, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
 // MVID: 2B5ACBFB-45EE-46B9-81D2-DBD1194F39CE
@@ -55,6 +55,8 @@ namespace TrackerDotNet.Pages
         private void Page_PreInit(object sender, EventArgs e)
         {
             bool flag1 = false;
+            bool flag2 = new CheckBrowser().fBrowserIsMobile();
+            this.Session["RunningOnMoble"] = (object)flag2;
             if (this.Request.QueryString["Print"] != null)
                 flag1 = this.Request.QueryString["Print"].ToString() == "Y";
             if (flag1)
@@ -64,12 +66,8 @@ namespace TrackerDotNet.Pages
             }
             else
             {
-                bool flag2 = new CheckBrowser().fBrowserIsMobile();
-                this.Session["RunningOnMoble"] = (object)flag2;
-                if (flag2)
-                    this.MasterPageFile = "~/MobileSite.master";
-                else
-                    this.MasterPageFile = "~/Site.master";
+                //this.Session["RunningOnMoble"] = (object)flag2;
+                this.MasterPageFile = "~/Site.master";
                 this.Session["SheetIsPrinting"] = (object)"N";
             }
         }
@@ -490,7 +488,7 @@ namespace TrackerDotNet.Pages
 
         protected void ddlActiveRoastDates_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.Session["DeliverySheetDateItemSelected"] = (object)this.ddlActiveRoastDates.SelectedValue;
+            Session["DeliverySheetDateItemSelected"] = ddlActiveRoastDates.SelectedValue;
             this.ltrlWhichDate.Text = $"{Convert.ToDateTime(this.ddlActiveRoastDates.SelectedValue):yyyy-MM-dd}";
             this.Session["DeliverySheetDate"] = (object)this.ltrlWhichDate.Text;
             this.Session["DeliverySheetDeliveryBy"] = (object)string.Empty;
@@ -503,26 +501,59 @@ namespace TrackerDotNet.Pages
                 this.Form.DefaultButton = control.UniqueID;
             this.SetVarsAndBuildDeliverySheet();
         }
-
+        protected void tbCalendarDate_TextChanged(object sender, EventArgs e)
+        {
+            string selectedDate = tbCalendarDate.Text.Trim();
+            if (DateTime.TryParse(selectedDate, out DateTime dt))
+            {
+                string value = dt.ToString("yyyy-MM-dd");
+                var item = ddlActiveRoastDates.Items.FindByValue(value);
+                if (item == null)
+                {
+                    // Add new date to dropdown (insert after the first item)
+                    ddlActiveRoastDates.Items.Insert(1, new ListItem(dt.ToString("dd-MMM-yyyy (ddd)"), value));
+                    ddlActiveRoastDates.SelectedIndex = 1;
+                }
+                else
+                {
+                    ddlActiveRoastDates.ClearSelection();
+                    item.Selected = true;
+                }
+                // Update session and UI
+                ddlActiveRoastDates_SelectedIndexChanged(ddlActiveRoastDates, EventArgs.Empty);
+            }
+        }
         protected void ddlActiveRoastDates_DataBound(object sender, EventArgs e)
         {
-            bool flag = false;
-            string str1 = this.Session["DeliverySheetDateItemSelected"] != null ? ((string)this.Session["DeliverySheetDateItemSelected"]).Trim() : "";
-            string str2 = this.Session["DeliverySheetDeliveryByItemSelected"] != null ? (string)this.Session["DeliverySheetDeliveryByItemSelected"] : "";
-            if (!string.IsNullOrEmpty(str1) && this.ddlActiveRoastDates.Items.FindByValue(str1) != null)
+            // Only set the selected value if not a postback
+            if (!IsPostBack)
             {
-                this.ddlActiveRoastDates.SelectedValue = str1;
-                flag = true;
+                string str1 = Session["DeliverySheetDateItemSelected"] != null ? ((string)Session["DeliverySheetDateItemSelected"]).Trim() : "";
+                if (!string.IsNullOrEmpty(str1) && ddlActiveRoastDates.Items.FindByValue(str1) != null)
+                {
+                    ddlActiveRoastDates.SelectedValue = str1;
+                }
+                SetVarsAndBuildDeliverySheet();
             }
-            if (!string.IsNullOrEmpty(str2) && this.ddlDeliveryBy.Items.FindByValue(str2) != null)
-            {
-                this.ddlDeliveryBy.SelectedValue = str2;
-                flag = true;
-            }
-            if (!flag)
-                return;
-            this.SetVarsAndBuildDeliverySheet();
+            
         }
+            //bool flag = false;
+            //string str1 = this.Session["DeliverySheetDateItemSelected"] != null ? ((string)this.Session["DeliverySheetDateItemSelected"]).Trim() : "";
+            //string str2 = this.Session["DeliverySheetDeliveryByItemSelected"] != null ? (string)this.Session["DeliverySheetDeliveryByItemSelected"] : "";
+            //if (!string.IsNullOrEmpty(str1) && this.ddlActiveRoastDates.Items.FindByValue(str1) != null)
+            //{
+            //    this.ddlActiveRoastDates.SelectedValue = str1;
+            //    flag = true;
+            //}
+            //if (!string.IsNullOrEmpty(str2) && this.ddlDeliveryBy.Items.FindByValue(str2) != null)
+            //{
+            //    this.ddlDeliveryBy.SelectedValue = str2;
+            //    flag = true;
+            //}
+            //if (!flag)
+            //    return;
+            //this.SetVarsAndBuildDeliverySheet();
+        //}
 
         protected void ddlDeliveryBy_SelectedIndexChanged(object sender, EventArgs e)
         {

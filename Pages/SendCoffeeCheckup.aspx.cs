@@ -46,9 +46,24 @@ namespace TrackerDotNet.Pages
                 LoadEmailTextsOnly();
                 
                 // Set initial status
-                ltrlCustomerStatus.Text = "🔄 Initializing auto-preparation...";
                 autoLoadingStatus.Visible = true;
                 btnPrepData.Visible = true; // Keep visible for manual fallback
+                
+                // Setup reminder window dropdown
+                int min = 5, max = 30, def = CoffeeCheckupManager.GetReminderWindowDays();
+                int.TryParse(ConfigurationManager.AppSettings["CoffeeCheckupReminderWindowMin"], out min);
+                int.TryParse(ConfigurationManager.AppSettings["CoffeeCheckupReminderWindowMax"], out max);
+
+                ddlReminderWindow.Items.Clear();
+                for (int i = min; i <= max; i++)
+                    ddlReminderWindow.Items.Add(new ListItem(i.ToString(), i.ToString()));
+                
+                // Load last used value from Session if available
+                string lastUsed = Session["CoffeeCheckupReminderWindowDays"] as string;
+                if (!string.IsNullOrEmpty(lastUsed) && ddlReminderWindow.Items.FindByValue(lastUsed) != null)
+                    ddlReminderWindow.SelectedValue = lastUsed;
+                else
+                    ddlReminderWindow.SelectedValue = def.ToString();
                 
                 AppLogger.WriteLog("performance", "SendCoffeeCheckup: Page_Load completed, auto-prep will trigger via JavaScript");
             }
@@ -62,7 +77,6 @@ namespace TrackerDotNet.Pages
             try
             {
                 // Show initial loading status
-                ltrlCustomerStatus.Text = "🔄 Auto-preparing customer data...";
                 autoLoadingStatus.Visible = true;
                 
                 // Start async preparation (this will be called by the JavaScript auto-trigger)
@@ -71,7 +85,6 @@ namespace TrackerDotNet.Pages
             catch (Exception ex)
             {
                 AppLogger.WriteLog("error", $"SendCoffeeCheckup: Error in auto-prepare: {ex.Message}");
-                ltrlCustomerStatus.Text = $"❌ Auto-preparation failed. Use 'Refresh Data' button.";
                 autoLoadingStatus.Visible = false;
                 btnPrepData.Visible = true; // Show manual option
             }
@@ -115,7 +128,6 @@ namespace TrackerDotNet.Pages
                 autoLoadingStatus.Visible = false;
 
                 // Update status immediately
-                ltrlCustomerStatus.Text = "⏳ Preparing customer data... Please wait.";
                 ltrlAutoLoadStatus.Text = "";
                 
                 // Force immediate update
@@ -124,7 +136,11 @@ namespace TrackerDotNet.Pages
                 AppLogger.WriteLog("performance", "SendCoffeeCheckup: Starting CoffeeCheckupManager.PrepareCustomerReminderData()");
                 
                 // Use the enhanced CoffeeCheckupManager
-                _coffeeCheckupManager.PrepareCustomerReminderData();
+                int reminderWindowDays = CoffeeCheckupManager.GetReminderWindowDays(); // fallback
+                if (ddlReminderWindow.SelectedItem != null)
+                    int.TryParse(ddlReminderWindow.SelectedValue, out reminderWindowDays);
+
+                _coffeeCheckupManager.PrepareCustomerReminderData(reminderWindowDays);
                 
                 AppLogger.WriteLog("performance", "SendCoffeeCheckup: PrepareCustomerReminderData completed, refreshing grids");
                 
@@ -141,8 +157,8 @@ namespace TrackerDotNet.Pages
                 btnPrepData.Text = "Refresh Data";
                 btnPrepData.Visible = true;
                 
-                ltrlCustomerStatus.Text = $"✅ Ready! Found <strong>{customerCount}</strong> customers eligible for coffee reminders. " +
-                                         $"<small>(Loaded in {stopwatch.ElapsedMilliseconds / 1000.0:F1}s)</small>";
+                //ltrlCustomerStatus.Text = $"✅ Ready! Found <strong>{customerCount}</strong> customers eligible for coffee reminders. " +
+                //                         $"<small>(Loaded in {stopwatch.ElapsedMilliseconds / 1000.0:F1}s)</small>";
                 
                 ltrlStatus.Text = $"<div style='background-color: #d4edda; color: #155724; padding: 8px; border-radius: 4px; margin: 5px 0; text-align: left;'>" +
                                  $"<strong>Success!</strong> Customer data prepared automatically. You can now send reminders or test emails.</div>";
@@ -163,7 +179,6 @@ namespace TrackerDotNet.Pages
                 btnPrepData.Visible = true;
                 btnPrepData.Text = "Retry Data Prep";
                 
-                ltrlCustomerStatus.Text = $"❌ Auto-preparation failed: {ex.Message}";
                 ltrlStatus.Text = $"<div style='background-color: #f8d7da; color: #721c24; padding: 8px; border-radius: 4px; margin: 5px 0; text-align: left;'>" +
                                  $"<strong>Error:</strong> {ex.Message}<br/><small>Check the logs for more details.</small></div>";
                 
@@ -408,5 +423,14 @@ namespace TrackerDotNet.Pages
         public string GetItemSKU(int pItemID) => _coffeeCheckupManager.GetCachedItemSKU(pItemID);
         public string GetPackagingDesc(int pPackagingID) => _coffeeCheckupManager.GetCachedPackagingDescription(pPackagingID);
         public string GetItemUoM(int pItemID) => _coffeeCheckupManager.GetCachedItemUoM(pItemID);
+
+        protected void ddlReminderWindow_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Save the new value to Session (or Profile, or DB)
+            Session["CoffeeCheckupReminderWindowDays"] = ddlReminderWindow.SelectedValue;
+
+            // Trigger data prep with the new value
+            btnPrepData_Click(sender, e);
+        }
     }
 }

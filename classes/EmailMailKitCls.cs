@@ -142,14 +142,14 @@ namespace TrackerDotNet.Classes
         /// Adds the 'From' address to the CC list if it's not already present.
         /// Uses MailKit-safe access without reassigning read-only properties.
         /// </summary>
-        public void AddCCFromAddress()
+        public void AddSysCCFAddress()
         {
-            if (emailConfig == null || string.IsNullOrWhiteSpace(emailConfig.FromAddress))
+            if (emailConfig == null || string.IsNullOrWhiteSpace(emailConfig.CcAddress))
                 return;
 
             try
             {
-                var fromAddress = MailboxAddress.Parse(emailConfig.FromAddress);
+                var fromAddress = MailboxAddress.Parse(emailConfig.CcAddress);
 
                 // Avoid duplicates — message.Cc is already initialized
                 if (!message.Cc.Any(cc => cc is MailboxAddress m &&

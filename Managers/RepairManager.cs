@@ -80,7 +80,7 @@ namespace TrackerDotNet.Managers
             emailSettings.SetRecipient(repair.ContactEmail);
 
             var email = new EmailMailKitCls(emailSettings);
-            email.AddCCFromAddress();
+            email.AddSysCCFAddress();
 
             email.SetEmailSubject(MessageProvider.Get(MessageKeys.Repairs.StatusEmailSubject));
 
