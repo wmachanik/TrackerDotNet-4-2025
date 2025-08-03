@@ -46,7 +46,7 @@ namespace TrackerDotNet.Pages
                 LoadEmailTextsOnly();
                 
                 // Set initial status
-                autoLoadingStatus.Visible = true;
+                //autoLoadingStatus.Visible = true;
                 btnPrepData.Visible = true; // Keep visible for manual fallback
                 
                 // Setup reminder window dropdown
@@ -77,7 +77,7 @@ namespace TrackerDotNet.Pages
             try
             {
                 // Show initial loading status
-                autoLoadingStatus.Visible = true;
+                //autoLoadingStatus.Visible = true;
                 
                 // Start async preparation (this will be called by the JavaScript auto-trigger)
                 // The actual work happens in btnPrepData_Click
@@ -85,7 +85,7 @@ namespace TrackerDotNet.Pages
             catch (Exception ex)
             {
                 AppLogger.WriteLog("error", $"SendCoffeeCheckup: Error in auto-prepare: {ex.Message}");
-                autoLoadingStatus.Visible = false;
+                //autoLoadingStatus.Visible = false;
                 btnPrepData.Visible = true; // Show manual option
             }
         }
@@ -125,10 +125,10 @@ namespace TrackerDotNet.Pages
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 
                 // IMMEDIATELY hide the auto-loading panel
-                autoLoadingStatus.Visible = false;
+                //autoLoadingStatus.Visible = false;
 
                 // Update status immediately
-                ltrlAutoLoadStatus.Text = "";
+                //ltrlAutoLoadStatus.Text = "";
                 
                 // Force immediate update
                 upnlSendEmail.Update();
@@ -174,7 +174,7 @@ namespace TrackerDotNet.Pages
                 AppLogger.WriteLog("error", $"SendCoffeeCheckup: Error in btnPrepData_Click: {ex.Message}");
                 
                 // Hide auto-loading panel on error too
-                autoLoadingStatus.Visible = false;
+                //autoLoadingStatus.Visible = false;
                 
                 btnPrepData.Visible = true;
                 btnPrepData.Text = "Retry Data Prep";

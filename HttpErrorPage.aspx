@@ -15,5 +15,6 @@
             <asp:Label ID="lblErrorMessage" runat="server" CssClass="error-message"></asp:Label>
         </div>
     </form>
+    <a href="Default.aspx">Return Home</a>
 </body>
 </html>

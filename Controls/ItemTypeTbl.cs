@@ -220,29 +220,68 @@ namespace TrackerDotNet.Controls
             }
             return itemsNotInItemGroup;
         }
+        // Static cache: ItemTypeID -> (ItemDesc, ItemEnabled)
+        private static Dictionary<int, (string Desc, bool Enabled)> _itemDescCache;
+
+        private static void EnsureItemDescCache()
+        {
+            if (_itemDescCache == null)
+            {
+                _itemDescCache = new Dictionary<int, (string, bool)>();
+                var trackerDb = new TrackerDb();
+                var dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT ItemTypeID, ItemDesc, ItemEnabled FROM ItemTypeTbl");
+                if (dataReader != null)
+                {
+                    while (dataReader.Read())
+                    {
+                        int id = dataReader["ItemTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemTypeID"]);
+                        string desc = dataReader["ItemDesc"] == DBNull.Value ? string.Empty : dataReader["ItemDesc"].ToString();
+                        bool enabled = dataReader["ItemEnabled"] != DBNull.Value && Convert.ToBoolean(dataReader["ItemEnabled"]);
+                        if (!_itemDescCache.ContainsKey(id))
+                            _itemDescCache.Add(id, (desc, enabled));
+                    }
+                    dataReader.Close();
+                }
+                trackerDb.Close();
+            }
+        }
 
         [DataObjectMethod(DataObjectMethodType.Select)]
-        public string GetItemTypeDesc(int pItemID) => this.GetItemTypeDesc(pItemID, true);
-
-        public string GetItemTypeDesc(int pItemID, bool pCheckIfSoldOut)
+        //public string GetItemTypeDescById(int pItemID) => this.GetItemTypeDescById(pItemID, true);
+        /// <summary>
+        /// Returns the item description for the given ID, with " SOLD OUT" if disabled and pCheckIfSoldOut is true.
+        /// </summary>
+        public static string GetItemTypeDescById(int pItemID, bool pCheckIfSoldOut = true)
         {
-            string itemTypeDesc = string.Empty;
-            TrackerDb trackerDb = new TrackerDb();
-            trackerDb.AddWhereParams((object)pItemID, DbType.Int32, "@ItemTypeID");
-            IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT ItemDesc, ItemEnabled FROM ItemTypeTbl WHERE ItemTypeID = ?");
-            if (dataReader != null)
+            EnsureItemDescCache();
+            if (_itemDescCache != null && _itemDescCache.TryGetValue(pItemID, out var entry))
             {
-                if (dataReader.Read())
-                {
-                    itemTypeDesc = dataReader["ItemDesc"] == DBNull.Value ? string.Empty : dataReader["ItemDesc"].ToString();
-                    if (pCheckIfSoldOut && (dataReader["ItemEnabled"] == DBNull.Value || !Convert.ToBoolean(dataReader["ItemEnabled"])))
-                        itemTypeDesc += " SOLD OUT";
-                }
-                dataReader.Close();
+                if (pCheckIfSoldOut && !entry.Enabled)
+                    return entry.Desc + " SOLD OUT";
+                return entry.Desc;
             }
-            trackerDb.Close();
-            return itemTypeDesc;
+            return string.Empty;
         }
+
+        //public string GetItemTypeDescById(int pItemID, bool pCheckIfSoldOut)
+        //{
+        //    string itemTypeDesc = string.Empty;
+        //    TrackerDb trackerDb = new TrackerDb();
+        //    trackerDb.AddWhereParams((object)pItemID, DbType.Int32, "@ItemTypeID");
+        //    IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader(CONST_SQL_SELECTITEMDESC); //   "SELECT ItemDesc, ItemEnabled FROM ItemTypeTbl WHERE ItemTypeID = ?");
+        //    if (dataReader != null)
+        //    {
+        //        if (dataReader.Read())
+        //        {
+        //            itemTypeDesc = dataReader["ItemDesc"] == DBNull.Value ? string.Empty : dataReader["ItemDesc"].ToString();
+        //            if (pCheckIfSoldOut && (dataReader["ItemEnabled"] == DBNull.Value || !Convert.ToBoolean(dataReader["ItemEnabled"])))
+        //                itemTypeDesc += " SOLD OUT";
+        //        }
+        //        dataReader.Close();
+        //    }
+        //    trackerDb.Close();
+        //    return itemTypeDesc;
+        //}
 
         public ItemTypeTbl GetItemTypeFromID(int pItemTypeID)
         {

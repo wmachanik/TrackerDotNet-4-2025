@@ -189,7 +189,7 @@ namespace TrackerDotNet.Controls
         {
             List<ReoccuringOrderTbl> reoccuringOrderTblList = new List<ReoccuringOrderTbl>();
             TrackerDb trackerDb = new TrackerDb();
-            IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader(" SELECT CustomerID, ItemRequiredID, MAX(LastDate) AS LastDatePerItem FROM (SELECT ReoccuringOrderTbl.CustomerID, ReoccuringOrderTbl.ItemRequiredID, ClientUsageLinesTbl.[Date] AS LastDate FROM  ((ClientUsageLinesTbl INNER JOIN ReoccuringOrderTbl ON ClientUsageLinesTbl.CustomerID = ReoccuringOrderTbl.CustomerID AND ClientUsageLinesTbl.[Date] > ReoccuringOrderTbl.DateLastDone) INNER JOIN ItemTypeTbl ON ReoccuringOrderTbl.ItemRequiredID = ItemTypeTbl.ItemTypeID)) ListOfOrdersRequired GROUP BY CustomerID, ItemRequiredID");
+            IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT CustomerID, ItemRequiredID, MAX(LastDate) AS LastDatePerItem FROM (SELECT ReoccuringOrderTbl.CustomerID, ReoccuringOrderTbl.ItemRequiredID, ClientUsageLinesTbl.[Date] AS LastDate FROM  ((ClientUsageLinesTbl INNER JOIN ReoccuringOrderTbl ON ClientUsageLinesTbl.CustomerID = ReoccuringOrderTbl.CustomerID AND ClientUsageLinesTbl.[Date] > ReoccuringOrderTbl.DateLastDone) INNER JOIN ItemTypeTbl ON ReoccuringOrderTbl.ItemRequiredID = ItemTypeTbl.ItemTypeID)) ListOfOrdersRequired GROUP BY CustomerID, ItemRequiredID");
             bool flag = dataReader != null;
             if (flag)
             {
@@ -215,9 +215,56 @@ namespace TrackerDotNet.Controls
             return flag;
         }
 
+        /// <summary>
+        /// Calculates the appropriate DateLastDone value for recurring orders
+        /// Ensures consistency across all parts of the system
+        /// </summary>
+        public DateTime CalculateRecurringLastDate(DateTime baseDate, ReoccuranceTypeTbl.RecurrenceType recurrenceType, int targetValue)
+        {
+            switch (recurrenceType)
+            {
+                case ReoccuranceTypeTbl.RecurrenceType.Weekly:
+                    // For weekly orders, use Monday of the week containing the base date
+                    return GetMonday(baseDate);
+                    
+                case ReoccuranceTypeTbl.RecurrenceType.Monthly:
+                    // For monthly orders, use the actual target day of month
+                    // This prevents the "duplicate send" issue you identified
+                    try
+                    {
+                        return new DateTime(baseDate.Year, baseDate.Month, targetValue).Date;
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        // Handle months with fewer days
+                        int daysInMonth = DateTime.DaysInMonth(baseDate.Year, baseDate.Month);
+                        return new DateTime(baseDate.Year, baseDate.Month, Math.Min(targetValue, daysInMonth)).Date;
+                    }
+                    
+                default:
+                    // Fallback to Monday normalization
+                    return GetMonday(baseDate);
+            }
+        }
+
+        /// <summary>
+        /// UPDATED: Uses centralized date calculation
+        /// </summary>
         public string SetReoccuringOrdersLastDate(DateTime pDate, long pReoccuringOrderId)
         {
-            string empty = string.Empty;
+            // Get the recurring order details to determine proper date calculation
+            var recurringOrder = GetByReoccuringOrderByID((int)pReoccuringOrderId);
+            if (recurringOrder != null)
+            {
+                var recurrenceType = ReoccuranceTypeTbl.GetRecurrenceType(recurringOrder.ReoccuranceTypeID);
+                pDate = CalculateRecurringLastDate(pDate, recurrenceType, recurringOrder.ReoccuranceValue);
+            }
+            else
+            {
+                // Fallback to Monday normalization if we can't get order details
+                pDate = GetMonday(pDate);
+            }
+            
             TrackerDb trackerDb = new TrackerDb();
             trackerDb.AddParams((object)pDate, DbType.Date, "@DateLastDone");
             trackerDb.AddWhereParams((object)pReoccuringOrderId, DbType.Int64, "@ID");

@@ -791,3 +791,55 @@ a:hover, a:active {
         font-size: 13px;
     }
 }
+
+/* Add to Site.css */
+.simpleLightBrownForm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.delivery-filter-left,
+.delivery-filter-right {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.delivery-filter-table {
+    border-collapse: separate;
+    border-spacing: 8px 6px;
+    width: 100%;
+}
+
+    .delivery-filter-table .label-cell {
+        text-align: right;
+        white-space: nowrap;
+        font-weight: 500;
+        color: #666;
+        min-width: 90px;
+    }
+@media (max-width: 600px) {
+    .simpleLightBrownForm {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .delivery-filter-left,
+    .delivery-filter-right {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+    }
+    .delivery-filter-table, .delivery-filter-table tr, .delivery-filter-table td {
+        display: block;
+        width: 100%;
+    }
+
+        .delivery-filter-table .label-cell {
+            text-align: left;
+            margin-bottom: 2px;
+        }
+}

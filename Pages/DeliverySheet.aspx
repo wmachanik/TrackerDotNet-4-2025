@@ -1,7 +1,6 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="DeliverySheet.aspx.cs" Inherits="TrackerDotNet.Pages.DeliverySheet" %>
 
 <asp:Content ID="cntDeliveryHdr" ContentPlaceHolderID="HeadContent" runat="server">
-   
 </asp:Content>
 <asp:Content ID="cntDeliveryBdy" ContentPlaceHolderID="MainContent" runat="server">
     <asp:ScriptManager ID="smDelivery" runat="server" />
@@ -9,7 +8,8 @@
         <h1>Delivery Sheet</h1>
         <asp:UpdateProgress runat="server" ID="uprgDeliveryFilterBy">
             <ProgressTemplate>
-                <img src="../images/animi/BlueArrowsUpdate.gif" alt="updating" width="16" height="16" />updating.....
+                <img src="../images/animi/BlueArrowsUpdate.gif" alt="updating" width="16" height="16" />
+                updating.....
             </ProgressTemplate>
         </asp:UpdateProgress>
         <asp:UpdatePanel ID="upnlDeliveryFilterBy" runat="server" ChildrenAsTriggers="true">
@@ -17,40 +17,40 @@
                 <asp:AsyncPostBackTrigger ControlID="tbCalendarDate" EventName="TextChanged" />
             </Triggers>
             <ContentTemplate>
-                <div class="simpleLightBrownForm">
-                    <span style="float: left">&nbsp;Delivery Date:</span>
-                    <asp:DropDownList ID="ddlActiveRoastDates" runat="server" DataSourceID="odsActiveRoastDates" DataTextField="RequiredByDate" DataTextFormatString="{0:dd-MMM-yyyy (ddd)}"
+                <div class="filter-toolbar">
+                    <div class="filter-section search-controls">
+                        <label style="margin-bottom: 0;" for="ddlActiveRoastDates">Delivery Date:</label>
+                        <asp:DropDownList ID="ddlActiveRoastDates" runat="server" DataSourceID="odsActiveRoastDates" DataTextField="RequiredByDate" DataTextFormatString="{0:dd-MMM-yyyy (ddd)}"
                             DataValueField="RequiredByDate" AppendDataBoundItems="True" OnDataBound="ddlActiveRoastDates_DataBound" AutoPostBack="true" OnSelectedIndexChanged="ddlActiveRoastDates_SelectedIndexChanged">
                             <asp:ListItem Value="2014-01-01" Text="--- Select Date ---" />
-                    </asp:DropDownList>
-                    &nbsp;&nbsp;
-                    <asp:Button ID="btnGo" runat="server" Text="Go" OnClick="btnGo_Click" AccessKey="G" ToolTip="get the results (AltShftG)" />
-                    &nbsp;&nbsp;
-                    <span style="position: relative; display: inline-block;">
-                        <asp:Button ID="btnCalendar" runat="server" Text="📅" ToolTip="Pick a date" />
-                        <asp:TextBox ID="tbCalendarDate" runat="server"
-                            Style="width: 0; height: 0; border: none; padding: 0; margin: 0; opacity: 0; position: absolute; left: 0; top: 100%;"
-                            AutoPostBack="true" OnTextChanged="tbCalendarDate_TextChanged" />
-                        <ajaxToolkit:CalendarExtender
-                            ID="calExtender"
-                            runat="server"
-                            TargetControlID="tbCalendarDate"
-                            PopupButtonID="btnCalendar"
-                            PopupPosition="BottomLeft"
-                            Format="yyyy-MM-dd" />
-                    </span>&nbsp;&nbsp;
-                    <asp:Button ID="btnRefresh" Text="Refresh" AccessKey="R" ToolTip="refresh lists (AltShftR)" runat="server" OnClick="btnRefresh_Click" />
-                    &nbsp;&nbsp;         
-                    <asp:Label ID="lblDeliveryBy" runat="server" Text="By:" Visible="false" />
-                    <asp:DropDownList ID="ddlDeliveryBy" runat="server" AutoPostBack="true" Visible="false"
-                        OnSelectedIndexChanged="ddlDeliveryBy_SelectedIndexChanged" />&nbsp;&nbsp;
-                    <span style="float: right; vertical-align: baseline">
-                        To: <asp:TextBox ID="tbxFindClient" runat="server" OnTextChanged="tbxFindClient_OnTextChanged" AutoPostBack="true" />&nbsp;
-                        <asp:Button ID="btnFind" Text="Find" runat="server" OnClick="btnFind_Click" />&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;
-                        <asp:Button ID="btnPrint" runat="server" Text="Print" OnClick="btnPrint_Click" CssClass="hideWhenPrinting" AccessKey="P" ToolTip="print sheet (AltShftP)" />&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;
+                        </asp:DropDownList>
+                        <asp:Button ID="btnGo" CssClass="filter-panel-btn" runat="server" Text="Go" OnClick="btnGo_Click" AccessKey="G" ToolTip="get the results (AltShftG)" />
+                        <span style="position: relative; display: inline-block;">
+                            <asp:Button ID="btnCalendar" runat="server" Text="📅" ToolTip="Pick a date" />
+                            <asp:TextBox ID="tbCalendarDate" runat="server" CssClass="filter-panel-btn"
+                                Style="width: 0; height: 0; border: none; padding: 0; margin: 0; opacity: 0; position: absolute; left: 0; top: 100%;"
+                                AutoPostBack="true" OnTextChanged="tbCalendarDate_TextChanged" />
+                            <ajaxToolkit:CalendarExtender
+                                ID="calExtender"
+                                runat="server"
+                                TargetControlID="tbCalendarDate"
+                                PopupButtonID="btnCalendar"
+                                PopupPosition="BottomLeft"
+                                Format="yyyy-MM-dd" />
+                        </span>
+                        <asp:Button ID="btnRefresh" CssClass="filter-panel-btn" Text="Refresh" AccessKey="R" ToolTip="refresh lists (AltShftR)" runat="server" OnClick="btnRefresh_Click" />
+                        <asp:Label ID="lblDeliveryBy" runat="server" Text="By:" Visible="false" />
+                        <asp:DropDownList ID="ddlDeliveryBy" runat="server" AutoPostBack="true" Visible="false"
+                            OnSelectedIndexChanged="ddlDeliveryBy_SelectedIndexChanged" />
+                    </div>
+                    <div class="filter-section admin-controls">
+                        <label for="tbxFindClient">To:</label>
+                        <asp:TextBox ID="tbxFindClient" runat="server" OnTextChanged="tbxFindClient_OnTextChanged" AutoPostBack="true" />
+                        <asp:Button ID="btnFind" Text="Find" runat="server" OnClick="btnFind_Click" />
+                        <asp:Button ID="btnPrint" runat="server" CssClass="hideWhenPrinting" Text="Print" OnClick="btnPrint_Click" AccessKey="P" ToolTip="print sheet (AltShftP)" />
                         <asp:HyperLink ID="hlAddDeliveryItem" ImageUrl="~/images/imgButtons/AddItem.gif" ToolTip="New item(s) to deliver"
                             NavigateUrl="~/Pages/NewOrderDetail.aspx" runat="server" />
-                    </span>
+                    </div>
                 </div>
             </ContentTemplate>
         </asp:UpdatePanel>

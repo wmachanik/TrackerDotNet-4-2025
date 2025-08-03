@@ -5,6 +5,7 @@
 // Assembly location: C:\SRC\Apps\qtracker\bin\TrackerDotNet.dll
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Web;
@@ -829,6 +830,40 @@ namespace TrackerDotNet.Controls
             }
             
             return result;
+        }
+        private static ConcurrentDictionary<long, string> _customerNameCache;
+        private static DateTime _lastCacheRefresh = DateTime.MinValue;
+        private static readonly object _cacheLock = new object();
+        private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(30);
+
+        public static string GetCustomerNameById(long customerId)
+        {
+            EnsureCustomerCache();
+            if (_customerNameCache.TryGetValue(customerId, out var name))
+                return name;
+            return string.Empty;
+        }
+
+        private static void EnsureCustomerCache()
+        {
+            // Refresh cache every 30 minutes or if not loaded
+            if (_customerNameCache == null || (DateTime.Now - _lastCacheRefresh) > _cacheDuration)
+            {
+                lock (_cacheLock)
+                {
+                    if (_customerNameCache == null || (DateTime.Now - _lastCacheRefresh) > _cacheDuration)
+                    {
+                        var dict = new ConcurrentDictionary<long, string>();
+                        var allCustomers = new CustomersTbl().GetAllCustomers("CompanyName");
+                        foreach (var cust in allCustomers)
+                        {
+                            dict[cust.CustomerID] = cust.CompanyName;
+                        }
+                        _customerNameCache = dict;
+                        _lastCacheRefresh = DateTime.Now;
+                    }
+                }
+            }
         }
     }
 }

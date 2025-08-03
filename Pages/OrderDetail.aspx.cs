@@ -6,6 +6,7 @@
 
 using AjaxControlToolkit;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
@@ -16,7 +17,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using TrackerDotNet.Classes;
 using TrackerDotNet.Controls;
-using TrackerDotNet.BusinessLogic;
+using TrackerDotNet.Managers;
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
 {
@@ -33,6 +34,8 @@ namespace TrackerDotNet.Pages
         private const string CONST_DELIVERYTYPEISCOLLECTION = "Cllct";
         private const string CONST_DELIVERYTYPEISCOURIER = "Cour";
         private const string CONST_ORDERHEADERVALUES = "OrderHeaderValues";
+        private const string CONST_ORDERHEADER_CONTACT_ID = "cboContacts";
+        private const string CONST_ORDERLINE_ITEM_COMBOBOX_ID = "cboItemDesc";
         protected ScriptManager scrmOrderDetail;
         protected UpdateProgress udtpOrderDetail;
         protected UpdatePanel pnlOrderHeader;
@@ -121,7 +124,7 @@ namespace TrackerDotNet.Pages
 
         private void BindRowQueryParameters()
         {
-            string controlSelectedValue = this.dvOrderHeaderGetDDLControlSelectedValue("ddlContacts");
+            string controlSelectedValue = this.dvOrderHeaderGetCBoControlSelectedValue(CONST_ORDERHEADER_CONTACT_ID);
             this.Session["BoundCustomerID"] = (object)Convert.ToInt32(controlSelectedValue);
             DateTime date = Convert.ToDateTime(this.GetOrderHeaderRequiredByDateStr()).Date;
             this.Session["BoundDeliveryDate"] = (object)date.Date;
@@ -163,6 +166,11 @@ namespace TrackerDotNet.Pages
             DropDownList control = (DropDownList)this.dvOrderHeader.FindControl(pDDLControlName);
             return control.SelectedValue == null ? "0" : control.SelectedValue;
         }
+        private string dvOrderHeaderGetCBoControlSelectedValue(string comboBoxControlName)
+        {
+            var coBox = (ComboBox)this.dvOrderHeader.FindControl(comboBoxControlName);
+            return coBox.SelectedValue == null ? "0" : coBox.SelectedValue;
+        }
 
         private string dvOrderHeaderGetTextBoxValue(string pTextBoxControlName)
         {
@@ -185,7 +193,7 @@ namespace TrackerDotNet.Pages
         private OrderHeaderData Get_dvOrderHeaderData(bool pInEditMode)
         {
             OrderHeaderData dvOrderHeaderData = new OrderHeaderData();
-            dvOrderHeaderData.CustomerID = Convert.ToInt32(this.dvOrderHeaderGetDDLControlSelectedValue("ddlContacts"));
+            dvOrderHeaderData.CustomerID = Convert.ToInt32(this.dvOrderHeaderGetCBoControlSelectedValue(CONST_ORDERHEADER_CONTACT_ID));
             dvOrderHeaderData.ToBeDeliveredBy = Convert.ToInt32(this.dvOrderHeaderGetDDLControlSelectedValue("ddlToBeDeliveredBy"));
             dvOrderHeaderData.Confirmed = this.dvOrderHeaderGetCheckBoxValue("cbxConfirmed");
             dvOrderHeaderData.Done = this.dvOrderHeaderGetCheckBoxValue("cbxDone");
@@ -234,7 +242,7 @@ namespace TrackerDotNet.Pages
                 PackagingID = Convert.ToInt32(this.ddlNewPackaging.SelectedValue)
             };
 
-            var manager = new TrackerDotNet.BusinessLogic.OrderManager();
+            var manager = new TrackerDotNet.Managers.OrderManager();
             string result = manager.AddOrderLine(headerData, orderData);
 
             this.ltrlStatus.Text = string.IsNullOrWhiteSpace(result) ? "Item Added" : "Error adding item: " + result;
@@ -277,7 +285,7 @@ namespace TrackerDotNet.Pages
         protected void gvOrderLines_OnItemDelete(object sender, EventArgs e)
         {
             string pDataValue = ((CommandEventArgs)e).CommandArgument.ToString();
-            var manager = new TrackerDotNet.BusinessLogic.OrderManager();
+            var manager = new TrackerDotNet.Managers.OrderManager();
             string result = manager.DeleteOrderItem(Convert.ToInt32(pDataValue));
             this.ltrlStatus.Text = string.IsNullOrEmpty(result) ? "Item Deleted" : "Error deleting item: " + result;
         }
@@ -296,12 +304,12 @@ namespace TrackerDotNet.Pages
         */
         protected void gvOrderLines_RowUpdated(object sender, GridViewUpdatedEventArgs e)
         {
-            string empty = string.Empty;
-            LogTbl logTbl = new LogTbl();
-            logTbl.AddToWhatsChanged("ItemTypeID", e.OldValues[(object)"ItemTypeID"].ToString(), e.NewValues[(object)"ItemTypeID"].ToString(), ref empty);
-            logTbl.AddToWhatsChanged("Qty", e.OldValues[(object)"QuantityOrdered"].ToString(), e.NewValues[(object)"QuantityOrdered"].ToString(), ref empty);
-            logTbl.AddToWhatsChanged("PackagingID", e.OldValues[(object)"PackagingID"].ToString(), e.NewValues[(object)"PackagingID"].ToString(), ref empty);
-            logTbl.InsertLogItem(Membership.GetUser().UserName, 1, 2, Convert.ToInt32(this.dvOrderHeaderGetDDLControlSelectedValue("ddlContacts")), empty, "Order Detail");
+            //string empty = string.Empty;
+            //LogTbl logTbl = new LogTbl();
+            //logTbl.AddToWhatsChanged("ItemTypeID", e.OldValues[(object)"ItemTypeID"].ToString(), e.NewValues[(object)"ItemTypeID"].ToString(), ref empty);
+            //logTbl.AddToWhatsChanged("Qty", e.OldValues[(object)"QuantityOrdered"].ToString(), e.NewValues[(object)"QuantityOrdered"].ToString(), ref empty);
+            //logTbl.AddToWhatsChanged("PackagingID", e.OldValues[(object)"PackagingID"].ToString(), e.NewValues[(object)"PackagingID"].ToString(), ref empty);
+            //logTbl.InsertLogItem(Membership.GetUser().UserName, 1, 2, Convert.ToInt32(this.dvOrderHeaderGetCBoControlSelectedValue("cboContacts")), empty, "Order Detail");
             this.odsOrderDetail.DataBind();
             this.gvOrderLines.DataBind();
             this.upnlOrderLines.Update();
@@ -341,8 +349,30 @@ namespace TrackerDotNet.Pages
                             UsedItemGroupTbl usedItemGroupTbl = new UsedItemGroupTbl();
                             foreach (GridViewRow row in this.gvOrderLines.Rows)
                             {
-                                DropDownList control = (DropDownList)row.FindControl("ddlItemDesc");
-                                usedItemGroupTbl.UpdateIfGroupItem(orderHeaderData.CustomerID, Convert.ToInt32(control.SelectedValue), orderHeaderData.RequiredByDate, date);
+                                var cbox = row.FindControl(CONST_ORDERLINE_ITEM_COMBOBOX_ID) as AjaxControlToolkit.ComboBox;
+                                if (cbox != null)
+                                {
+                                    usedItemGroupTbl.UpdateIfGroupItem(orderHeaderData.CustomerID, Convert.ToInt32(cbox.SelectedValue), orderHeaderData.RequiredByDate, date);
+                                }
+                                else
+                                {
+                                    // Display mode: get from DataItem
+                                    var hndItemId = row.FindControl("hdnItemTypeID") as HiddenField;
+                                    if (hndItemId != null)
+                                    {
+                                        // Use reflection or strongly-typed access depending on your data source
+                                        int itemTypeId = 0;
+                                        var prop = Convert.ToInt32(hndItemId.Value);
+                                        if (prop != 0)
+                                        {
+                                            usedItemGroupTbl.UpdateIfGroupItem(orderHeaderData.CustomerID, itemTypeId, orderHeaderData.RequiredByDate, date);
+                                        }
+                                        // if zero there is an issue
+                                    }
+                                }
+
+                                //var control = (ComboBox)row.FindControl(CONST_ORDERLINE_ITEM_COMBOBOX_ID);
+                                //usedItemGroupTbl.UpdateIfGroupItem(orderHeaderData.CustomerID, Convert.ToInt32(control.SelectedValue), orderHeaderData.RequiredByDate, date);
                             }
                         }
                     }
@@ -424,19 +454,41 @@ namespace TrackerDotNet.Pages
                 ? details.EmailAddress
                 : details.altEmailAddress;
         }
+        private static (string ItemId, string ItemName) GetItemIdAndNameFromRow(GridViewRow row)
+        {
+            // Try to get the ComboBox first (edit mode)
+            var itemControl = row.FindControl(CONST_ORDERLINE_ITEM_COMBOBOX_ID) as AjaxControlToolkit.ComboBox;
+            if (itemControl != null && itemControl.SelectedValue != null)
+            {
+                string itemId = itemControl.SelectedValue;
+                string itemName = itemControl.SelectedItem != null ? itemControl.SelectedItem.Text : string.Empty;
+                return (itemId, itemName);
+            }
 
+            // Fallback: try to get the hidden field and label (display mode)
+            var hndItemId = row.FindControl("hdnItemTypeID") as HiddenField;
+            var lblItemDesc = row.FindControl("lblItemDesc") as Label;
+            if (hndItemId != null && !string.IsNullOrEmpty(hndItemId.Value))
+            {
+                string itemId = hndItemId.Value;
+                string itemName = lblItemDesc != null ? lblItemDesc.Text : string.Empty;
+                return (itemId, itemName);
+            }
+
+            // Not found
+            return (string.Empty, string.Empty);
+        }
         private void AppendOrderItemsToEmailBody(EmailMailKitCls email)
         {
             email.AddToBody("<ul>");
 
             foreach (GridViewRow row in gvOrderLines.Rows)
             {
-                var itemDDL = (DropDownList)row.FindControl("ddlItemDesc");
+                var (itemId, itemName) = GetItemIdAndNameFromRow(row);
                 var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
                 var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
 
-                string itemId = itemDDL.SelectedValue;
-                string itemName = itemDDL.SelectedItem.Text;
+                //string itemId = itemControl.SelectedValue;
                 string qty = AddUnitsToQty(itemId, qtyLbl.Text);
 
                 if (GetItemSortOrderID(itemId) == 10)
@@ -494,8 +546,8 @@ namespace TrackerDotNet.Pages
         {
             // Gather data from UI
             // Get ContactEmailDetails from the selected contact in the DetailsView
-            var contactDDL = (DropDownList)this.dvOrderHeader.FindControl("ddlContacts");
-            ContactEmailDetails contact = GetEmailDetails(contactDDL.SelectedValue);
+            var contactID = dvOrderHeaderGetCBoControlSelectedValue(CONST_ORDERHEADER_CONTACT_ID);
+            ContactEmailDetails contact = GetEmailDetails(contactID);
 
             // Get OrderHeaderData using your existing helper
             OrderHeaderData header = this.Get_dvOrderHeaderData(false);
@@ -504,14 +556,14 @@ namespace TrackerDotNet.Pages
             var orderLines = new List<TrackerDotNet.Managers.OrderLineData>();
             foreach (GridViewRow row in this.gvOrderLines.Rows)
             {
-                var itemDDL = (DropDownList)row.FindControl("ddlItemDesc");
+                var (itemId, itemName) = GetItemIdAndNameFromRow(row);
                 var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
                 var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
 
                 var line = new TrackerDotNet.Managers.OrderLineData
                 {
-                    ItemID = Convert.ToInt32(itemDDL.SelectedValue),
-                    ItemName = itemDDL.SelectedItem.Text,
+                    ItemID = Convert.ToInt32(itemId),
+                    ItemName = itemName,
                     Qty = Convert.ToDouble(qtyLbl.Text),
                     PackagingID = packagingDDL.SelectedIndex > 0 ? Convert.ToInt32(packagingDDL.SelectedValue) : 0,
                     PackagingName = packagingDDL.SelectedIndex > 0 ? packagingDDL.SelectedItem.Text : string.Empty
@@ -531,6 +583,190 @@ namespace TrackerDotNet.Pages
             new showMessageBox(this.Page, "Order Confirmation", statusMsg);
             upnlNewOrderItem.Update();
         }
+
+        protected void OnDataBinding_ddlToBeDeliveredBy(object sender, EventArgs e)
+        {
+        }
+
+        public string GetToBeDeliveredBy(object pToBeDeliveredBy)
+        {
+            return pToBeDeliveredBy != null ? pToBeDeliveredBy.ToString() : "0";
+        }
+
+        public string GetItemUoMObj(object pItemID)
+        {
+            return pItemID == null ? string.Empty : this.GetItemUoM(Convert.ToInt32(pItemID.ToString()));
+        }
+
+        public string GetItemUoM(int pItemID)
+        {
+            return pItemID > 0 ? new ItemTypeTbl().GetItemUnitOfMeasure(pItemID) : string.Empty;
+        }
+
+        protected void odsOrderSummary_OnUpdated(object sender, ObjectDataSourceStatusEventArgs e)
+        {
+            if ((bool)e.ReturnValue)
+            {
+                var control1 = (ComboBox)this.dvOrderHeader.FindControl(CONST_ORDERHEADER_CONTACT_ID);
+                TextBox control2 = (TextBox)this.dvOrderHeader.FindControl("tbxRequiredByDate");
+                TextBox control3 = (TextBox)this.dvOrderHeader.FindControl("tbxNotes");
+                if (control1 != null && control2 != null && control3 != null)
+                    this.BindRowQueryParameters();
+            }
+            this.gvOrderLines.DataBind();
+            this.upnlOrderLines.Update();
+        }
+        protected void MarkItemAsInvoiced()
+        {
+            var manager = new TrackerDotNet.Managers.OrderManager();
+            manager.MarkItemAsInvoiced(
+                (long)this.Session["BoundCustomerID"],
+                ((DateTime)this.Session["BoundDeliveryDate"]).Date,
+                (string)this.Session["BoundNotes"]);
+            this.pnlOrderHeader.Update();
+        }
+        /*
+         protected void MarkItemAsInvoiced()
+        {
+            new OrderTbl().UpdateSetInvoiced(true, (long)this.Session["BoundCustomerID"], ((DateTime)this.Session["BoundDeliveryDate"]).Date, (string)this.Session["BoundNotes"]);
+            this.pnlOrderHeader.Update();
+        }
+        */
+        protected void btnOrderDelivered_Click(object sender, EventArgs e)
+        {
+            OrderHeaderData headerData = this.Get_dvOrderHeaderData(false);
+            var orderLines = new List<OrderManager.TempOrderLineData>();
+            ItemTypeTbl itemTypeTbl = new ItemTypeTbl();
+
+            foreach (GridViewRow row in this.gvOrderLines.Rows)
+            {
+                var (itemIdStr, itemName) = GetItemIdAndNameFromRow(row);
+                var itemId = Convert.ToInt32(itemIdStr);
+                var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
+                var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
+                var orderIdLbl = (Label)row.FindControl("lblOrderID");
+
+                var line = new OrderManager.TempOrderLineData
+                {
+                    ItemID = itemId,
+                    Qty = Convert.ToDouble(qtyLbl.Text),
+                    PackagingID = Convert.ToInt32(packagingDDL.SelectedValue),
+                    ServiceTypeID = itemTypeTbl.GetServiceID(itemId),
+                    OriginalOrderID = Convert.ToInt32(orderIdLbl.Text)
+                };
+                orderLines.Add(line);
+            }
+
+            var manager = new TrackerDotNet.Managers.OrderManager();
+            bool success = manager.CompleteOrderDelivery(headerData, orderLines);
+
+            if (!success)
+                this.ltrlStatus.Text = "Error deleting Temp Table";
+            else
+                this.Response.Redirect("OrderDone.aspx");
+        }
+        /*
+        protected void btnOrderDelivered_Click(object sender, EventArgs e)
+        {
+            OrderHeaderData dvOrderHeaderData = this.Get_dvOrderHeaderData(false);
+            TempOrdersData pTempOrder = new TempOrdersData();
+            TempOrdersDAL tempOrdersDal = new TempOrdersDAL();
+            if (!tempOrdersDal.KillTempOrdersData())
+                this.ltrlStatus.Text = "Error deleting Temp Table";
+            pTempOrder.HeaderData.CustomerID = dvOrderHeaderData.CustomerID;
+            pTempOrder.HeaderData.OrderDate = dvOrderHeaderData.OrderDate;
+            pTempOrder.HeaderData.RoastDate = dvOrderHeaderData.RoastDate;
+            pTempOrder.HeaderData.RequiredByDate = dvOrderHeaderData.RequiredByDate;
+            pTempOrder.HeaderData.ToBeDeliveredByID = Convert.ToInt32(dvOrderHeaderData.ToBeDeliveredBy);
+            pTempOrder.HeaderData.Confirmed = dvOrderHeaderData.Confirmed;
+            pTempOrder.HeaderData.Done = dvOrderHeaderData.Done;
+            pTempOrder.HeaderData.Notes = dvOrderHeaderData.Notes;
+            ItemTypeTbl itemTypeTbl = new ItemTypeTbl();
+            foreach (GridViewRow row in this.gvOrderLines.Rows)
+            {
+                TempOrdersLinesTbl tempOrdersLinesTbl = new TempOrdersLinesTbl();
+                DropDownList control1 = (DropDownList)row.FindControl("ddlItemDesc");
+                Label control2 = (Label)row.FindControl("lblQuantityOrdered");
+                DropDownList control3 = (DropDownList)row.FindControl("ddlPackaging");
+                Label control4 = (Label)row.FindControl("lblOrderID");
+                tempOrdersLinesTbl.ItemID = Convert.ToInt32(control1.SelectedValue);
+                tempOrdersLinesTbl.Qty = Convert.ToDouble(control2.Text);
+                tempOrdersLinesTbl.PackagingID = Convert.ToInt32(control3.SelectedValue);
+                tempOrdersLinesTbl.ServiceTypeID = itemTypeTbl.GetServiceID(tempOrdersLinesTbl.ItemID);
+                tempOrdersLinesTbl.OriginalOrderID = Convert.ToInt32(control4.Text);
+                pTempOrder.OrdersLines.Add(tempOrdersLinesTbl);
+            }
+            tempOrdersDal.Insert(pTempOrder);
+            this.Response.Redirect("OrderDone.aspx");
+        }
+        */
+        protected void btnUnDoDone_Click(object sender, EventArgs e)
+        {
+            var manager = new TrackerDotNet.Managers.OrderManager();
+            string empty = string.Empty;
+            foreach (TableRow row in this.gvOrderLines.Rows)
+            {
+                Label control = (Label)row.Cells[4].FindControl("lblOrderID");
+                empty += manager.UnDoOrderItem(Convert.ToInt32(control.Text));
+            }
+            this.ltrlStatus.Text = empty;
+            this.dvOrderHeader.DataBind();
+            this.pnlOrderHeader.Update();
+            this.gvOrderLines.DataBind();
+            this.upnlOrderLines.Update();
+        }
+        /*
+        protected void btnUnDoDone_Click(object sender, EventArgs e)
+        {
+            string empty = string.Empty;
+            foreach (TableRow row in this.gvOrderLines.Rows)
+            {
+                Label control = (Label)row.Cells[4].FindControl("lblOrderID");
+                empty += this.UnDoneOrderItem(control.Text);
+            }
+            this.ltrlStatus.Text = empty;
+            this.dvOrderHeader.DataBind();
+            this.pnlOrderHeader.Update();
+            this.gvOrderLines.DataBind();
+            this.upnlOrderLines.Update();
+        }
+        */
+        protected void gvOrderLines_RowCommand(object sender, GridViewCommandEventArgs e)
+        {
+            bool flag = false;
+            if (e.CommandName == "MoveOneDayOn")
+            {
+                flag = true;
+                Label control = (Label)this.gvOrderLines.Rows[Convert.ToInt32(e.CommandArgument)].FindControl("lblOrderID");
+                DateTime pNewDate = Convert.ToDateTime(this.dvOrderHeaderGetLabelValue("lblRequiredByDate")).Date;
+                if (pNewDate.DayOfWeek < DayOfWeek.Friday)
+                {
+                    pNewDate = pNewDate.AddDays(1.0);
+                }
+                else
+                {
+                    int num = (int)(1 - pNewDate.DayOfWeek + 7) % 7;
+                    pNewDate = pNewDate.AddDays((double)num);
+                }
+                new OrderTbl().UpdateOrderDeliveryDate(pNewDate, Convert.ToInt32(control.Text));
+            }
+            else if (e.CommandName == "DeleteOrder")
+            {
+                flag = true;
+                this.DeleteOrderItem(e.CommandArgument.ToString());
+            }
+            if (!flag)
+                return;
+            this.dvOrderHeader.DataBind();
+            this.pnlOrderHeader.Update();
+            this.gvOrderLines.DataBind();
+            this.upnlOrderLines.Update();
+        }
+
+        protected void ddlItemDesc_SelectedIndexChanged(object sender, EventArgs e)
+        {
+        }
+
         /*
         protected void btnConfirmOrder_Click(object sender, EventArgs e)
         {
@@ -789,186 +1025,5 @@ namespace TrackerDotNet.Pages
         }
         */
 
-        protected void OnDataBinding_ddlToBeDeliveredBy(object sender, EventArgs e)
-        {
-        }
-
-        public string GetToBeDeliveredBy(object pToBeDeliveredBy)
-        {
-            return pToBeDeliveredBy != null ? pToBeDeliveredBy.ToString() : "0";
-        }
-
-        public string GetItemUoMObj(object pItemID)
-        {
-            return pItemID == null ? string.Empty : this.GetItemUoM(Convert.ToInt32(pItemID.ToString()));
-        }
-
-        public string GetItemUoM(int pItemID)
-        {
-            return pItemID > 0 ? new ItemTypeTbl().GetItemUnitOfMeasure(pItemID) : string.Empty;
-        }
-
-        protected void odsOrderSummary_OnUpdated(object sender, ObjectDataSourceStatusEventArgs e)
-        {
-            if ((bool)e.ReturnValue)
-            {
-                DropDownList control1 = (DropDownList)this.dvOrderHeader.FindControl("ddlContacts");
-                TextBox control2 = (TextBox)this.dvOrderHeader.FindControl("tbxRequiredByDate");
-                TextBox control3 = (TextBox)this.dvOrderHeader.FindControl("tbxNotes");
-                if (control1 != null && control2 != null && control3 != null)
-                    this.BindRowQueryParameters();
-            }
-            this.gvOrderLines.DataBind();
-            this.upnlOrderLines.Update();
-        }
-        protected void MarkItemAsInvoiced()
-        {
-            var manager = new TrackerDotNet.BusinessLogic.OrderManager();
-            manager.MarkItemAsInvoiced(
-                (long)this.Session["BoundCustomerID"],
-                ((DateTime)this.Session["BoundDeliveryDate"]).Date,
-                (string)this.Session["BoundNotes"]);
-            this.pnlOrderHeader.Update();
-        }
-        /*
-         protected void MarkItemAsInvoiced()
-        {
-            new OrderTbl().UpdateSetInvoiced(true, (long)this.Session["BoundCustomerID"], ((DateTime)this.Session["BoundDeliveryDate"]).Date, (string)this.Session["BoundNotes"]);
-            this.pnlOrderHeader.Update();
-        }
-        */
-        protected void btnOrderDelivered_Click(object sender, EventArgs e)
-        {
-            OrderHeaderData headerData = this.Get_dvOrderHeaderData(false);
-            var orderLines = new List<OrderManager.TempOrderLineData>();
-            ItemTypeTbl itemTypeTbl = new ItemTypeTbl();
-
-            foreach (GridViewRow row in this.gvOrderLines.Rows)
-            {
-                var itemDDL = (DropDownList)row.FindControl("ddlItemDesc");
-                var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
-                var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
-                var orderIdLbl = (Label)row.FindControl("lblOrderID");
-
-                var line = new OrderManager.TempOrderLineData
-                {
-                    ItemID = Convert.ToInt32(itemDDL.SelectedValue),
-                    Qty = Convert.ToDouble(qtyLbl.Text),
-                    PackagingID = Convert.ToInt32(packagingDDL.SelectedValue),
-                    ServiceTypeID = itemTypeTbl.GetServiceID(Convert.ToInt32(itemDDL.SelectedValue)),
-                    OriginalOrderID = Convert.ToInt32(orderIdLbl.Text)
-                };
-                orderLines.Add(line);
-            }
-
-            var manager = new TrackerDotNet.BusinessLogic.OrderManager();
-            bool success = manager.CompleteOrderDelivery(headerData, orderLines);
-
-            if (!success)
-                this.ltrlStatus.Text = "Error deleting Temp Table";
-            else
-                this.Response.Redirect("OrderDone.aspx");
-        }
-        /*
-        protected void btnOrderDelivered_Click(object sender, EventArgs e)
-        {
-            OrderHeaderData dvOrderHeaderData = this.Get_dvOrderHeaderData(false);
-            TempOrdersData pTempOrder = new TempOrdersData();
-            TempOrdersDAL tempOrdersDal = new TempOrdersDAL();
-            if (!tempOrdersDal.KillTempOrdersData())
-                this.ltrlStatus.Text = "Error deleting Temp Table";
-            pTempOrder.HeaderData.CustomerID = dvOrderHeaderData.CustomerID;
-            pTempOrder.HeaderData.OrderDate = dvOrderHeaderData.OrderDate;
-            pTempOrder.HeaderData.RoastDate = dvOrderHeaderData.RoastDate;
-            pTempOrder.HeaderData.RequiredByDate = dvOrderHeaderData.RequiredByDate;
-            pTempOrder.HeaderData.ToBeDeliveredByID = Convert.ToInt32(dvOrderHeaderData.ToBeDeliveredBy);
-            pTempOrder.HeaderData.Confirmed = dvOrderHeaderData.Confirmed;
-            pTempOrder.HeaderData.Done = dvOrderHeaderData.Done;
-            pTempOrder.HeaderData.Notes = dvOrderHeaderData.Notes;
-            ItemTypeTbl itemTypeTbl = new ItemTypeTbl();
-            foreach (GridViewRow row in this.gvOrderLines.Rows)
-            {
-                TempOrdersLinesTbl tempOrdersLinesTbl = new TempOrdersLinesTbl();
-                DropDownList control1 = (DropDownList)row.FindControl("ddlItemDesc");
-                Label control2 = (Label)row.FindControl("lblQuantityOrdered");
-                DropDownList control3 = (DropDownList)row.FindControl("ddlPackaging");
-                Label control4 = (Label)row.FindControl("lblOrderID");
-                tempOrdersLinesTbl.ItemID = Convert.ToInt32(control1.SelectedValue);
-                tempOrdersLinesTbl.Qty = Convert.ToDouble(control2.Text);
-                tempOrdersLinesTbl.PackagingID = Convert.ToInt32(control3.SelectedValue);
-                tempOrdersLinesTbl.ServiceTypeID = itemTypeTbl.GetServiceID(tempOrdersLinesTbl.ItemID);
-                tempOrdersLinesTbl.OriginalOrderID = Convert.ToInt32(control4.Text);
-                pTempOrder.OrdersLines.Add(tempOrdersLinesTbl);
-            }
-            tempOrdersDal.Insert(pTempOrder);
-            this.Response.Redirect("OrderDone.aspx");
-        }
-        */
-        protected void btnUnDoDone_Click(object sender, EventArgs e)
-        {
-            var manager = new TrackerDotNet.BusinessLogic.OrderManager();
-            string empty = string.Empty;
-            foreach (TableRow row in this.gvOrderLines.Rows)
-            {
-                Label control = (Label)row.Cells[4].FindControl("lblOrderID");
-                empty += manager.UnDoOrderItem(Convert.ToInt32(control.Text));
-            }
-            this.ltrlStatus.Text = empty;
-            this.dvOrderHeader.DataBind();
-            this.pnlOrderHeader.Update();
-            this.gvOrderLines.DataBind();
-            this.upnlOrderLines.Update();
-        }
-        /*
-        protected void btnUnDoDone_Click(object sender, EventArgs e)
-        {
-            string empty = string.Empty;
-            foreach (TableRow row in this.gvOrderLines.Rows)
-            {
-                Label control = (Label)row.Cells[4].FindControl("lblOrderID");
-                empty += this.UnDoneOrderItem(control.Text);
-            }
-            this.ltrlStatus.Text = empty;
-            this.dvOrderHeader.DataBind();
-            this.pnlOrderHeader.Update();
-            this.gvOrderLines.DataBind();
-            this.upnlOrderLines.Update();
-        }
-        */
-        protected void gvOrderLines_RowCommand(object sender, GridViewCommandEventArgs e)
-        {
-            bool flag = false;
-            if (e.CommandName == "MoveOneDayOn")
-            {
-                flag = true;
-                Label control = (Label)this.gvOrderLines.Rows[Convert.ToInt32(e.CommandArgument)].FindControl("lblOrderID");
-                DateTime pNewDate = Convert.ToDateTime(this.dvOrderHeaderGetLabelValue("lblRequiredByDate")).Date;
-                if (pNewDate.DayOfWeek < DayOfWeek.Friday)
-                {
-                    pNewDate = pNewDate.AddDays(1.0);
-                }
-                else
-                {
-                    int num = (int)(1 - pNewDate.DayOfWeek + 7) % 7;
-                    pNewDate = pNewDate.AddDays((double)num);
-                }
-                new OrderTbl().UpdateOrderDeliveryDate(pNewDate, Convert.ToInt32(control.Text));
-            }
-            else if (e.CommandName == "DeleteOrder")
-            {
-                flag = true;
-                this.DeleteOrderItem(e.CommandArgument.ToString());
-            }
-            if (!flag)
-                return;
-            this.dvOrderHeader.DataBind();
-            this.pnlOrderHeader.Update();
-            this.gvOrderLines.DataBind();
-            this.upnlOrderLines.Update();
-        }
-
-        protected void ddlItemDesc_SelectedIndexChanged(object sender, EventArgs e)
-        {
-        }
     }
 }

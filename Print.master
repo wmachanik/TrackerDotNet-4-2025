@@ -10,7 +10,7 @@
   <asp:ContentPlaceHolder ID="HeadContent" runat="server">
   </asp:ContentPlaceHolder>
 </head>
-<body style="background-color: White">
+<body style="background-color: White; padding-top: 0px;">
   <table border="0" cellspacing="0" cellpadding="0" width="100%" style="padding-bottom:1px">
     <tr>
       <td style="padding-right: 10px">

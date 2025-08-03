@@ -4,9 +4,9 @@ using System.Linq;
 using System.Web;
 using TrackerDotNet.Classes;
 using TrackerDotNet.Controls;
-using TrackerDotNet.Managers;
+//using TrackerDotNet.Managers;
 
-namespace TrackerDotNet.BusinessLogic
+namespace TrackerDotNet.Managers
 {
     public class OrderDoneResult
     {

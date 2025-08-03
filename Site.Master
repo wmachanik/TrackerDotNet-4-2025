@@ -5,7 +5,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head runat="server">
-    <title></title>
+    <title>QOnT</title>
     <link href="~/Styles/Site.css" rel="stylesheet" type="text/css" />
     <link rel="icon" type="image/ico" href="~/images/icon/QonTIcon.ico" />
     <meta name="viewport" content="min-width=340px, width=device-width,initial-scale=1.0, minimum-scale=0.5, user-scalable=yes" />

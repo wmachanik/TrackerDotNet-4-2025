@@ -1,5 +1,4 @@
 ﻿// Type: TrackerDotNet.Pages.DeliverySheet
-// Type: TrackerDotNet.Pages.DeliverySheet
 // Assembly: TrackerDotNet, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
 // MVID: 2B5ACBFB-45EE-46B9-81D2-DBD1194F39CE
 // Assembly location: C:\SRC\Apps\qtracker\bin\TrackerDotNet.dll
@@ -211,17 +210,7 @@ namespace TrackerDotNet.Pages
             SortedDictionary<string, string> sortedDictionary = new SortedDictionary<string, string>();
             string str1 = "";
             Dictionary<string, DeliverySheet.ItemTotals> source = new Dictionary<string, DeliverySheet.ItemTotals>();
-            string[] strArray = new string[8]
-            {
-      "",
-      "dN",
-      "d#",
-      "g$",
-      "cS",
-      "s@",
-      "!!",
-      "??"
-            };
+            string[] strArray = new string[8] { "", "dN", "d#",  "g$", "cS", "s@", "!!", "??" };
             CustomersAccInfoTbl customersAccInfoTbl = new CustomersAccInfoTbl();
             int num1 = 0;
             while (pDataReader.Read())

@@ -25,8 +25,8 @@ namespace TrackerDotNet.Pages
     {
         public const string CONST_ZZNAME_DEFAULTID = "9";
         private const string CONST_DELIVERY_DEFAULT = "SQ";
-        private const string CONST_UPDATELINES = "UpdateOrderLines";
-        private const string CONST_LINESADDED = "OrderLinesAdded";
+        private const string CONST_UPDATEORDERLINES = "UpdateOrderLines";
+        private const string CONST_ORDERLINESADDED = "OrderLinesAdded";
         private const string CONST_ORDERLINEIDS = "OrderLineIDS";
         private const string CONST_ORDERLINEITEMIDS = "OrderLineItemIDS";
         private const string CONST_WATERFILTER = "8ClarFltr";
@@ -43,7 +43,7 @@ namespace TrackerDotNet.Pages
         protected UpdatePanel upnlNewOrder;
         protected UpdatePanel upnlOrderSummary;
         protected HyperLink IDCustomerHdr;
-        protected DropDownList ddlContacts;
+        //protected DropDownList ddlContacts;
         protected TextBox tbxOrderDate;
         protected CalendarExtender tbxOrderDate_CalendarExtender;
         protected TextBox tbxRoastDate;
@@ -63,7 +63,7 @@ namespace TrackerDotNet.Pages
         protected Button btnNewItem;
         protected Literal ltrlStatus;
         protected Panel pnlNewItem;
-        protected DropDownList ddlNewItemDesc;
+        //protected DropDownList ddlNewItemDesc;
         protected TextBox tbxNewQuantityOrdered;
         protected DropDownList ddlNewPackaging;
         protected Button btnAdd;
@@ -86,11 +86,9 @@ namespace TrackerDotNet.Pages
 
         protected void SetContactByID(string pCoNameID)
         {
-            if (string.IsNullOrEmpty(pCoNameID))
-                return;
-            if (this.ddlContacts.Items.FindByValue(pCoNameID) != null)
+            if (this.cboContacts.Items.FindByValue(pCoNameID) != null)
             {
-                this.ddlContacts.SelectedValue = pCoNameID;
+                this.cboContacts.SelectedValue = pCoNameID;
                 TrackerTools.ContactPreferedItems contactPreferedItems = new TrackerTools().RetrieveCustomerPrefs(Convert.ToInt32(pCoNameID));
                 if (this.ddlToBeDeliveredBy.Items.FindByValue(contactPreferedItems.PreferredDeliveryByID.ToString()) == null)
                     return;
@@ -98,7 +96,7 @@ namespace TrackerDotNet.Pages
             }
             else
             {
-                this.ddlContacts.SelectedValue = "9";
+                this.cboContacts.SelectedValue = CONST_ZZNAME_DEFAULTID;
                 if (tbxNotes == null)
                 {
                     AppLogger.WriteLog("orders", "tbxNotes is null in SetContactByID.");
@@ -117,27 +115,27 @@ namespace TrackerDotNet.Pages
                 pCoName = "";
             if (pName == null)
                 pName = "";
-            while (index1 < this.ddlContacts.Items.Count && !pCoName.Equals(this.ddlContacts.Items[index1].Text, StringComparison.OrdinalIgnoreCase))
+            while (index1 < this.cboContacts.Items.Count && !pCoName.Equals(this.cboContacts.Items[index1].Text, StringComparison.OrdinalIgnoreCase))
                 ++index1;
-            if (index1 < this.ddlContacts.Items.Count && pCoName.Equals(this.ddlContacts.Items[index1].Text, StringComparison.OrdinalIgnoreCase))
+            if (index1 < this.cboContacts.Items.Count && pCoName.Equals(this.cboContacts.Items[index1].Text, StringComparison.OrdinalIgnoreCase))
             {
-                this.ddlContacts.SelectedValue = this.ddlContacts.Items[index1].Value;
+                this.cboContacts.SelectedValue = this.cboContacts.Items[index1].Value;
             }
             else
             {
                 pCoName = $"{pCoName}_{pCoName}";
-                while (index1 < this.ddlContacts.Items.Count && !pCoName.Equals(this.ddlContacts.Items[index1].Text, StringComparison.OrdinalIgnoreCase))
+                while (index1 < this.cboContacts.Items.Count && !pCoName.Equals(this.cboContacts.Items[index1].Text, StringComparison.OrdinalIgnoreCase))
                     ++index1;
-                if (index1 < this.ddlContacts.Items.Count && pCoName.Equals(this.ddlContacts.Items[index1].Text, StringComparison.OrdinalIgnoreCase))
-                    this.ddlContacts.SelectedValue = this.ddlContacts.Items[index1].Value;
+                if (index1 < this.cboContacts.Items.Count && pCoName.Equals(this.cboContacts.Items[index1].Text, StringComparison.OrdinalIgnoreCase))
+                    this.cboContacts.SelectedValue = this.cboContacts.Items[index1].Value;
                 else if (pCoName != pName)
                 {
                     int index2 = 0;
-                    while (index2 < this.ddlContacts.Items.Count && !pName.Equals(this.ddlContacts.Items[index2].Text, StringComparison.OrdinalIgnoreCase))
+                    while (index2 < this.cboContacts.Items.Count && !pName.Equals(this.cboContacts.Items[index2].Text, StringComparison.OrdinalIgnoreCase))
                         ++index2;
-                    if (index2 < this.ddlContacts.Items.Count && pName.Equals(this.ddlContacts.Items[index2].Text, StringComparison.OrdinalIgnoreCase))
+                    if (index2 < this.cboContacts.Items.Count && pName.Equals(this.cboContacts.Items[index2].Text, StringComparison.OrdinalIgnoreCase))
                     {
-                        this.ddlContacts.SelectedValue = this.ddlContacts.Items[index2].Value;
+                        this.cboContacts.SelectedValue = this.cboContacts.Items[index2].Value;
                     }
                     else
                     {
@@ -148,7 +146,7 @@ namespace TrackerDotNet.Pages
                         }
                         else
                         {
-                            this.ddlContacts.SelectedValue = "9";
+                            this.cboContacts.SelectedValue = CONST_ZZNAME_DEFAULTID;
                             if (string.IsNullOrEmpty(pCoName))
                             {
                                 TextBox tbxNotes = this.tbxNotes;
@@ -169,14 +167,14 @@ namespace TrackerDotNet.Pages
                 }
                 else
                 {
-                    this.ddlContacts.SelectedValue = "9";
+                    this.cboContacts.SelectedValue = CONST_ZZNAME_DEFAULTID;
                     TextBox tbxNotes = this.tbxNotes;
                     tbxNotes.Text = $"{tbxNotes.Text}{pCoName}: ";
                 }
             }
-            if (this.ddlContacts.SelectedIndex <= 0 || !(this.ddlContacts.SelectedValue != "9"))
+            if (this.cboContacts.SelectedIndex <= 0 || !(this.cboContacts.SelectedValue != CONST_ZZNAME_DEFAULTID))
                 return;
-            TrackerTools.ContactPreferedItems contactPreferedItems = new TrackerTools().RetrieveCustomerPrefs(Convert.ToInt32(this.ddlContacts.SelectedValue));
+            TrackerTools.ContactPreferedItems contactPreferedItems = new TrackerTools().RetrieveCustomerPrefs(Convert.ToInt32(this.cboContacts.SelectedValue));
             if (this.ddlToBeDeliveredBy.Items.FindByValue(contactPreferedItems.PreferredDeliveryByID.ToString()) == null)
                 return;
             this.ddlToBeDeliveredBy.SelectedValue = contactPreferedItems.PreferredDeliveryByID.ToString();
@@ -192,11 +190,11 @@ namespace TrackerDotNet.Pages
 
         protected bool AddLastOrder(bool pSetDates)
         {
-            bool flag = this.Session["OrderLinesAdded"] != null && (bool)this.Session["OrderLinesAdded"];
-            if (this.ddlContacts.SelectedValue != null)
+            bool flagOrderLinesAdded = this.Session[CONST_ORDERLINESADDED] != null && (bool)this.Session[CONST_ORDERLINESADDED];
+            if (this.cboContacts.SelectedValue != null)
             {
                 this.SetUpdateBools();
-                long int64 = Convert.ToInt32(this.ddlContacts.SelectedValue);
+                long int64 = Convert.ToInt32(this.cboContacts.SelectedValue);
                 if (pSetDates)
                     this.SetPrepAndDeliveryValues(int64);
                 List<ItemUsageTbl> lastItemsUsed = new ItemUsageTbl().GetLastItemsUsed(int64, 2);
@@ -206,7 +204,7 @@ namespace TrackerDotNet.Pages
                     {
                         if (itemUsageTbl.ItemProvidedID > 0)
                         {
-                            flag = this.AddNewOrderLine(itemUsageTbl.ItemProvidedID, itemUsageTbl.AmountProvided, itemUsageTbl.PackagingID) || flag;
+                            flagOrderLinesAdded = this.AddNewOrderLine(itemUsageTbl.ItemProvidedID, itemUsageTbl.AmountProvided, itemUsageTbl.PackagingID) || flagOrderLinesAdded;
                             if (!string.IsNullOrEmpty(itemUsageTbl.Notes))
                                 this.tbxNotes.Text += $"{(this.tbxNotes.Text.Length > 0 ? (object)"; " : (object)"")}last order used a group item, so next item in group selected.";
                         }
@@ -215,18 +213,18 @@ namespace TrackerDotNet.Pages
                 else
                 {
                     TrackerTools.ContactPreferedItems contactPreferedItems = new TrackerTools().RetrieveCustomerPrefs(int64);
-                    flag = this.AddNewOrderLine(contactPreferedItems.PreferedItem, contactPreferedItems.PreferedQty, contactPreferedItems.PrefPackagingID) || flag;
+                    flagOrderLinesAdded = this.AddNewOrderLine(contactPreferedItems.PreferedItem, contactPreferedItems.PreferedQty, contactPreferedItems.PrefPackagingID) || flagOrderLinesAdded;
                 }
-                this.Session["OrderLinesAdded"] = (object)flag;
+                this.Session[CONST_ORDERLINESADDED] = (object)flagOrderLinesAdded;
             }
-            return flag;
+            return flagOrderLinesAdded;
         }
 
         protected OrderDetailData GetNewOrderItemFromSKU(string pSKU, double pSKUQTY)
         {
             string strSQL = "SELECT ItemTypeID, SKU, ItemEnabled FROM ItemTypeTbl WHERE (SKU = ?)";
             OrderDetailData orderItemFromSku = (OrderDetailData)null;
-            if (this.ddlContacts.SelectedValue != null)
+            if (this.cboContacts.SelectedValue != null)
             {
                 TrackerDb trackerDb = new TrackerDb();
                 if (pSKU == "8ClarBlue")
@@ -272,9 +270,20 @@ namespace TrackerDotNet.Pages
 
         private void BindRowQueryParameters()
         {
-            this.Session["BoundCustomerID"] = (object)Convert.ToInt32(this.ddlContacts.SelectedValue);
-            this.Session["BoundDeliveryDate"] = (object)Convert.ToDateTime(this.tbxRequiredByDate.Text).Date.Date;
-            this.Session["BoundNotes"] = (object)this.tbxNotes.Text;
+            int customerId;
+            // Try to parse the selected value, fallback to default if not valid
+            if (!string.IsNullOrEmpty(this.cboContacts.SelectedValue) && int.TryParse(this.cboContacts.SelectedValue, out customerId))
+            {
+                this.Session["BoundCustomerID"] = customerId;
+            }
+            else
+            {
+                // Use your default value (CONST_ZZNAME_DEFAULTID is "9")
+                this.Session["BoundCustomerID"] = int.Parse(CONST_ZZNAME_DEFAULTID);
+            }
+
+            this.Session["BoundDeliveryDate"] = Convert.ToDateTime(this.tbxRequiredByDate.Text).Date;
+            this.Session["BoundNotes"] = this.tbxNotes.Text;
         }
 
         protected void Page_Load(object sender, EventArgs e)
@@ -290,8 +299,8 @@ namespace TrackerDotNet.Pages
             this.tbxRequiredByDate.Text = dateTime.DayOfWeek >= DayOfWeek.Friday ? dateTime.AddDays(3.0).ToShortDateString() : dateTime.AddDays(1.0).ToShortDateString();
             bool flag1 = false;
             bool flag2 = false;
-            this.Session["UpdateOrderLines"] = (object)flag1;
-            this.Session["OrderLinesAdded"] = (object)flag2;
+            this.Session[CONST_UPDATEORDERLINES] = (object)flag1;
+            this.Session[CONST_ORDERLINESADDED] = (object)flag2;
             this.BindRowQueryParameters();
         }
 
@@ -301,7 +310,7 @@ namespace TrackerDotNet.Pages
 
         private void RedirectToOrderDetail()
         {
-            this.Response.Redirect($"{this.ResolveUrl("~/Pages/OrderDetail.aspx")}?{$"CustomerID={HttpContext.Current.Server.UrlEncode(this.ddlContacts.SelectedValue)}&DeliveryDate={Convert.ToDateTime(this.tbxRequiredByDate.Text):d}&Notes={HttpContext.Current.Server.UrlEncode(this.tbxNotes.Text)}"}");
+            this.Response.Redirect($"{this.ResolveUrl("~/Pages/OrderDetail.aspx")}?{$"CustomerID={HttpContext.Current.Server.UrlEncode(this.cboContacts.SelectedValue)}&DeliveryDate={Convert.ToDateTime(this.tbxRequiredByDate.Text):d}&Notes={HttpContext.Current.Server.UrlEncode(this.tbxNotes.Text)}"}");
         }
 
         protected void Page_PreRenderComplete(object sender, EventArgs e)
@@ -316,8 +325,8 @@ namespace TrackerDotNet.Pages
                 this.RedirectToOrderDetail();
             if (this.Request.QueryString["SKU1"] == null)
                 return;
-            if (this.ddlContacts != null && Convert.ToInt32(this.ddlContacts.SelectedValue) > 0L)
-                this.SetPrepAndDeliveryValues(Convert.ToInt32(this.ddlContacts.SelectedValue));
+            if (this.cboContacts != null && Convert.ToInt64(this.cboContacts.SelectedValue) > 0)
+                this.SetPrepAndDeliveryValues(Convert.ToInt64(this.cboContacts.SelectedValue));
             List<OrderDetailData> orderDetailDataList = new List<OrderDetailData>();
             bool flag = false;
             int num;
@@ -340,7 +349,7 @@ namespace TrackerDotNet.Pages
             this.tbxNotes.Text += $">{num - 1} items added";
             foreach (OrderDetailData orderDetailData in orderDetailDataList)
                 this.AddNewOrderLine(orderDetailData.ItemTypeID, orderDetailData.QuantityOrdered, orderDetailData.PackagingID);
-            this.Session["OrderLinesAdded"] = (object)true;
+            this.Session[CONST_ORDERLINESADDED] = (object)true;
             this.RedirectToOrderDetail();
         }
 
@@ -389,7 +398,7 @@ namespace TrackerDotNet.Pages
         {
             OrderTblData pOrderData = new OrderTblData();
             OrderTbl orderTbl = new OrderTbl();
-            pOrderData.CustomerID = Convert.ToInt32(this.ddlContacts.SelectedValue);
+            pOrderData.CustomerID = Convert.ToInt64(this.cboContacts.SelectedValue);
             pOrderData.OrderDate = Convert.ToDateTime(this.tbxOrderDate.Text).Date;
             pOrderData.RoastDate = Convert.ToDateTime(this.tbxRoastDate.Text).Date;
             pOrderData.RequiredByDate = Convert.ToDateTime(this.tbxRequiredByDate.Text).Date;
@@ -411,12 +420,12 @@ namespace TrackerDotNet.Pages
 
         protected void btnAdd_Click(object sender, EventArgs e)
         {
-            int int32 = Convert.ToInt32(this.ddlNewItemDesc.SelectedValue);
+            int int32 = Convert.ToInt32(this.cboNewItemDesc.SelectedValue);
             bool flag = this.AddNewOrderLine(int32, Convert.ToDouble(this.tbxNewQuantityOrdered.Text), Convert.ToInt32(this.ddlNewPackaging.SelectedValue));
             if (int32.Equals(36) && !this.tbxNotes.Text.Contains("Should this not rather be a repair?"))
                 this.tbxNotes.Text += this.tbxNotes.Text.Length > 0 ? " " : "Should this not rather be a repair?";
             this.SetButtonState(flag || this.btnCancel.Enabled);
-            this.Session["OrderLinesAdded"] = (object)flag;
+            this.Session[CONST_ORDERLINESADDED] = (object)flag;
             this.ltrlStatus.Text = flag ? "Item Added" : "Error adding item";
             this.HideNewOrderItemPanel();
         }
@@ -471,21 +480,21 @@ namespace TrackerDotNet.Pages
         protected void btnRefreshDetails_Click(object sender, EventArgs e)
         {
             this.UpdateDataDisplay();
-            this.ddlContacts.DataBind();
+            this.cboContacts.DataBind();
         }
 
         protected void tmrOrderItem_OnTick(object sender, EventArgs e)
         {
-            if (this.Session["OrderLinesAdded"] != null && (bool)this.Session["OrderLinesAdded"])
+            if (this.Session[CONST_ORDERLINESADDED] != null && (bool)this.Session[CONST_ORDERLINESADDED])
                 this.UpdateDataDisplay();
             this.tmrOrderItem.Enabled = false;
         }
 
         protected void SetUpdateBools()
         {
-            if (this.ddlContacts.SelectedIndex > 0)
+            if (this.cboContacts.SelectedIndex > 0)
             {
-                if (this.ddlContacts.SelectedValue.Equals("9") && string.IsNullOrEmpty(this.tbxNotes.Text))
+                if (this.cboContacts.SelectedValue.Equals(CONST_ZZNAME_DEFAULTID) && string.IsNullOrEmpty(this.tbxNotes.Text))
                 {
                     this.btnNewItem.Enabled = false;
                     this.upnlNewOrderItem.Update();
@@ -504,14 +513,14 @@ namespace TrackerDotNet.Pages
                     }
                 }
             }
-            bool flag1 = this.Session["OrderLinesAdded"] != null && (bool)this.Session["OrderLinesAdded"];
-            bool flag2 = this.Session["UpdateOrderLines"] != null && (bool)this.Session["UpdateOrderLines"];
+            bool flag1 = this.Session[CONST_ORDERLINESADDED] != null && (bool)this.Session[CONST_ORDERLINESADDED];
+            bool flag2 = this.Session[CONST_UPDATEORDERLINES] != null && (bool)this.Session[CONST_UPDATEORDERLINES];
             if (!flag1 || flag2)
                 return;
             bool flag3 = true;
             this.btnUpdate.Visible = flag3;
             this.upnlOrderSummary.Update();
-            this.Session["UpdateOrderLines"] = (object)flag3;
+            this.Session[CONST_UPDATEORDERLINES] = (object)flag3;
             if (this.btnRefreshDetails.Enabled)
                 return;
             this.btnRefreshDetails.Enabled = true;
@@ -520,13 +529,13 @@ namespace TrackerDotNet.Pages
 
         protected void DoHeaderUpdate()
         {
-            List<string> pOrders = (List<string>)this.Session["OrderLineIDS"];
-            List<int> intList = (List<int>)this.Session["OrderLineItemIDS"];
+            List<string> pOrders = (List<string>)this.Session[CONST_ORDERLINEIDS];
+            List<int> intList = (List<int>)this.Session[CONST_ORDERLINEITEMIDS];
             if (pOrders.Count > 0)
             {
                 OrderDataControl orderDataControl = new OrderDataControl();
                 OrderHeaderData pOrderHeader = new OrderHeaderData();
-                pOrderHeader.CustomerID = Convert.ToInt32(this.ddlContacts.SelectedValue);
+                pOrderHeader.CustomerID = Convert.ToInt64(this.cboContacts.SelectedValue);
                 pOrderHeader.OrderDate = Convert.ToDateTime(this.tbxOrderDate.Text);
                 pOrderHeader.RoastDate = Convert.ToDateTime(this.tbxRoastDate.Text);
                 pOrderHeader.ToBeDeliveredBy = Convert.ToInt32(this.ddlToBeDeliveredBy.SelectedValue);
@@ -575,28 +584,28 @@ namespace TrackerDotNet.Pages
             return prefs;
         }
 
-        protected void ddlContacts_SelectedIndexChanged(object sender, EventArgs e)
+        protected void cboContacts_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
             {
                 ltrlStatus.Text = "Loading customer preferences...";
-                AppLogger.WriteLog("orders", $"ddlContacts_SelectedIndexChanged started for CustomerID: {((ListControl)sender).SelectedValue}");
+                AppLogger.WriteLog("orders", $"cboContacts_SelectedIndexChanged started for CustomerID: {((ListControl)sender).SelectedValue}");
                 var contactPreferedItems = this.SetPrepAndDeliveryValues(Convert.ToInt32(((ListControl)sender).SelectedValue));
-                if (this.ddlNewItemDesc.SelectedIndex == -1)
+                if (this.cboNewItemDesc.SelectedIndex == -1)
                 {
-                    if (this.ddlNewItemDesc.Items.FindByValue(contactPreferedItems.PreferedItem.ToString()) != null)
-                        this.ddlNewItemDesc.SelectedValue = contactPreferedItems.PreferedItem.ToString();
+                    if (this.cboNewItemDesc.Items.FindByValue(contactPreferedItems.PreferedItem.ToString()) != null)
+                        this.cboNewItemDesc.SelectedValue = contactPreferedItems.PreferedItem.ToString();
                     this.tbxNewQuantityOrdered.Text = contactPreferedItems.PreferedQty.ToString();
                 }
                 this.upnlOrderSummary.Update();
                 this.SetUpdateBools();
                 ltrlStatus.Text = "Customer preferences loaded.";
-                AppLogger.WriteLog("orders", $"ddlContacts_SelectedIndexChanged completed for CustomerID: {((ListControl)sender).SelectedValue}");
+                AppLogger.WriteLog("orders", $"cboContacts_SelectedIndexChanged completed for CustomerID: {((ListControl)sender).SelectedValue}");
             }
             catch (Exception ex)
             {
                 ltrlStatus.Text = "Error loading customer preferences. Please try again or contact support.";
-                AppLogger.WriteLog("orders", $"Error in ddlContacts_SelectedIndexChanged for CustomerID: {((ListControl)sender).SelectedValue}: {ex}");
+                AppLogger.WriteLog("orders", $"Error in cboContacts_SelectedIndexChanged for CustomerID: {((ListControl)sender).SelectedValue}: {ex}");
             }
         }
 
@@ -623,7 +632,7 @@ namespace TrackerDotNet.Pages
         {
             this.DoHeaderUpdate();
             this.btnUpdate.Visible = false;
-            this.Session["UpdateOrderLines"] = (object)false;
+            this.Session[CONST_UPDATEORDERLINES] = (object)false;
         }
 
         protected void gvOrderLines_RowUpdated(object sender, GridViewUpdatedEventArgs e)
@@ -638,21 +647,43 @@ namespace TrackerDotNet.Pages
             {
                 List<string> stringList = new List<string>();
                 List<int> intList = new List<int>();
-                this.Session["OrderLineIDS"] = (object)stringList;
-                this.Session["OrderLineItemIDS"] = (object)intList;
+                this.Session[CONST_ORDERLINEIDS] = stringList;
+                this.Session[CONST_ORDERLINEITEMIDS] = intList;
             }
-            else
+            else if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                if (e.Row.RowType != DataControlRowType.DataRow)
-                    return;
-                List<string> stringList = (List<string>)this.Session["OrderLineIDS"] ?? new List<string>();
-                Label control1 = (Label)e.Row.FindControl("lblOrderId");
-                stringList.Add(control1.Text);
-                this.Session["OrderLineIDS"] = (object)stringList;
-                List<int> intList = (List<int>)this.Session["OrderLineItemIDS"] ?? new List<int>();
-                DropDownList control2 = (DropDownList)e.Row.FindControl("ddlItemDesc");
-                intList.Add(Convert.ToInt32(control2.SelectedValue));
-                this.Session["OrderLineItemIDS"] = (object)intList;
+                // Track OrderID
+                List<string> stringList = this.Session[CONST_ORDERLINEIDS] as List<string> ?? new List<string>();
+                Label lblOrderId = e.Row.FindControl("lblOrderID") as Label;
+                if (lblOrderId != null)
+                    stringList.Add(lblOrderId.Text);
+                this.Session[CONST_ORDERLINEIDS] = stringList;
+
+                // Track ItemTypeID
+                List<int> intList = this.Session[CONST_ORDERLINEITEMIDS] as List<int> ?? new List<int>();
+                // Edit mode: get from ComboBox
+                var cbox = e.Row.FindControl("cboItemDesc") as AjaxControlToolkit.ComboBox;
+                if (cbox != null)
+                {
+                    intList.Add(Convert.ToInt32(cbox.SelectedValue));
+                }
+                else
+                {
+                    // Display mode: get from DataItem
+                    object dataItem = DataBinder.GetDataItem(e.Row);
+                    if (dataItem != null)
+                    {
+                        // Use reflection or strongly-typed access depending on your data source
+                        int itemTypeId = 0;
+                        var prop = dataItem.GetType().GetProperty("ItemTypeID");
+                        if (prop != null)
+                        {
+                            itemTypeId = Convert.ToInt32(prop.GetValue(dataItem, null));
+                        }
+                        intList.Add(itemTypeId);
+                    }
+                }
+                this.Session[CONST_ORDERLINEITEMIDS] = intList;
             }
         }
 

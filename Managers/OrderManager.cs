@@ -5,7 +5,7 @@ using System.Web;
 using TrackerDotNet.Classes;
 using TrackerDotNet.Controls;
 
-namespace TrackerDotNet.BusinessLogic
+namespace TrackerDotNet.Managers
 {
     public class OrderManager
     {

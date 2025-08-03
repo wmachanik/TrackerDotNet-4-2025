@@ -11,7 +11,7 @@ using System.Configuration;
 using System.Data.OleDb;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using TrackerDotNet.BusinessLogic;
+using TrackerDotNet.Managers;
 using TrackerDotNet.Classes;
 using TrackerDotNet.Controls;
 

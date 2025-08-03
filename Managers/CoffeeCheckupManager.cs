@@ -22,6 +22,7 @@ namespace TrackerDotNet.Managers
         private const int CONST_FORCEREMINDERDELAYCOUNT = 4;
         private const int CONST_MAXREMINDERS = 7;
         private const int CONST_DEFAULTREMINDERWINDOWDAYS = 7;
+        private const int CONST_DEFAULTMINIMUMMONTHLYRECURRINGDAYS = 20;
 
         // MISSING: Static caching for frequently accessed lookup data
         private static Dictionary<int, string> _cachedItemDescriptions;
@@ -345,7 +346,7 @@ namespace TrackerDotNet.Managers
                 {
                     try
                     {
-                        _cachedItemDescriptions[itemId] = new ItemTypeTbl().GetItemTypeDesc(itemId);
+                        _cachedItemDescriptions[itemId] = ItemTypeTbl.GetItemTypeDescById(itemId);
                     }
                     catch (Exception ex)
                     {
@@ -872,14 +873,26 @@ namespace TrackerDotNet.Managers
                         if (sourceDateTime < minReminderDate)
                             sourceDateTime = minReminderDate;
 
-                        // BUG FIX: Enhanced 7-day window check
+                        // Enhanced 7-day window check
                         bool isDueNow = all[index1].NextDateRequired <= sourceDateTime;
                         bool isDueWithin7Days = all[index1].NextDateRequired <= windowEnd;
 
-                        AppLogger.WriteLog("email", $"CoffeeCheckupManager: Recurring item {all[index1].ReoccuringOrderID} - Next due: {all[index1].NextDateRequired:yyyy-MM-dd}, Roast date: {sourceDateTime:yyyy-MM-dd}, Due now: {isDueNow}, Due within 7 days: {isDueWithin7Days}");
+                        // Prevent processing if DateLastDone is too recent for monthly orders
+                        bool isRecentlyProcessed = false;
+                        if (recurrenceType == ReoccuranceTypeTbl.RecurrenceType.Monthly)
+                        {
+                            int daysSinceLastProcessed = (TimeZoneUtils.Now().Date - all[index1].DateLastDone).Days;
+                            int minimumDays = GetMinimumRecurringDays();
+                            isRecentlyProcessed = daysSinceLastProcessed < minimumDays;
 
-                        // Check if this recurring item is due (either now or within 7 days)
-                        if (isDueNow || isDueWithin7Days)
+                            if (isRecentlyProcessed)
+                            {
+                                AppLogger.WriteLog("email", $"CoffeeCheckupManager: Skipping monthly recurring item {all[index1].ReoccuringOrderID} - processed only {daysSinceLastProcessed} days ago (minimum: {minimumDays})");
+                            }
+                        }
+
+                        // Check if this recurring item is due (either now or within 7 days) AND not recently processed
+                        if ((isDueNow || isDueWithin7Days) && !isRecentlyProcessed)
                         {
                             // ENHANCED: Better order conflict detection
                             DateTime checkStartDate = TimeZoneUtils.Now().Date;
@@ -1250,8 +1263,16 @@ namespace TrackerDotNet.Managers
                 // BUG FIX: Check test mode before database operations
                 var testEmailClient = new EmailMailKitCls();
                 bool isTestMode = testEmailClient.IsTestMode;
-
-                AppLogger.WriteLog("email", $"CoffeeCheckupManager: TEST MODE - Skipping order creation for {pContact.CompanyName}");
+                if(isTestMode)
+                {
+                    // In test mode, we skip actual order creation but log the action
+                    AppLogger.WriteLog("email", $"CoffeeCheckupManager: TEST MODE - Skipping order creation for {pContact.CompanyName}");
+                    return string.Empty; // Success in test mode
+                }
+                else
+                {
+                    AppLogger.WriteLog("email", $"CoffeeCheckupManager: Creating order for {pContact.CompanyName} with type {pOrderType}");
+                }
 
                 // Still determine order types for email purposes, but don't create actual orders
                 for (int index = 0; index < pContact.ItemsContactRequires.Count; ++index)
@@ -1263,7 +1284,6 @@ namespace TrackerDotNet.Managers
                         hasAutoFulfillItem = true;
                 }
 
-                return string.Empty; // Success in test mode
 
                 ReoccuringOrderDAL reoccuringOrderDal = new ReoccuringOrderDAL();
                 OrderTbl orderTbl = new OrderTbl();
@@ -1524,6 +1544,21 @@ namespace TrackerDotNet.Managers
             var setting = ConfigurationManager.AppSettings["CoffeeCheckupReminderWindowDays"];
             if (!string.IsNullOrEmpty(setting) && int.TryParse(setting, out int parsed) && parsed > 0)
                 days = parsed;
+            return days;
+        }
+
+        /// <summary>
+        /// Gets the minimum number of days between monthly recurring orders
+        /// </summary>
+        public static int GetMinimumRecurringDays()
+        {
+            int days = CONST_DEFAULTMINIMUMMONTHLYRECURRINGDAYS; // default
+
+            // Check app settings first
+            var setting = ConfigurationManager.AppSettings["CoffeeCheckupMinMonthlyRecurringDays"];
+            if (!string.IsNullOrEmpty(setting) && int.TryParse(setting, out int parsed) && parsed > 0)
+                days = parsed;
+            
             return days;
         }
     }

@@ -181,8 +181,8 @@ namespace TrackerDotNet
                     {
                         try
                         {
-                            var itemTypeTbl = new ItemTypeTbl();
-                            string itemDesc = itemTypeTbl.GetItemTypeDesc(recurringOrder.ItemRequiredID);
+                            //var itemTypeTbl = new ItemTypeTbl();
+                            string itemDesc = ItemTypeTbl.GetItemTypeDescById(recurringOrder.ItemRequiredID);
                             recurringInfo.RecurringOrderDetails.Add($"- {itemDesc} (Qty: {recurringOrder.QtyRequired}) - ID: {recurringOrder.ReoccuringOrderID}");
                             
                             AppLogger.WriteLog("email", $"DisableClient: Found recurring order {recurringOrder.ReoccuringOrderID} for customer {customerId} - MANUAL DISABLE REQUIRED");

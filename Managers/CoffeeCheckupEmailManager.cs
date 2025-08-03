@@ -283,7 +283,7 @@ namespace TrackerDotNet.Managers
             for (int i = 0; i < contact.ItemsContactRequires.Count; i++)
             {
                 var item = contact.ItemsContactRequires[i];
-                string itemDesc = new ItemTypeTbl().GetItemTypeDesc(item.ItemID);
+                string itemDesc = ItemTypeTbl.GetItemTypeDescById(item.ItemID);
                 string packaging = item.ItemPackagID > 0 ? new PackagingTbl().GetPackagingDesc(item.ItemPackagID) : "";
                 string formattedQty = FormatQuantity(item.ItemQty, item.ItemID);
                 

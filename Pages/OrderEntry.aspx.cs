@@ -63,7 +63,7 @@ namespace TrackerDotNet.Pages
 
         public string GetItemDesc(int pItemID)
         {
-            return pItemID > 0 ? new ItemTypeTbl().GetItemTypeDesc(pItemID) : string.Empty;
+            return pItemID > 0 ? ItemTypeTbl.GetItemTypeDescById(pItemID) : string.Empty;
         }
     }
 

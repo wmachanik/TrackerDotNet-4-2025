@@ -109,3 +109,227 @@ System.Web.HttpException: The file '/~/Pages/Repairs.aspx' does not exist.
    at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
 ----------------------
 
+[2025/07/29 12:59:57]
+System.Web.HttpCompileException: C:\SRC\ASP.net\TrackerDotNet\Pages\NewOrderDetail.aspx(23): error CS1061: 'pages_neworderdetail_aspx' does not contain a definition for 'ddlContacts_SelectedIndexChanged' and no accessible extension method 'ddlContacts_SelectedIndexChanged' accepting a first argument of type 'pages_neworderdetail_aspx' could be found (are you missing a using directive or an assembly reference?)
+   at System.Web.Compilation.BuildManager.CompileWebFile(VirtualPath virtualPath)
+   at System.Web.Compilation.BuildManager.GetVPathBuildResultInternal(VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile, Boolean throwIfNotFound, Boolean ensureIsUpToDate)
+   at System.Web.Compilation.BuildManager.GetVPathBuildResultWithNoAssert(HttpContext context, VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile, Boolean throwIfNotFound, Boolean ensureIsUpToDate)
+   at System.Web.Compilation.BuildManager.GetVirtualPathObjectFactory(VirtualPath virtualPath, HttpContext context, Boolean allowCrossApp, Boolean throwIfNotFound)
+   at System.Web.Compilation.BuildManager.CreateInstanceFromVirtualPath(VirtualPath virtualPath, Type requiredBaseType, HttpContext context, Boolean allowCrossApp)
+   at System.Web.UI.PageHandlerFactory.GetHandlerHelper(HttpContext context, String requestType, VirtualPath virtualPath, String physicalPath)
+   at System.Web.HttpApplication.MaterializeHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+----------------------
+
+[2025/07/29 13:11:13]
+System.InvalidOperationException: A control with ID 'ddlContacts' could not be found for the trigger in UpdatePanel 'upnlOrderSummary'.
+   at System.Web.UI.UpdatePanelControlTrigger.FindTargetControl(Boolean searchNamingContainers)
+   at System.Web.UI.AsyncPostBackTrigger.Initialize()
+   at System.Web.UI.UpdatePanelTriggerCollection.Initialize()
+   at System.Web.UI.UpdatePanel.Initialize()
+   at System.Web.UI.UpdatePanel.OnLoad(EventArgs e)
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/29 15:47:08]
+System.InvalidOperationException: ObjectDataSource 'odsOrderDetail' could not find a non-generic method 'UpdateOrderDetails' that has parameters: CustomerID, DeliveryDate, QuantityOrdered, ItemTypeID, PackagingID, OrderID, original_OrderID, original_ItemTypeID, original_PackagingID.
+   at System.Web.UI.WebControls.ObjectDataSourceView.GetResolvedMethodData(Type type, String methodName, IDictionary allParameters, DataSourceOperation operation)
+   at System.Web.UI.WebControls.ObjectDataSourceView.ExecuteUpdate(IDictionary keys, IDictionary values, IDictionary oldValues)
+   at System.Web.UI.DataSourceView.Update(IDictionary keys, IDictionary values, IDictionary oldValues, DataSourceViewOperationCallback callback)
+   at System.Web.UI.WebControls.GridView.HandleUpdate(GridViewRow row, Int32 rowIndex, Boolean causesValidation)
+   at System.Web.UI.WebControls.GridView.HandleEvent(EventArgs e, Boolean causesValidation, String validationGroup)
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/29 15:47:09]
+System.InvalidOperationException: ObjectDataSource 'odsOrderDetail' could not find a non-generic method 'UpdateOrderDetails' that has parameters: CustomerID, DeliveryDate, QuantityOrdered, ItemTypeID, PackagingID, OrderID, original_OrderID, original_ItemTypeID, original_PackagingID.
+   at System.Web.UI.WebControls.ObjectDataSourceView.GetResolvedMethodData(Type type, String methodName, IDictionary allParameters, DataSourceOperation operation)
+   at System.Web.UI.WebControls.ObjectDataSourceView.ExecuteUpdate(IDictionary keys, IDictionary values, IDictionary oldValues)
+   at System.Web.UI.DataSourceView.Update(IDictionary keys, IDictionary values, IDictionary oldValues, DataSourceViewOperationCallback callback)
+   at System.Web.UI.WebControls.GridView.HandleUpdate(GridViewRow row, Int32 rowIndex, Boolean causesValidation)
+   at System.Web.UI.WebControls.GridView.HandleEvent(EventArgs e, Boolean causesValidation, String validationGroup)
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/29 15:47:10]
+System.InvalidOperationException: ObjectDataSource 'odsOrderDetail' could not find a non-generic method 'UpdateOrderDetails' that has parameters: CustomerID, DeliveryDate, QuantityOrdered, ItemTypeID, PackagingID, OrderID, original_OrderID, original_ItemTypeID, original_PackagingID.
+   at System.Web.UI.WebControls.ObjectDataSourceView.GetResolvedMethodData(Type type, String methodName, IDictionary allParameters, DataSourceOperation operation)
+   at System.Web.UI.WebControls.ObjectDataSourceView.ExecuteUpdate(IDictionary keys, IDictionary values, IDictionary oldValues)
+   at System.Web.UI.DataSourceView.Update(IDictionary keys, IDictionary values, IDictionary oldValues, DataSourceViewOperationCallback callback)
+   at System.Web.UI.WebControls.GridView.HandleUpdate(GridViewRow row, Int32 rowIndex, Boolean causesValidation)
+   at System.Web.UI.WebControls.GridView.HandleEvent(EventArgs e, Boolean causesValidation, String validationGroup)
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/29 15:47:10]
+System.InvalidOperationException: ObjectDataSource 'odsOrderDetail' could not find a non-generic method 'UpdateOrderDetails' that has parameters: CustomerID, DeliveryDate, QuantityOrdered, ItemTypeID, PackagingID, OrderID, original_OrderID, original_ItemTypeID, original_PackagingID.
+   at System.Web.UI.WebControls.ObjectDataSourceView.GetResolvedMethodData(Type type, String methodName, IDictionary allParameters, DataSourceOperation operation)
+   at System.Web.UI.WebControls.ObjectDataSourceView.ExecuteUpdate(IDictionary keys, IDictionary values, IDictionary oldValues)
+   at System.Web.UI.DataSourceView.Update(IDictionary keys, IDictionary values, IDictionary oldValues, DataSourceViewOperationCallback callback)
+   at System.Web.UI.WebControls.GridView.HandleUpdate(GridViewRow row, Int32 rowIndex, Boolean causesValidation)
+   at System.Web.UI.WebControls.GridView.HandleEvent(EventArgs e, Boolean causesValidation, String validationGroup)
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/29 15:47:12]
+System.InvalidOperationException: ObjectDataSource 'odsOrderDetail' could not find a non-generic method 'UpdateOrderDetails' that has parameters: CustomerID, DeliveryDate, QuantityOrdered, ItemTypeID, PackagingID, OrderID, original_OrderID, original_ItemTypeID, original_PackagingID.
+   at System.Web.UI.WebControls.ObjectDataSourceView.GetResolvedMethodData(Type type, String methodName, IDictionary allParameters, DataSourceOperation operation)
+   at System.Web.UI.WebControls.ObjectDataSourceView.ExecuteUpdate(IDictionary keys, IDictionary values, IDictionary oldValues)
+   at System.Web.UI.DataSourceView.Update(IDictionary keys, IDictionary values, IDictionary oldValues, DataSourceViewOperationCallback callback)
+   at System.Web.UI.WebControls.GridView.HandleUpdate(GridViewRow row, Int32 rowIndex, Boolean causesValidation)
+   at System.Web.UI.WebControls.GridView.HandleEvent(EventArgs e, Boolean causesValidation, String validationGroup)
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/29 15:47:22]
+System.InvalidOperationException: ObjectDataSource 'odsOrderDetail' could not find a non-generic method 'UpdateOrderDetails' that has parameters: CustomerID, DeliveryDate, QuantityOrdered, ItemTypeID, PackagingID, OrderID, original_OrderID, original_ItemTypeID, original_PackagingID.
+   at System.Web.UI.WebControls.ObjectDataSourceView.GetResolvedMethodData(Type type, String methodName, IDictionary allParameters, DataSourceOperation operation)
+   at System.Web.UI.WebControls.ObjectDataSourceView.ExecuteUpdate(IDictionary keys, IDictionary values, IDictionary oldValues)
+   at System.Web.UI.DataSourceView.Update(IDictionary keys, IDictionary values, IDictionary oldValues, DataSourceViewOperationCallback callback)
+   at System.Web.UI.WebControls.GridView.HandleUpdate(GridViewRow row, Int32 rowIndex, Boolean causesValidation)
+   at System.Web.UI.WebControls.GridView.HandleEvent(EventArgs e, Boolean causesValidation, String validationGroup)
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/29 16:06:04]
+System.InvalidOperationException: ObjectDataSource 'odsOrderDetail' could not find a non-generic method 'UpdateOrderDetails' that has parameters: CustomerID, DeliveryDate, QuantityOrdered, ItemTypeID, PackagingID, OrderID, original_OrderID, original_ItemTypeID, original_PackagingID.
+   at System.Web.UI.WebControls.ObjectDataSourceView.GetResolvedMethodData(Type type, String methodName, IDictionary allParameters, DataSourceOperation operation)
+   at System.Web.UI.WebControls.ObjectDataSourceView.ExecuteUpdate(IDictionary keys, IDictionary values, IDictionary oldValues)
+   at System.Web.UI.DataSourceView.Update(IDictionary keys, IDictionary values, IDictionary oldValues, DataSourceViewOperationCallback callback)
+   at System.Web.UI.WebControls.GridView.HandleUpdate(GridViewRow row, Int32 rowIndex, Boolean causesValidation)
+   at System.Web.UI.WebControls.GridView.HandleEvent(EventArgs e, Boolean causesValidation, String validationGroup)
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/29 16:09:01]
+System.InvalidOperationException: ObjectDataSource 'odsOrderDetail' could not find a non-generic method 'UpdateOrderDetails' that has parameters: CustomerID, DeliveryDate, QuantityOrdered, ItemTypeID, PackagingID, OrderID, original_OrderID, original_ItemTypeID, original_PackagingID.
+   at System.Web.UI.WebControls.ObjectDataSourceView.GetResolvedMethodData(Type type, String methodName, IDictionary allParameters, DataSourceOperation operation)
+   at System.Web.UI.WebControls.ObjectDataSourceView.ExecuteUpdate(IDictionary keys, IDictionary values, IDictionary oldValues)
+   at System.Web.UI.DataSourceView.Update(IDictionary keys, IDictionary values, IDictionary oldValues, DataSourceViewOperationCallback callback)
+   at System.Web.UI.WebControls.GridView.HandleUpdate(GridViewRow row, Int32 rowIndex, Boolean causesValidation)
+   at System.Web.UI.WebControls.GridView.HandleEvent(EventArgs e, Boolean causesValidation, String validationGroup)
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/29 16:51:16]
+System.Web.HttpException: Server tags cannot contain <% ... %> constructs.
+   at System.Web.UI.TemplateParser.ProcessError(String message)
+   at System.Web.UI.TemplateParser.ParseStringInternal(String text, Encoding fileEncoding)
+   at System.Web.UI.TemplateParser.ParseString(String text, VirtualPath virtualPath, Encoding fileEncoding)
+----------------------
+
+[2025/07/29 16:59:15]
+System.Web.HttpException: The server tag is not well formed.
+   at System.Web.UI.TemplateParser.ProcessError(String message)
+   at System.Web.UI.TemplateParser.ParseStringInternal(String text, Encoding fileEncoding)
+   at System.Web.UI.TemplateParser.ParseString(String text, VirtualPath virtualPath, Encoding fileEncoding)
+----------------------
+
+[2025/07/29 17:20:57]
+System.Web.HttpException: The DataSourceID of 'cboNewItemDesc' must be the ID of a control of type IDataSource.  A control with ID 'sdsItems' could not be found.
+   at System.Web.UI.WebControls.DataBoundControl.GetDataSource()
+   at System.Web.UI.WebControls.DataBoundControl.ConnectToDataSourceView()
+   at System.Web.UI.WebControls.DataBoundControl.OnLoad(EventArgs e)
+   at AjaxControlToolkit.ComboBox.OnLoad(EventArgs e)
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/29 20:47:39]
+System.InvalidOperationException: A control with ID 'ddlDeliveryBy' could not be found for the trigger in UpdatePanel 'upnlDeliveryItems'.
+   at System.Web.UI.UpdatePanelControlTrigger.FindTargetControl(Boolean searchNamingContainers)
+   at System.Web.UI.AsyncPostBackTrigger.Initialize()
+   at System.Web.UI.UpdatePanelTriggerCollection.Initialize()
+   at System.Web.UI.UpdatePanel.Initialize()
+   at System.Web.UI.UpdatePanel.OnLoad(EventArgs e)
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/30 13:11:49]
+System.Web.HttpCompileException: C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx(40): error CS1061: 'pages_orderdetail_aspx' does not contain a definition for 'cboContacts_SelectedIndexChanged' and no accessible extension method 'cboContacts_SelectedIndexChanged' accepting a first argument of type 'pages_orderdetail_aspx' could be found (are you missing a using directive or an assembly reference?)
+   at System.Web.Compilation.BuildManager.CompileWebFile(VirtualPath virtualPath)
+   at System.Web.Compilation.BuildManager.GetVPathBuildResultInternal(VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile, Boolean throwIfNotFound, Boolean ensureIsUpToDate)
+   at System.Web.Compilation.BuildManager.GetVPathBuildResultWithNoAssert(HttpContext context, VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile, Boolean throwIfNotFound, Boolean ensureIsUpToDate)
+   at System.Web.Compilation.BuildManager.GetVirtualPathObjectFactory(VirtualPath virtualPath, HttpContext context, Boolean allowCrossApp, Boolean throwIfNotFound)
+   at System.Web.Compilation.BuildManager.CreateInstanceFromVirtualPath(VirtualPath virtualPath, Type requiredBaseType, HttpContext context, Boolean allowCrossApp)
+   at System.Web.UI.PageHandlerFactory.GetHandlerHelper(HttpContext context, String requestType, VirtualPath virtualPath, String physicalPath)
+   at System.Web.HttpApplication.MaterializeHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+----------------------
+
+[2025/07/30 13:13:41]
+System.Web.HttpCompileException: C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx(40): error CS1061: 'pages_orderdetail_aspx' does not contain a definition for 'cboContacts_SelectedIndexChanged' and no accessible extension method 'cboContacts_SelectedIndexChanged' accepting a first argument of type 'pages_orderdetail_aspx' could be found (are you missing a using directive or an assembly reference?)
+   at System.Web.Compilation.BuildManager.CompileWebFile(VirtualPath virtualPath)
+   at System.Web.Compilation.BuildManager.GetVPathBuildResultInternal(VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile, Boolean throwIfNotFound, Boolean ensureIsUpToDate)
+   at System.Web.Compilation.BuildManager.GetVPathBuildResultWithNoAssert(HttpContext context, VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile, Boolean throwIfNotFound, Boolean ensureIsUpToDate)
+   at System.Web.Compilation.BuildManager.GetVirtualPathObjectFactory(VirtualPath virtualPath, HttpContext context, Boolean allowCrossApp, Boolean throwIfNotFound)
+   at System.Web.Compilation.BuildManager.CreateInstanceFromVirtualPath(VirtualPath virtualPath, Type requiredBaseType, HttpContext context, Boolean allowCrossApp)
+   at System.Web.UI.PageHandlerFactory.GetHandlerHelper(HttpContext context, String requestType, VirtualPath virtualPath, String physicalPath)
+   at System.Web.HttpApplication.MaterializeHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+----------------------
+
+[2025/07/31 14:35:41]
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor)
+   at System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object[] parameters, Object[] arguments)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Web.UI.WebControls.ObjectDataSourceView.InvokeMethod(ObjectDataSourceMethod method, Boolean disposeInstance, Object& instance)
+   at System.Web.UI.WebControls.ObjectDataSourceView.ExecuteSelect(DataSourceSelectArguments arguments)
+   at System.Web.UI.DataSourceView.Select(DataSourceSelectArguments arguments, DataSourceViewSelectCallback callback)
+   at System.Web.UI.WebControls.BaseDataBoundControl.EnsureDataBound()
+   at System.Web.UI.WebControls.CompositeDataBoundControl.CreateChildControls()
+   at System.Web.UI.Control.EnsureChildControls()
+   at System.Web.UI.Control.PreRenderRecursiveInternal()
+   at System.Web.UI.Control.PreRenderRecursiveInternal()
+   at System.Web.UI.Control.PreRenderRecursiveInternal()
+   at System.Web.UI.Control.PreRenderRecursiveInternal()
+   at System.Web.UI.Control.PreRenderRecursiveInternal()
+   at System.Web.UI.Control.PreRenderRecursiveInternal()
+   at System.Web.UI.Control.PreRenderRecursiveInternal()
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/07/31 15:59:14]
+System.Web.HttpParseException: The tag contains duplicate 'CssClass' attributes.
+   at System.Web.UI.TemplateParser.ProcessException(Exception ex)
+   at System.Web.UI.TemplateParser.ParseStringInternal(String text, Encoding fileEncoding)
+   at System.Web.UI.TemplateParser.ParseString(String text, VirtualPath virtualPath, Encoding fileEncoding)
+----------------------
+
+[2025/08/02 22:02:01]
+System.Web.HttpParseException: Cannot create an object of type 'System.Web.UI.WebControls.FontUnit' from its string representation 'col-priority-3' for the 'Size' property.
+   at System.Web.UI.TemplateParser.ProcessException(Exception ex)
+   at System.Web.UI.TemplateParser.ParseStringInternal(String text, Encoding fileEncoding)
+   at System.Web.UI.TemplateParser.ParseString(String text, VirtualPath virtualPath, Encoding fileEncoding)
+----------------------
+
+[2025/08/03 20:40:51]
+System.Web.HttpParseException: Cannot create an object of type 'System.Web.UI.WebControls.Unit' from its string representation 'auto' for the 'Width' property.
+   at System.Web.UI.TemplateParser.ProcessException(Exception ex)
+   at System.Web.UI.TemplateParser.ParseStringInternal(String text, Encoding fileEncoding)
+   at System.Web.UI.TemplateParser.ParseString(String text, VirtualPath virtualPath, Encoding fileEncoding)
+----------------------
+

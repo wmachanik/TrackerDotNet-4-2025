@@ -51,24 +51,6 @@ namespace TrackerDotNet.Pages
         protected global::System.Web.UI.UpdatePanel upnlSendEmail;
 
         /// <summary>
-        /// autoLoadingStatus control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlGenericControl autoLoadingStatus;
-
-        /// <summary>
-        /// ltrlAutoLoadStatus control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal ltrlAutoLoadStatus;
-
-        /// <summary>
         /// tbxEmailSubject control.
         /// </summary>
         /// <remarks>

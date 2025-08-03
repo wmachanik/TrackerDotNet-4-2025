@@ -40,58 +40,53 @@
             </div>
         </ProgressTemplate>
     </asp:UpdateProgress>
-    <div class="simpleLightBrownForm" style="padding: 10px">
+    <div class="filter-toolbar" style="padding: 10px">
         <asp:UpdatePanel ID="upnlSendEmail" runat="server" ChildrenAsTriggers="true" UpdateMode="Conditional">
             <ContentTemplate>
-                <div id="autoLoadingStatus" runat="server" style="text-align: left; padding: 15px; background-color: #e3f2fd; border: 1px solid #2196f3; border-radius: 5px; margin: 10px 0;">
-                    <img src="../images/animi/QuaffeeProgress.gif" alt="loading..." width="24" height="24" /><br />
-                    <strong>Automatically preparing customer data...</strong><br />
-                    <span class="small">This may take 30-60 seconds. Page will update when ready.</span><br />
-                    <asp:Literal ID="ltrlAutoLoadStatus" runat="server" Text="" />
-                </div>
-
-                Subject:
-                <asp:TextBox ID="tbxEmailSubject" Text="Coffee Checkup" runat="server" Width="30em" Style="padding-right: 2px" />
-                <span class="small floatRight">
-                    <asp:Literal ID="ltrlEmailTextID" runat="server" Text="" /></span>
-                <br />
-                <br />
-                <ajaxToolkit:TabContainer ID="tabEmailBody" runat="server" Height="200px">
-                    <ajaxToolkit:TabPanel ID="tpnlEmailIntro" TabIndex="0" HeaderText="Checkup Intro" runat="server">
-                        <ContentTemplate>
-                            <asp:TextBox ID="tbxEmailIntro" runat="server" TextMode="MultiLine" Height="100%" Width="99%" Rows="10"
-                                Text="Welcome to Quaffee's coffee checkup or reminder" CausesValidation="false" />
-                            <ajaxToolkit:HtmlEditorExtender ID="HtmlEditorExtenderEmailIntro" TargetControlID="tbxEmailIntro" runat="server"
-                                DisplaySourceTab="true" EnableSanitization="false" />
-                            <br />
-                            <span class="small">Enter the text that will appear as the Introduction to the emails.</span><br />
-                        </ContentTemplate>
-                    </ajaxToolkit:TabPanel>
-                    <ajaxToolkit:TabPanel ID="tpnlEmailBody" TabIndex="1" HeaderText="Checkup Body" runat="server">
-                        <ContentTemplate>
-                            <asp:TextBox ID="tbxEmailBody" runat="server" TextMode="MultiLine" Height="100%" Width="99%" Rows="10"
-                                Text="" />
-                            <ajaxToolkit:HtmlEditorExtender ID="HtmlEditorExtenderEmailBody" TargetControlID="tbxEmailBody" runat="server"
-                                DisplaySourceTab="true" EnableSanitization="false" />
-                            <br />
-                            <span class="small">This text appears after the Intro, before the Summary of use. Use [#PREPDATE#], to place next PREPDATE,  [#DELIVERYDATE#] for customer deliver date</span>
-                        </ContentTemplate>
-                    </ajaxToolkit:TabPanel>
-                    <ajaxToolkit:TabPanel ID="tpnlEmailFooter" TabIndex="2" HeaderText="Checkup Footer" runat="server">
-                        <ContentTemplate>
-                            <asp:TextBox ID="tbxEmailFooter" runat="server" TextMode="MultiLine" Height="100%" Width="99%" Rows="10" Text="" />
-                            <ajaxToolkit:HtmlEditorExtender ID="HtmlEmailFooter" TargetControlID="tbxEmailFooter" runat="server"
-                                DisplaySourceTab="true" EnableSanitization="false" ClientIDMode="Predictable" />
-                            <br />
-                            <span class="small">Enter the footer, which appears under the summary data.</span>
-                        </ContentTemplate>
-                    </ajaxToolkit:TabPanel>
-                </ajaxToolkit:TabContainer>
-                <asp:Literal ID="ltrlStatus" Text="" runat="server" />
-                <div class="simpleLightBrownForm" style="text-align: center">
-                    <div class="simpleLightBrownForm" style="text-align: center">
+                <div class="filter-block">
+                    <div>
+                        <asp:Label AssociatedControlID="tbxEmailSubject" Text="Subject:" runat="server" />
+                        <asp:TextBox ID="tbxEmailSubject" Text="Coffee Checkup" runat="server" Width="30em" Style="padding-right: 2px" />
+                        <span class="small floatRight">
+                            <asp:Literal ID="ltrlEmailTextID" runat="server" Text="" /></span>
+                        <br />
+                        <br />
+                        <ajaxToolkit:TabContainer ID="tabEmailBody" runat="server" Height="200px">
+                            <ajaxToolkit:TabPanel ID="tpnlEmailIntro" TabIndex="0" HeaderText="Checkup Intro" runat="server">
+                                <ContentTemplate>
+                                    <asp:TextBox ID="tbxEmailIntro" runat="server" TextMode="MultiLine" Height="100%" Width="99%" Rows="10"
+                                        Text="Welcome to Quaffee's coffee checkup or reminder" CausesValidation="false" />
+                                    <ajaxToolkit:HtmlEditorExtender ID="HtmlEditorExtenderEmailIntro" TargetControlID="tbxEmailIntro" runat="server"
+                                        DisplaySourceTab="true" EnableSanitization="false" />
+                                    <br />
+                                    <span class="small">Enter the text that will appear as the Introduction to the emails.</span><br />
+                                </ContentTemplate>
+                            </ajaxToolkit:TabPanel>
+                            <ajaxToolkit:TabPanel ID="tpnlEmailBody" TabIndex="1" HeaderText="Checkup Body" runat="server">
+                                <ContentTemplate>
+                                    <asp:TextBox ID="tbxEmailBody" runat="server" TextMode="MultiLine" Height="100%" Width="99%" Rows="10"
+                                        Text="" />
+                                    <ajaxToolkit:HtmlEditorExtender ID="HtmlEditorExtenderEmailBody" TargetControlID="tbxEmailBody" runat="server"
+                                        DisplaySourceTab="true" EnableSanitization="false" />
+                                    <br />
+                                    <span class="small">This text appears after the Intro, before the Summary of use. Use [#PREPDATE#], to place next PREPDATE,  [#DELIVERYDATE#] for customer deliver date</span>
+                                </ContentTemplate>
+                            </ajaxToolkit:TabPanel>
+                            <ajaxToolkit:TabPanel ID="tpnlEmailFooter" TabIndex="2" HeaderText="Checkup Footer" runat="server">
+                                <ContentTemplate>
+                                    <asp:TextBox ID="tbxEmailFooter" runat="server" TextMode="MultiLine" Height="100%" Width="99%" Rows="10" Text="" />
+                                    <ajaxToolkit:HtmlEditorExtender ID="HtmlEmailFooter" TargetControlID="tbxEmailFooter" runat="server"
+                                        DisplaySourceTab="true" EnableSanitization="false" ClientIDMode="Predictable" />
+                                    <br />
+                                    <span class="small">Enter the footer, which appears under the summary data.</span>
+                                </ContentTemplate>
+                            </ajaxToolkit:TabPanel>
+                        </ajaxToolkit:TabContainer>
+                        <asp:Literal ID="ltrlStatus" Text="" runat="server" />
+                    </div>
+                    <div style="text-align: center; padding-top: 12px">
                         <asp:Label ID="Label1" runat="server" Text="Reminder Window (days):" AssociatedControlID="ddlReminderWindow" CssClass="small" />
-                        <asp:DropDownList ID="ddlReminderWindow" style="min-width: 16px" runat="server" CssClass="small" AutoPostBack="true" OnSelectedIndexChanged="ddlReminderWindow_SelectedIndexChanged" />
+                        <asp:DropDownList ID="ddlReminderWindow" Style="min-width: 16px" runat="server" CssClass="small" AutoPostBack="true" OnSelectedIndexChanged="ddlReminderWindow_SelectedIndexChanged" />
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         <!-- Make prep data button visible for auto-prep to work -->
                         <asp:Button ID="btnPrepData" Text="Prep Data" runat="server"
@@ -120,7 +115,7 @@
     </div>
     <h2>Customers to receive the checkup/reminder</h2>
     <!-- Customer status area -->
-    <div class="simpleLightBrownForm small">
+    <div class="results-container small">
         <table border="0">
             <tr style="text-align: center; font-size: large">
                 <td><b>Customers To Get Reminder</b></td>
@@ -130,7 +125,7 @@
                 <td>
                     <asp:UpdatePanel ID="upnlCustomerCheckup" runat="server" Visible="true" ChildrenAsTriggers="true" UpdateMode="Conditional">
                         <ContentTemplate>
-                            <asp:GridView ID="gvCustomerCheckup" runat="server" CssClass="TblWhite"
+                            <asp:GridView ID="gvCustomerCheckup" runat="server" CssClass="results-table"
                                 AllowPaging="True" PageSize="25" AutoGenerateColumns="False" DataKeyNames="CustomerID"
                                 DataSourceID="odsContactsToSendCheckup" AllowSorting="True">
                                 <EmptyDataTemplate>
