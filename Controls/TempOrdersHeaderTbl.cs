@@ -14,7 +14,7 @@ namespace TrackerDotNet.Controls
 {
     public class TempOrdersHeaderTbl
     {
-        private const string CONST_SQL_SELECT = "SELECT TOHeaderID, CustomerID, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredByID, Confirmed, Done, Notes FROM TempOrdersHeaderTbl";
+        private const string CONST_SQL_SELECT = "SELECT TOHeaderID, CustomerID, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredByID, Confirmed, Done, Notes FROM TempOrdersHeaderTbl"; 
         private const string CONST_SQL_GETLASTHEADERID = "SELECT TOP 1 TOHeaderID FROM TempOrdersHeaderTbl ORDER By TOHeaderID DESC";
         private const string CONST_SQL_INSERT = "INSERT INTO TempOrdersHeaderTbl (CustomerID, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredByID, Confirmed, Done, Notes)  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         private const string CONST_SQL_MARKTEMPORDERSASDONE = "UPDATE OrdersTbl SET OrdersTbl.Done = True WHERE CustomderId = ? AND EXISTS (SELECT RequiredByDate FROM TempOrdersHeaderTbl  WHERE (RequiredByDate = OrdersTbl.RequiredByDate))";
@@ -99,7 +99,7 @@ namespace TrackerDotNet.Controls
         public List<TempOrdersHeaderTbl> GetAll(string SortBy)
         {
             List<TempOrdersHeaderTbl> all = new List<TempOrdersHeaderTbl>();
-            string strSQL = "SELECT TOHeaderID, CustomerID, OrderDate, RoastDate, RequiredByDate, ToBeDeliveredByID, Confirmed, Done, Notes FROM TempOrdersHeaderTbl";
+            string strSQL = CONST_SQL_SELECT;
             if (!string.IsNullOrEmpty(SortBy))
                 strSQL = $"{strSQL} ORDER BY {SortBy}";
             TrackerDb trackerDb = new TrackerDb();
@@ -124,7 +124,33 @@ namespace TrackerDotNet.Controls
             trackerDb.Close();
             return all;
         }
-
+        public TempOrdersHeaderTbl GetFirst()
+        {
+            TempOrdersHeaderTbl header = null;
+            TrackerDb trackerDb = new TrackerDb();
+            IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader(CONST_SQL_SELECT);
+            if (dataReader != null)
+            {
+                if (dataReader.Read())
+                {
+                    header = new TempOrdersHeaderTbl()
+                    {
+                        TOHeaderID = dataReader["TOHeaderID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["TOHeaderID"]),
+                        CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
+                        OrderDate = dataReader["OrderDate"] == DBNull.Value ? TimeZoneUtils.Now().Date : Convert.ToDateTime(dataReader["OrderDate"]).Date,
+                        RoastDate = dataReader["RoastDate"] == DBNull.Value ? TimeZoneUtils.Now().Date : Convert.ToDateTime(dataReader["RoastDate"]).Date,
+                        RequiredByDate = dataReader["RequiredByDate"] == DBNull.Value ? TimeZoneUtils.Now().Date : Convert.ToDateTime(dataReader["RequiredByDate"]).Date,
+                        ToBeDeliveredByID = dataReader["ToBeDeliveredByID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ToBeDeliveredByID"]),
+                        Confirmed = dataReader["Confirmed"] != DBNull.Value && Convert.ToBoolean(dataReader["Confirmed"]),
+                        Done = dataReader["Done"] != DBNull.Value && Convert.ToBoolean(dataReader["Done"]),
+                        Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString()
+                    };
+                }
+                dataReader.Close();
+            }
+            trackerDb.Close();
+            return header;
+        }
         public bool Insert(TempOrdersHeaderTbl pHeaderData)
         {
             TrackerDb trackerDb = new TrackerDb();

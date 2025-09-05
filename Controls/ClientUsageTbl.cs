@@ -14,7 +14,7 @@ namespace TrackerDotNet.Controls
 
     public class ClientUsageTbl
     {
-        private const string CONST_CONSTRING = "Tracker08ConnectionString";
+        //private const string CONST_CONSTRING = "Tracker08ConnectionString";
         private const string CONST_SQL_SELECT = "SELECT TOP 1 LastCupCount, NextCoffeeBy, NextCleanOn, NextFilterEst, NextDescaleEst, NextServiceEst, DailyConsumption, FilterAveCount, DescaleAveCount, ServiceAveCount, CleanAveCount  FROM ClientUsageTbl WHERE CustomerID = ?";
         private const string CONST_SQL_ISARECORD = "SELECT TOP 1 LastCupCount FROM ClientUsageTbl WHERE CustomerID = ?";
         private const string CONST_SQL_SELECTDAILYCONSUMPTION = "SELECT TOP 1 DailyConsumption FROM ClientUsageTbl WHERE CustomerID = ?";

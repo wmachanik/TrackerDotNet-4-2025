@@ -66,7 +66,8 @@ namespace TrackerDotNet.Classes
 
                 // Use user-specific timestamp
                 string timeStamp = TimeZoneUtils.Now().ToString("yyyy-MM-dd HH:mm:ss");
-                string timeZoneId = TimeZoneUtils.GetZoneId();
+                //string timeZoneId = TimeZoneUtils.GetZoneId(); -> full name
+                string timeZoneId = TimeZoneUtils.GetZoneAbbreviation();
 
                 string entry = $"[{timeStamp}] [User: {user}] [Zone: {timeZoneId}] {message}";
 

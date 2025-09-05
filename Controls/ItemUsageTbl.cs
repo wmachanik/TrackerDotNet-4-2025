@@ -231,7 +231,7 @@ namespace TrackerDotNet.Controls
             TrackerDb trackerDb = new TrackerDb();
             trackerDb.AddParams((object)ItemUsageLine.ItemDate, DbType.Date);
             trackerDb.AddParams((object)ItemUsageLine.ItemProvidedID, DbType.Int32);
-            trackerDb.AddParams((object)Math.Round(ItemUsageLine.AmountProvided, 2), DbType.Double);
+            trackerDb.AddParams((object)Math.Round(ItemUsageLine.AmountProvided, SystemConstants.DatabaseConstants.NumDecimalPoints), DbType.Double);
             trackerDb.AddParams((object)ItemUsageLine.PrepTypeID, DbType.Int32);
             trackerDb.AddParams((object)ItemUsageLine.PackagingID, DbType.Int32);
             trackerDb.AddParams((object)ItemUsageLine.Notes, DbType.String);

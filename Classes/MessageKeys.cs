@@ -143,6 +143,7 @@ namespace TrackerDotNet.Classes
             public const string StatusEmailSubject = "Repairs.StatusEmailSubject";
             public const string StatusEmailBody = "Repairs.StatusEmailBody";
             public const string CollectSwopOutNote = "Repairs.CollectSwopOutNote";
+            public const string DisclaimerFooter = "Repairs.DisclaimerFooter";
             public const string StatusUpdateSuccess = "Repairs.StatusUpdateSuccess";
             public const string ErrorUpdating = "Repairs.ErrorUpdating";
         }

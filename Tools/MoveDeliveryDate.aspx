@@ -13,7 +13,7 @@
   </asp:UpdateProgress>
   <asp:UpdatePanel ID="upnlMoveDeliveryDate" runat="server" ChildrenAsTriggers="true"  >
     <ContentTemplate>
-      <table class="AutoWidthFrm">
+      <table class="TblCoffee">
         <tbody>
           <tr>
             <td>Old Delivery Date</td>

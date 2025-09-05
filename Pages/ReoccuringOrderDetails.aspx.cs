@@ -63,6 +63,9 @@ namespace TrackerDotNet.Pages
                 this.btnDelete.Enabled = false;
                 this.EnabledCheckBox.Checked = true;
             }
+            // set the date Fomrat of the ajax boxes
+            UntilDateTextBox_CalendarExtender.Format = SystemConstants.FormatConstants.DateFormat;
+            LastDateTextBox_CalendarExtender.Format = SystemConstants.FormatConstants.DateFormat;
         }
 
         private void PutDataFromForm(int pReoccuringOrderID)
@@ -94,9 +97,9 @@ namespace TrackerDotNet.Pages
             dataFromForm.ReoccuranceTypeID = Convert.ToInt32(this.ddlReoccuranceType.SelectedValue);
             dataFromForm.ItemRequiredID = Convert.ToInt32(this.ddlItemType.SelectedValue);
             dataFromForm.QtyRequired = Convert.ToDouble(this.QuantityTextBox.Text);
-            dataFromForm.RequireUntilDate = string.IsNullOrWhiteSpace(this.UntilDateTextBox.Text) ? TrackerTools.STATIC_TrackerMinDate : Convert.ToDateTime(this.UntilDateTextBox.Text);
-            dataFromForm.DateLastDone = string.IsNullOrWhiteSpace(this.LastDateTextBox.Text) ? TrackerTools.STATIC_TrackerMinDate : Convert.ToDateTime(this.LastDateTextBox.Text);
-            dataFromForm.NextDateRequired = string.IsNullOrWhiteSpace(this.NextDateLabel.Text) ? TrackerTools.STATIC_TrackerMinDate : Convert.ToDateTime(this.NextDateLabel.Text);
+            dataFromForm.RequireUntilDate = TrackerTools.ParseUserDate(this.UntilDateTextBox.Text);
+            dataFromForm.DateLastDone = TrackerTools.ParseUserDate(this.LastDateTextBox.Text);
+            dataFromForm.NextDateRequired = TrackerTools.ParseUserDate(this.NextDateLabel.Text);
             dataFromForm.PackagingID = Convert.ToInt32(this.ddlPackagingTypes.SelectedValue);
             dataFromForm.Enabled = this.EnabledCheckBox.Checked;
             dataFromForm.Notes = this.NotesTextBox.Text;

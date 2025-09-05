@@ -237,7 +237,7 @@ namespace TrackerDotNet.Pages
             this.ddlEquipTypes.SelectedValue = pCustomersTblData.EquipType.ToString();
             this.MachineSNTextBox.Text = pCustomersTblData.MachineSN;
             this.ddlFirstPreference.SelectedValue = pCustomersTblData.CoffeePreference.ToString();
-            this.PriPrefQtyTextBox.Text = pCustomersTblData.PriPrefQty.ToString();
+            this.PriPrefQtyTextBox.Text = pCustomersTblData.PriPrefQty.ToString("0.###");
             this.ddlPackagingTypes.SelectedValue = pCustomersTblData.PrefPackagingID.ToString();
             this.ddlDeliveryBy.SelectedValue = pCustomersTblData.PreferedAgent.ToString();
             this.ddlAgent.SelectedValue = pCustomersTblData.SalesAgentID.ToString();
@@ -412,45 +412,13 @@ namespace TrackerDotNet.Pages
             return pPackagingID > 0 ? new PackagingTbl().GetPackagingDesc(pPackagingID) : string.Empty;
         }
 
-
-        private void UpdateRecord()
-        {
-            string str = new CustomersTbl().UpdateCustomer(this.GetDataFromForm(), this.StringToInt64(this.CompanyIDLabel.Text));
-            if (string.IsNullOrWhiteSpace(str))
-                this.ltrlStatus.Text = "Record Updated";
-            else
-                this.ltrlStatus.Text = str;
-        }
-
-        private void ReturnToPrevPage() => this.ReturnToPrevPage(false);
-
-        private void ReturnToPrevPage(bool GoToCustomers)
-        {
-            if (GoToCustomers || string.IsNullOrWhiteSpace(CustomerDetails.prevPage))
-                this.Response.Redirect("~/Pages/Customers.aspx");
-            else
-                this.Response.Redirect(CustomerDetails.prevPage);
-        }
-
-        protected void btnUpdate_Click(object sender, EventArgs e) => this.UpdateRecord();
-
-        protected void btnUpdateAndReturn_Click(object sender, EventArgs e)
-        {
-            this.UpdateRecord();
-            this.ReturnToPrevPage();
-        }
-
-        protected void btnCancel_Click(object sender, EventArgs e) => this.ReturnToPrevPage();
-
         protected CustomersAccInfoTbl CopyCompanyData2AccInfo(CustomersTbl pCustomer)
         {
             CustomersAccInfoTbl customersAccInfoTbl = new CustomersAccInfoTbl();
             customersAccInfoTbl.CustomerID = pCustomer.CustomerID;
             string[] strArray = pCustomer.BillingAddress.Split(new string[2]
-            {
-      ",",
-      ";"
-            }, StringSplitOptions.RemoveEmptyEntries);
+                {",",";"}, 
+                StringSplitOptions.RemoveEmptyEntries);
             customersAccInfoTbl.BillAddr1 = strArray.Length > 0 ? strArray[0].Trim() : string.Empty;
             customersAccInfoTbl.BillAddr2 = strArray.Length > 1 ? strArray[1].Trim() : string.Empty;
             customersAccInfoTbl.BillAddr3 = strArray.Length > 2 ? strArray[2].Trim() : string.Empty;
@@ -489,25 +457,30 @@ namespace TrackerDotNet.Pages
                     pCustomersAccInfoTbl.Enabled = true;
                     if (string.IsNullOrEmpty(pCustomersAccInfoTbl.Insert(pCustomersAccInfoTbl)))
                     {
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' inserted customer {customerByName.CustomerID} ({customerByName.CompanyName}) and account info.");
                         showMessageBox showMessageBox = new showMessageBox(this.Page, "Insert", "Customer account info added, please edit.");
                         this.Response.Redirect($"{this.Page.ResolveUrl("~/Pages/CustomerDetails.aspx")}?{"ID"}={customerByName.CustomerID}&{"Focus_AccInfo"}=Y");
                     }
                     else
                     {
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' inserted customer {customerByName.CustomerID} ({customerByName.CompanyName}), but account info insert failed.");
                         showMessageBox showMessageBox1 = new showMessageBox(this.Page, "Insert", "Error inserting customer account info");
                     }
                     this.ltrlStatus.Text = "Customer Added";
                 }
                 else
                 {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' inserted customer ({dataFromForm.CompanyName}), but could not retrieve new CustomerID.");
                     string script = $"redirect('{$"{this.Page.ResolveUrl("~/Pages/Customers.aspx")}?CompanyName={customerByName.CompanyName}"}');";
                     System.Web.UI.ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), "CustomerInserted", script, true);
                 }
             }
             else
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' failed to insert customer ({dataFromForm.CompanyName}): {empty}");
                 this.ltrlStatus.Text = "ERROR: " + empty;
+            }
         }
-
         protected void ServerButton_Click(object sender, EventArgs e)
         {
             this.ClientScript.RegisterStartupScript(this.GetType(), "key", "launchModal();", true);
@@ -515,7 +488,7 @@ namespace TrackerDotNet.Pages
 
         protected void btnAddLasOrder_Click(object sender, EventArgs e)
         {
-            this.Response.Redirect($"~/Pages/NewOrderDetail.aspx?CoID={this.CompanyIDLabel.Text}&LastOrder=Y");
+            this.Response.Redirect($"~/Pages/OrderDetail.aspx?{SystemConstants.UrlParameterConstants.CustomerID}={this.CompanyIDLabel.Text}&LastOrder=Y");
         }
 
         protected void btnForceNext_Click(object sender, EventArgs e)
@@ -545,6 +518,62 @@ namespace TrackerDotNet.Pages
             return pItemID > 0 ? ItemTypeTbl.GetItemTypeDescById(pItemID) : string.Empty;
         }
 
+        protected void accPaymentTermsDropDownList_DataBound(object sender, EventArgs e)
+        {
+            DropDownList dropDownList = (DropDownList)sender;
+            if (dropDownList == null || !string.IsNullOrEmpty(dropDownList.SelectedValue))
+                return;
+            long CustomerIDFromRequest = this.GetCustomerIDFromRequest();
+            if (CustomerIDFromRequest > 0L)
+                new CustomersAccInfoTbl().GetByPaymentTypeIDByCustomerID(CustomerIDFromRequest);
+            else
+                dropDownList.SelectedIndex = 1;
+        }
+
+        protected void btnCopy2AccInfo_Click(object sender, EventArgs e)
+        {
+            this.PlaceAccDataOnForm(this.CopyCompanyData2AccInfo(this.GetDataFromForm()));
+            this.uppnlTabContainer.Update();
+            this.dvCustomersAccInfoUpdatePanel.Update();
+        }
+
+        protected void accUpdateButton_Click(object sender, EventArgs e)
+        {
+            this.UpdateAccountInfo(this.GetAccDataFromForm());
+        }
+
+        private void UpdateRecord()
+        {
+            string str = new CustomersTbl().UpdateCustomer(this.GetDataFromForm(), this.StringToInt64(this.CompanyIDLabel.Text));
+            if (string.IsNullOrWhiteSpace(str))
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' updated customer {this.CompanyIDLabel.Text}.");
+                this.ltrlStatus.Text = "Record Updated";
+            }
+            else
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' failed to update customer {this.CompanyIDLabel.Text}: {str}");
+                this.ltrlStatus.Text = str;
+            }
+        }
+        private void ReturnToPrevPage() => this.ReturnToPrevPage(false);
+
+        private void ReturnToPrevPage(bool GoToCustomers)
+        {
+            if (GoToCustomers || string.IsNullOrWhiteSpace(CustomerDetails.prevPage))
+                this.Response.Redirect("~/Pages/Customers.aspx");
+            else
+                this.Response.Redirect(CustomerDetails.prevPage);
+        }
+        protected void btnUpdate_Click(object sender, EventArgs e) => this.UpdateRecord();
+
+        protected void btnUpdateAndReturn_Click(object sender, EventArgs e)
+        {
+            this.UpdateRecord();
+            this.ReturnToPrevPage();
+        }
+        protected void btnCancel_Click(object sender, EventArgs e) => this.ReturnToPrevPage();
+
         protected void gvItems_RowCommand(object sender, GridViewCommandEventArgs e)
         {
             bool flag = false;
@@ -553,6 +582,7 @@ namespace TrackerDotNet.Pages
                 ItemUsageTbl itemUsageTbl = new ItemUsageTbl();
                 itemUsageTbl.ClientUsageLineNo = Convert.ToInt32(e.CommandArgument);
                 itemUsageTbl.DeleteItemLine(itemUsageTbl.ClientUsageLineNo);
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' deleted item line {itemUsageTbl.ClientUsageLineNo} for customer {this.CompanyIDLabel.Text}.");
                 flag = true;
             }
             else if (e.CommandName == "Update")
@@ -575,6 +605,7 @@ namespace TrackerDotNet.Pages
                 ItemUsageLine.CustomerID = this.StringToInt64(this.CompanyIDLabel.Text);
                 ItemUsageLine.ClientUsageLineNo = this.StringToInt32(control7.Text);
                 ItemUsageLine.UpdateItemsUsed(ItemUsageLine);
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' updated item line {ItemUsageLine.ClientUsageLineNo} for customer {this.CompanyIDLabel.Text}.");
                 flag = true;
             }
             if (!flag)
@@ -584,41 +615,19 @@ namespace TrackerDotNet.Pages
             this.upnlItems.Update();
         }
 
-        protected void accPaymentTermsDropDownList_DataBound(object sender, EventArgs e)
-        {
-            DropDownList dropDownList = (DropDownList)sender;
-            if (dropDownList == null || !string.IsNullOrEmpty(dropDownList.SelectedValue))
-                return;
-            long CustomerIDFromRequest = this.GetCustomerIDFromRequest();
-            if (CustomerIDFromRequest > 0L)
-                new CustomersAccInfoTbl().GetByPaymentTypeIDByCustomerID(CustomerIDFromRequest);
-            else
-                dropDownList.SelectedIndex = 1;
-        }
-
-        protected void btnCopy2AccInfo_Click(object sender, EventArgs e)
-        {
-            this.PlaceAccDataOnForm(this.CopyCompanyData2AccInfo(this.GetDataFromForm()));
-            this.uppnlTabContainer.Update();
-            this.dvCustomersAccInfoUpdatePanel.Update();
-        }
-
         protected void UpdateAccountInfo(CustomersAccInfoTbl pUpdateAccInfo)
         {
             string str = pUpdateAccInfo.Update(pUpdateAccInfo);
             if (string.IsNullOrEmpty(str))
             {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' updated account info {pUpdateAccInfo.CustomersAccInfoID} for customer {pUpdateAccInfo.CustomerID}.");
                 showMessageBox showMessageBox1 = new showMessageBox(this.Page, "Update", "Customer Account Info Updated");
             }
             else
             {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' failed to update account info {pUpdateAccInfo.CustomersAccInfoID} for customer {pUpdateAccInfo.CustomerID}: {str}");
                 showMessageBox showMessageBox2 = new showMessageBox(this.Page, "Update", "Error updating: " + str);
             }
-        }
-
-        protected void accUpdateButton_Click(object sender, EventArgs e)
-        {
-            this.UpdateAccountInfo(this.GetAccDataFromForm());
         }
 
         protected void accAddDetailsButton_Click(object sender, EventArgs e)
@@ -629,6 +638,7 @@ namespace TrackerDotNet.Pages
             string str = accDataFromForm.Insert(accDataFromForm);
             if (string.IsNullOrEmpty(str))
             {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' inserted account info for customer {accDataFromForm.CustomerID}.");
                 showMessageBox showMessageBox = new showMessageBox(this.Page, "Insert", "Customer Account Info Inserted");
                 this.accAddDetailsButton.Enabled = false;
                 this.accUpdateButton.Enabled = true;
@@ -644,6 +654,7 @@ namespace TrackerDotNet.Pages
                 }
                 else
                 {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' failed to insert account info for customer {accDataFromForm.CustomerID}: {str}");
                     showMessageBox showMessageBox = new showMessageBox(this.Page, "Insert", "Error inserting: " + str);
                 }
             }
@@ -660,33 +671,29 @@ namespace TrackerDotNet.Pages
                     return;
                 }
 
-                // Force the customer's next coffee date to be within checkup range (5 days from now)
                 DateTime forceDate = TimeZoneUtils.Now().Date.AddDays(5);
-                
                 ClientUsageTbl clientUsage = new ClientUsageTbl();
                 bool result = clientUsage.ForceNextCoffeeDate(forceDate, customerID);
-                
+
                 if (result)
                 {
-                    // Reset reminder count so they're eligible for reminders
                     CustomersTbl customersTbl = new CustomersTbl();
                     customersTbl.ResetReminderCount(customerID);
-                    
-                    // Refresh the usage display
+
                     this.upnlNextItems.Update();
-                    
-                    var successMsg = new showMessageBox(this.Page, 
-                        "Force Checkup", 
-                        $"Customer {customerID} has been forced into next checkup cycle. Next coffee date set to {forceDate:d}");
+
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' forced checkup for customer {customerID}, next coffee date set to {forceDate:d}.");
+                    var successMsg = new showMessageBox(this.Page, "Force Checkup", $"Customer {customerID} has been forced into next checkup cycle. Next coffee date set to {forceDate:d}");
                 }
                 else
                 {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"User '{User.Identity.Name}' failed to force checkup for customer {customerID}.");
                     var errorMsg = new showMessageBox(this.Page, "Error", $"Failed to force checkup for customer id: {customerID}");
                 }
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("customerdetails", $"Error in btnForceCheckup_Click: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, $"Error in btnForceCheckup_Click: {ex.Message}");
                 var errorMsg = new showMessageBox(this.Page, "Error", $"Error forcing checkup: {ex.Message}");
             }
         }

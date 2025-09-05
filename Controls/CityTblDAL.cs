@@ -26,7 +26,7 @@ namespace TrackerDotNet.Controls
 {
     public class CityTblDAL
     {
-        private const string CONST_CONSTRING = "Tracker08ConnectionString";
+        //private const string CONST_CONSTRING = "Tracker08ConnectionString";
         private const string CONST_SQL_SUMMARYDATA = "SELECT ID, City FROM CityTbl";
         private const string CONST_SQL_SELECTCITYBYID = "SELECT City FROM CityTbl WHERE ID = ?";
         private const string CONST_SQL_SELECTIDBYCITYBY = "SELECT ID FROM CityTbl WHERE City Like '?'";

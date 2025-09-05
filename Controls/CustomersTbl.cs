@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Web;
 using System.Web.Configuration;
@@ -20,7 +21,7 @@ namespace TrackerDotNet.Controls
         public const long CONST_CustomerID_GENERALOROTHER = 9;
         public const string CONST_STR_CustomerID_GENERALOROTHER = "9";
         private const int CONST_MAXREMINDERS = 10;
-        private const string CONST_CONSTRING = "Tracker08ConnectionString";
+        //private const string CONST_CONSTRING = "Tracker08ConnectionString";
         private const string CONST_SQL_CUSTOMERS_SELECT = "SELECT CustomerID, CompanyName, ContactTitle, ContactFirstName, ContactLastName, ContactAltFirstName, ContactAltLastName, Department, BillingAddress, City, StateOrProvince AS Province, PostalCode,  [Country/Region] AS Region, PhoneNumber, Extension, FaxNumber, CellNumber, EmailAddress, AltEmailAddress, ContractNo, CustomerTypeID, EquipType, CoffeePreference, PriPrefQty, PrefPrepTypeID, PrefPackagingID,  SecondaryPreference, SecPrefQty, TypicallySecToo, PreferedAgent, SalesAgentID, MachineSN,  UsesFilter, autofulfill, enabled, PredictionDisabled, AlwaysSendChkUp, NormallyResponds,  ReminderCount, LastDateSentReminder, Notes FROM CustomersTbl";
         private const string CONST_SQL_CUSTOMERS_INSERT = "INSERT INTO CustomersTbl (CompanyName, ContactTitle, ContactFirstName, ContactLastName, ContactAltFirstName, ContactAltLastName, Department, BillingAddress, City, StateOrProvince, PostalCode, [Country/Region], PhoneNumber, Extension, FaxNumber, CellNumber, EmailAddress, AltEmailAddress, ContractNo, CustomerTypeID, EquipType, CoffeePreference, PriPrefQty, PrefPrepTypeID, PrefPackagingID,  SecondaryPreference, SecPrefQty, TypicallySecToo, PreferedAgent, SalesAgentID, MachineSN, UsesFilter, autofulfill, enabled, PredictionDisabled,  AlwaysSendChkUp, NormallyResponds, ReminderCount, Notes) VALUES (?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?)";
         private const string CONST_SQL_CUSTOMERS_UPDATE = "UPDATE CustomersTbl SET CompanyName = ?, ContactTitle = ?, ContactFirstName = ?, ContactLastName = ?,  ContactAltFirstName = ?, ContactAltLastName = ?, Department = ?, BillingAddress = ?, City = ?,  StateOrProvince = ?, PostalCode = ?, [Country/Region] = ?, PhoneNumber = ?, Extension = ?,  FaxNumber = ?, CellNumber = ?, EmailAddress = ?, AltEmailAddress = ?, ContractNo = ?, CustomerTypeID = ?, EquipType = ?, CoffeePreference = ?, PriPrefQty = ?, PrefPrepTypeID = ?, PrefPackagingID = ?,  SecondaryPreference = ?, SecPrefQty = ?, TypicallySecToo = ?, PreferedAgent = ?, SalesAgentID = ?,  MachineSN = ?, UsesFilter = ?, autofulfill = ?, enabled = ?, PredictionDisabled = ?,  AlwaysSendChkUp = ?, NormallyResponds = ?, ReminderCount = ?, Notes = ? WHERE CustomersTbl.CustomerID = ?";
@@ -462,6 +463,54 @@ namespace TrackerDotNet.Controls
             trackerDb.Close();
             return allCustomers;
         }
+        /// <summary>
+        /// Gets all customers with company names formatted for ComboBox binding.
+        /// Disabled customers are prefixed with underscore, following the same pattern as ItemTypeTbl.GetAllItemDesc()
+        /// </summary>
+        [DataObjectMethod(DataObjectMethodType.Select)]
+        public List<CustomersTbl> GetAllCustomerNames()
+        {
+            return GetAllCustomerNames(string.Empty);
+        }
+        /// <summary>
+        /// Gets all customers with company names formatted for ComboBox binding with custom sorting.
+        /// Disabled customers are prefixed with underscore, following the same pattern as ItemTypeTbl.GetAllItemDesc()
+        /// </summary>
+        public List<CustomersTbl> GetAllCustomerNames(string sortBy)
+        {
+            List<CustomersTbl> customerNames = new List<CustomersTbl>();
+            TrackerDb trackerDb = new TrackerDb();
+
+            // Use the same IIF pattern as ItemTypeTbl - prefix disabled customers with underscore
+            string sql = "SELECT CustomerID, IIF(enabled, CompanyName, '_' + CompanyName) AS CompanyName FROM CustomersTbl";
+
+            // Add sorting - default is enabled first, then alphabetical (same as ItemTypeTbl pattern)
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                sql += $" ORDER BY {sortBy}";
+            }
+            else
+            {
+                sql += " ORDER BY enabled DESC, CompanyName ASC";
+            }
+
+            IDataReader reader = trackerDb.ExecuteSQLGetDataReader(sql);
+            if (reader != null)
+            {
+                while (reader.Read())
+                {
+                    customerNames.Add(new CustomersTbl
+                    {
+                        CustomerID = reader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt64(reader["CustomerID"]),
+                        CompanyName = reader["CompanyName"] == DBNull.Value ? string.Empty : reader["CompanyName"].ToString()
+                    });
+                }
+                reader.Close();
+            }
+            trackerDb.Close();
+
+            return customerNames;
+        }
 
         public CustomersTbl GetCustomerByCustomerID(long pCustomerID)
         {
@@ -596,7 +645,7 @@ namespace TrackerDotNet.Controls
 
         public int GetReminderCount(long pCustomerID)
         {
-            int reminderCount = -1;
+            int reminderCount = SystemConstants.DatabaseConstants.InvalidID;
             TrackerDb trackerDb = new TrackerDb();
             trackerDb.AddWhereParams((object)pCustomerID, DbType.Int64);
             IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT ReminderCount FROM CustomersTbl WHERE CustomersTbl.CustomerID = ?");
@@ -693,7 +742,7 @@ namespace TrackerDotNet.Controls
         public bool DisableCustomer(long customerId, string notes)
         {
             string currentUser = HttpContext.Current?.User?.Identity?.Name ?? "System";
-            
+
             // If notes are provided, append user and date info
             if (!string.IsNullOrEmpty(notes))
             {
@@ -702,12 +751,12 @@ namespace TrackerDotNet.Controls
 
             string sql = CONST_SQL_CUSTOMERS_DISABLE;
             TrackerDb trackerDb = new TrackerDb();
-            
+
             try
             {
                 trackerDb.AddParams((object)notes, DbType.String);
                 trackerDb.AddWhereParams((object)customerId, DbType.Int64);
-                
+
                 string result = trackerDb.ExecuteNonQuerySQL(sql);
                 bool success = string.IsNullOrEmpty(result);
 
@@ -720,11 +769,11 @@ namespace TrackerDotNet.Controls
                     {
                         logMessage += $". Notes: {notes}";
                     }
-                    AppLogger.WriteLog("customer", logMessage);
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Customers, logMessage);
                 }
                 else
                 {
-                    AppLogger.WriteLog("error", 
+                    AppLogger.WriteLog("error",
                         $"Failed to disable customer {customerId}. Error: {result}");
                 }
 
@@ -813,7 +862,7 @@ namespace TrackerDotNet.Controls
         {
             string result = string.Empty;
             TrackerDb trackerDb = new TrackerDb();
-            
+
             try
             {
                 trackerDb.AddWhereParams(customerID, DbType.Int64);
@@ -828,13 +877,13 @@ namespace TrackerDotNet.Controls
             {
                 trackerDb.Close();
             }
-            
+
             return result;
         }
         private static ConcurrentDictionary<long, string> _customerNameCache;
         private static DateTime _lastCacheRefresh = DateTime.MinValue;
         private static readonly object _cacheLock = new object();
-        private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(30);
+        private static readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(1);  //-> make it a minutes so that if anythign changes we can refresh, but if a table is being displayed it is fine
 
         public static string GetCustomerNameById(long customerId)
         {

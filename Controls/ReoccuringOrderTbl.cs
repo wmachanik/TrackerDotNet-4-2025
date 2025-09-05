@@ -33,9 +33,9 @@ namespace TrackerDotNet.Controls
             this._ReoccuranceValue = 0;
             this._ItemRequiredID = 0;
             this._QtyRequired = 0.0;
-            this._DateLastDone = TrackerTools.STATIC_TrackerMinDate;
+            this._DateLastDone = SystemConstants.DatabaseConstants.SystemMinDate;
             this._NextDateRequired = TimeZoneUtils.Now().Date;
-            this._RequireUntilDate = TrackerTools.STATIC_TrackerMinDate;
+            this._RequireUntilDate = SystemConstants.DatabaseConstants.SystemMinDate;
             this._PackagingID = 0;
             this._Enabled = false;
             this._Notes = string.Empty;

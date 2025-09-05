@@ -59,7 +59,7 @@
             <br />
             <div class="results-container">
                 <asp:GridView ID="gvPreperationSummary" runat="server" AutoGenerateColumns="False"
-                    CssClass="AutoWidthFrm" OnRowDataBound="gvPreperationSummary_RowDataBound"
+                    CssClass="results-table" OnRowDataBound="gvPreperationSummary_RowDataBound"
                     EmptyDataText="Please Select a Date range with a valid prep date"
                     ShowFooter="True">
                     <Columns>
@@ -92,6 +92,7 @@
                         </asp:TemplateField>
                     </Columns>
                 </asp:GridView>
+                <br />
                 <asp:Literal ID="ltrlDates" Text="" runat="server" />
             </div>
         </ContentTemplate>

@@ -98,7 +98,7 @@ namespace TrackerDotNet.Controls
                         LineDate = dataReader["LineDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["LineDate"]).Date,
                         CupCount = dataReader["CupCount"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CupCount"]),
                         ServiceTypeID = dataReader["ServiceTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ServiceTypeID"]),
-                        Qty = dataReader["Qty"] == DBNull.Value ? 0.0 : Math.Round(Convert.ToDouble(dataReader["Qty"]), 2),
+                        Qty = dataReader["Qty"] == DBNull.Value ? 0.0 : Math.Round(Convert.ToDouble(dataReader["Qty"]), SystemConstants.DatabaseConstants.NumDecimalPoints),
                         Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString()
                     });
                 dataReader.Close();
@@ -114,7 +114,7 @@ namespace TrackerDotNet.Controls
             trackerDb.AddParams((object)pClientUsageLine.LineDate, DbType.Date);
             trackerDb.AddParams((object)pClientUsageLine.CupCount, DbType.Int64);
             trackerDb.AddParams((object)pClientUsageLine.ServiceTypeID, DbType.Int32);
-            trackerDb.AddParams((object)Math.Round(pClientUsageLine.Qty, 2), DbType.Double);
+            trackerDb.AddParams((object)Math.Round(pClientUsageLine.Qty, SystemConstants.DatabaseConstants.NumDecimalPoints), DbType.Double);
             trackerDb.AddParams((object)pClientUsageLine.Notes, DbType.String);
             bool flag = string.IsNullOrEmpty(trackerDb.ExecuteNonQuerySQLWithParams("INSERT INTO ClientUsageLinesTbl (CustomerID, [Date], CupCount, ServiceTypeID, Qty, Notes)  VALUES (?, ?, ?, ?, ?, ?)", trackerDb.Params));
             trackerDb.Close();
@@ -128,7 +128,7 @@ namespace TrackerDotNet.Controls
             trackerDb.AddParams((object)pClientUsageLine.LineDate, DbType.Date);
             trackerDb.AddParams((object)pClientUsageLine.CupCount, DbType.Int64);
             trackerDb.AddParams((object)pClientUsageLine.ServiceTypeID, DbType.Int32);
-            trackerDb.AddParams((object)Math.Round(pClientUsageLine.Qty, 2), DbType.Double);
+            trackerDb.AddParams((object)Math.Round(pClientUsageLine.Qty, SystemConstants.DatabaseConstants.NumDecimalPoints), DbType.Double);
             trackerDb.AddParams((object)pClientUsageLine.Notes, DbType.String);
             trackerDb.AddWhereParams((object)OriginalClientUsageLineNo, DbType.Int64);
             bool flag = string.IsNullOrEmpty(trackerDb.ExecuteNonQuerySQLWithParams("UPDATE ClientUsageLinesTbl SET CustomerID = ?, [Date] = ?, CupCount = ?, ServiceTypeID = ? , Qty = ?, Notes = ? WHERE ClientUsageLineNo = ? ", trackerDb.Params, trackerDb.WhereParams));
@@ -192,7 +192,7 @@ namespace TrackerDotNet.Controls
                     clientUsageLinesTbl.LineDate = dataReader["LineDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["LineDate"]).Date;
                     clientUsageLinesTbl.CupCount = dataReader["CupCount"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CupCount"]);
                     clientUsageLinesTbl.ServiceTypeID = dataReader["ServiceTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ServiceTypeID"]);
-                    clientUsageLinesTbl.Qty = dataReader["Qty"] == DBNull.Value ? 0.0 : Math.Round(Convert.ToDouble(dataReader["Qty"]), 2);
+                    clientUsageLinesTbl.Qty = dataReader["Qty"] == DBNull.Value ? 0.0 : Math.Round(Convert.ToDouble(dataReader["Qty"]), SystemConstants.DatabaseConstants.NumDecimalPoints);
                     clientUsageLinesTbl.Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString();
                     customerServiceLines.Add(clientUsageLinesTbl);
                 }
@@ -266,7 +266,7 @@ namespace TrackerDotNet.Controls
                     latestUsageData.LineDate = dataReader["LineDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["LineDate"]).Date;
                     latestUsageData.CupCount = dataReader["CupCount"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CupCount"]);
                     latestUsageData.ServiceTypeID = dataReader["ServiceTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ServiceTypeID"]);
-                    latestUsageData.Qty = dataReader["Qty"] == DBNull.Value ? 0.0 : Math.Round(Convert.ToDouble(dataReader["Qty"]), 2);
+                    latestUsageData.Qty = dataReader["Qty"] == DBNull.Value ? 0.0 : Math.Round(Convert.ToDouble(dataReader["Qty"]), SystemConstants.DatabaseConstants.NumDecimalPoints);
                 }
                 dataReader.Close();
             }

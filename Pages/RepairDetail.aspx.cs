@@ -25,11 +25,13 @@ namespace TrackerDotNet.Pages
         protected UpdateProgress udtpRepairDetail;
         protected UpdatePanel upnlRepairDetail;
         protected Panel pnlNewRepair;
-        protected DropDownList ddlNewCompany;
+        //protected DropDownList ddlNewCompany;
+        protected ComboBox cboNewCompany;
         protected Button btnInsert;
         protected Button btnCancelInsert;
         protected Panel pnlRepairDetail;
-        protected DropDownList ddlCompany;
+        //protected DropDownList ddlCompany;
+        protected ComboBox cboCompany;
         protected TextBox tbxContactName;
         protected TextBox tbxContactEmail;
         protected TextBox tbxJobCardNumber;
@@ -98,13 +100,13 @@ namespace TrackerDotNet.Pages
             if (repairById == null)
                 return;
             this.lblRepairID.Text = repairById.RepairID.ToString();
-            this.ddlCompany.DataBind();
+            this.cboCompany.DataBind();
             this.ddlEquipTypes.DataBind();
             this.ddlMachineCondtion.DataBind();
             this.ddlRepairFault.DataBind();
             this.ddlRepairStatuses.DataBind();
             this.ddlSwopOutMachine.DataBind();
-            this.ddlCompany.SelectedValue = repairById.CustomerID.ToString();
+            this.cboCompany.SelectedValue = repairById.CustomerID.ToString();
             this.tbxContactName.Text = repairById.ContactName;
             this.tbxContactEmail.Text = repairById.ContactEmail;
             this.tbxJobCardNumber.Text = repairById.JobCardNumber;
@@ -133,7 +135,7 @@ namespace TrackerDotNet.Pages
             return new RepairsTbl()
             {
                 RepairID = Convert.ToInt32(this.lblRepairID.Text),
-                CustomerID = Convert.ToInt32(this.ddlCompany.SelectedValue),
+                CustomerID = Convert.ToInt32(this.cboCompany.SelectedValue),
                 ContactName = this.tbxContactName.Text,
                 ContactEmail = this.tbxContactEmail.Text,
                 JobCardNumber = this.tbxJobCardNumber.Text,
@@ -160,9 +162,9 @@ namespace TrackerDotNet.Pages
         protected void btnInsert_Click(object sender, EventArgs e)
         {
             RepairsTbl DataItem = new RepairsTbl();
-            if (this.ddlNewCompany.SelectedIndex <= 0)
+            if (this.cboNewCompany.SelectedIndex <= 0)
                 return;
-            DataItem.CustomerID = Convert.ToInt32(this.ddlNewCompany.SelectedValue);
+            DataItem.CustomerID = Convert.ToInt32(this.cboNewCompany.SelectedValue);
             DataItem.DateLogged = TimeZoneUtils.Now().Date;
             CustomersTbl customersByCustomerID = new CustomersTbl().GetCustomerByCustomerID(DataItem.CustomerID);
             DataItem.ContactName = customersByCustomerID.ContactFirstName;
@@ -171,6 +173,7 @@ namespace TrackerDotNet.Pages
             DataItem.MachineSerialNumber = customersByCustomerID.MachineSN;
             DataItem.DateLogged = TimeZoneUtils.Now().Date;
             DataItem.InsertRepair(DataItem);
+            AppLogger.WriteLog(SystemConstants.LogTypes.Repairs, $"New repair created for CustomerID {DataItem.CustomerID}, RepairID {DataItem.GetLastIDInserted(DataItem.CustomerID)}");
             this.pnlNewRepair.Visible = false;
             this.pnlRepairDetail.Visible = true;
             DataItem.RepairID = DataItem.GetLastIDInserted(DataItem.CustomerID);
@@ -184,26 +187,22 @@ namespace TrackerDotNet.Pages
             RepairsTbl dataFromForm = this.GetDataFromForm();
             int previousStatusId = this.Session["RepairStatusID"] != null ? (int)this.Session["RepairStatusID"] : 0;
 
-            // Handle the repair update including status change
             string result = repairManager.HandleStatusChange(dataFromForm);
 
             if (string.IsNullOrWhiteSpace(result))
             {
-                // Success case
-                if (dataFromForm.RepairStatusID == previousStatusId)
+                if (dataFromForm.RepairStatusID != previousStatusId)
                 {
-                    ltrlStatus.Text = MessageProvider.Get(MessageKeys.Common.SuccessGeneric);
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Repairs, $"RepairID {dataFromForm.RepairID} status changed from {previousStatusId} to {dataFromForm.RepairStatusID}");
                 }
                 else
                 {
-                    ltrlStatus.Text = MessageProvider.Get(MessageKeys.Repairs.StatusUpdateSuccess);
-                    Session["RepairStatusID"] = previousStatusId;
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Repairs, $"RepairID {dataFromForm.RepairID} updated (no status change)");
                 }
             }
             else
             {
-                // Error case
-                ltrlStatus.Text = result;
+                AppLogger.WriteLog(SystemConstants.LogTypes.Repairs, $"RepairID {dataFromForm.RepairID} update failed: {result}");
             }
 
             upnlRepairDetail.Update();
@@ -228,6 +227,7 @@ namespace TrackerDotNet.Pages
             if (!string.IsNullOrWhiteSpace(status) && !status.Contains("Record Updated"))
             {
                 showMessageBox msgBox = new showMessageBox(this.Page, "Repair Status Update", status);
+                AppLogger.WriteLog(SystemConstants.LogTypes.Repairs, $"Repair Status Update: {status}");
             }
             this.ReturnToPrevPage();
         }
@@ -236,7 +236,9 @@ namespace TrackerDotNet.Pages
 
         protected void btnDelete_Click(object sender, EventArgs e)
         {
-            new RepairsTbl().DeleteRepair(Convert.ToInt32(this.lblRepairID.Text));
+            int repairId = Convert.ToInt32(this.lblRepairID.Text);
+            new RepairsTbl().DeleteRepair(repairId);
+            AppLogger.WriteLog(SystemConstants.LogTypes.Repairs, $"RepairID {repairId} deleted");
             this.ReturnToPrevPage();
         }
 

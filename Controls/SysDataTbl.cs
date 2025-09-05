@@ -15,7 +15,7 @@ namespace TrackerDotNet.Controls
 {
     public class SysDataTbl
     {
-        private const string CONST_SQL_SELECT = "SELECT ID, LastReoccurringDate, DoReoccuringOrders, DateLastPrepDateCalcd, MinReminderDate, GroupItemTypeID, InternalCustomerIds FROM SysDataTbl";
+        private const string CONST_SQL_SELECT = "SELECT ID, LastReoccurringDate, DoReoccuringOrders, DateLastPrepDateCalcd, MinReminderDate, GroupItemTypeID, InternalCustomerIds FROM SysDataTbl WHERE ID = 1";
         private const string CONST_SQL_SELECTMINREMINDERDATE = "SELECT MinReminderDate FROM SysDataTbl WHERE ID = 1";
         private const string CONST_SQL_SELECTGROUPSERVICETYPEID = "SELECT GroupItemTypeID FROM SysDataTbl WHERE ID = 1";
         private const string CONST_SQL_SELECTINTERNALCUSTOMERIDS = "SELECT InternalCustomerIds FROM SysDataTbl WHERE ID = 1";

@@ -1,4 +1,5 @@
 ﻿// Decompiled with JetBrains decompiler
+// Decompiled with JetBrains decompiler
 // Type: TrackerDotNet.Pages.NewOrderDetail
 // Assembly: TrackerDotNet, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
 // MVID: 2B5ACBFB-45EE-46B9-81D2-DBD1194F39CE
@@ -23,14 +24,14 @@ namespace TrackerDotNet.Pages
 {
     public partial class NewOrderDetail : Page
     {
-        public const string CONST_ZZNAME_DEFAULTID = "9";
-        private const string CONST_DELIVERY_DEFAULT = "SQ";
+        //public const string CONST_ZZNAME_DEFAULTID = SystemConstants.CustomerConstants.SundryCustomerIDStr;
+        //private const string CONST_DELIVERY_DEFAULT = "SQ";
         private const string CONST_UPDATEORDERLINES = "UpdateOrderLines";
         private const string CONST_ORDERLINESADDED = "OrderLinesAdded";
         private const string CONST_ORDERLINEIDS = "OrderLineIDS";
         private const string CONST_ORDERLINEITEMIDS = "OrderLineItemIDS";
-        private const string CONST_WATERFILTER = "8ClarFltr";
-        private const string CONST_BLUEWATERFILTER = "8ClarBlue";
+        //private const string CONST_WATERFILTER = "8ClarFltr";
+        //private const string CONST_BLUEWATERFILTER = "8ClarBlue";
         private const int CONST_ORDERIDCOL = 4;
         private const int CONST_NOTEITEMTIMEID = 100;
         public const string CONST_URL_REQUEST_CustomerID = "CoID";
@@ -96,7 +97,7 @@ namespace TrackerDotNet.Pages
             }
             else
             {
-                this.cboContacts.SelectedValue = CONST_ZZNAME_DEFAULTID;
+                this.cboContacts.SelectedValue = SystemConstants.CustomerConstants.SundryCustomerIDStr;
                 if (tbxNotes == null)
                 {
                     AppLogger.WriteLog("orders", "tbxNotes is null in SetContactByID.");
@@ -146,7 +147,7 @@ namespace TrackerDotNet.Pages
                         }
                         else
                         {
-                            this.cboContacts.SelectedValue = CONST_ZZNAME_DEFAULTID;
+                            this.cboContacts.SelectedValue = SystemConstants.CustomerConstants.SundryCustomerIDStr; // CONST_ZZNAME_DEFAULTID;
                             if (string.IsNullOrEmpty(pCoName))
                             {
                                 TextBox tbxNotes = this.tbxNotes;
@@ -167,12 +168,12 @@ namespace TrackerDotNet.Pages
                 }
                 else
                 {
-                    this.cboContacts.SelectedValue = CONST_ZZNAME_DEFAULTID;
+                    this.cboContacts.SelectedValue = SystemConstants.CustomerConstants.SundryCustomerIDStr; // CONST_ZZNAME_DEFAULTID;
                     TextBox tbxNotes = this.tbxNotes;
                     tbxNotes.Text = $"{tbxNotes.Text}{pCoName}: ";
                 }
             }
-            if (this.cboContacts.SelectedIndex <= 0 || !(this.cboContacts.SelectedValue != CONST_ZZNAME_DEFAULTID))
+            if (this.cboContacts.SelectedIndex <= 0 || !(this.cboContacts.SelectedValue != SystemConstants.CustomerConstants.SundryCustomerIDStr)) //CONST_ZZNAME_DEFAULTID
                 return;
             TrackerTools.ContactPreferedItems contactPreferedItems = new TrackerTools().RetrieveCustomerPrefs(Convert.ToInt32(this.cboContacts.SelectedValue));
             if (this.ddlToBeDeliveredBy.Items.FindByValue(contactPreferedItems.PreferredDeliveryByID.ToString()) == null)
@@ -227,8 +228,8 @@ namespace TrackerDotNet.Pages
             if (this.cboContacts.SelectedValue != null)
             {
                 TrackerDb trackerDb = new TrackerDb();
-                if (pSKU == "8ClarBlue")
-                    trackerDb.AddWhereParams((object)"8ClarFltr", DbType.String);
+                if (pSKU == SystemConstants.ItemConstants.BlueFilterSKU /*"8ClarBlue"*/)
+                    trackerDb.AddWhereParams((object)SystemConstants.ItemConstants.WhiteFilterSKU, DbType.String);
                 else
                     trackerDb.AddWhereParams((object)pSKU, DbType.String);
                 IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader(strSQL);
@@ -242,10 +243,10 @@ namespace TrackerDotNet.Pages
                             this.tbxNotes.Text += this.tbxNotes.Text.Length > 0 ? " " : "Please check packing setting";
                         switch (pSKU)
                         {
-                            case "8ClarBlue":
+                            case SystemConstants.ItemConstants.BlueFilterSKU:
                                 num = 9;
                                 break;
-                            case "8ClarFltr":
+                            case SystemConstants.ItemConstants.WhiteFilterSKU:
                                 num = 8;
                                 break;
                         }
@@ -278,8 +279,8 @@ namespace TrackerDotNet.Pages
             }
             else
             {
-                // Use your default value (CONST_ZZNAME_DEFAULTID is "9")
-                this.Session["BoundCustomerID"] = int.Parse(CONST_ZZNAME_DEFAULTID);
+                // Use your default value (CONST_ZZNAME_DEFAULTID is 9)
+                this.Session["BoundCustomerID"] = SystemConstants.CustomerConstants.SundryCustomerID;
             }
 
             this.Session["BoundDeliveryDate"] = Convert.ToDateTime(this.tbxRequiredByDate.Text).Date;
@@ -440,7 +441,7 @@ namespace TrackerDotNet.Pages
         protected void ddlToBeDeliveredBy_OnDataBound(object sender, EventArgs e)
         {
             int index = 0;
-            while (index < this.ddlToBeDeliveredBy.Items.Count && this.ddlToBeDeliveredBy.Items[index].Text != "SQ")
+            while (index < this.ddlToBeDeliveredBy.Items.Count && this.ddlToBeDeliveredBy.Items[index].Text != SystemConstants.DeliveryConstants.DefaultDeliveryPersonAbbr)
                 ++index;
             if (index >= this.ddlToBeDeliveredBy.Items.Count)
                 return;
@@ -494,7 +495,7 @@ namespace TrackerDotNet.Pages
         {
             if (this.cboContacts.SelectedIndex > 0)
             {
-                if (this.cboContacts.SelectedValue.Equals(CONST_ZZNAME_DEFAULTID) && string.IsNullOrEmpty(this.tbxNotes.Text))
+                if (this.cboContacts.SelectedValue.Equals(SystemConstants.CustomerConstants.SundryCustomerIDStr) && string.IsNullOrEmpty(this.tbxNotes.Text))
                 {
                     this.btnNewItem.Enabled = false;
                     this.upnlNewOrderItem.Update();
@@ -513,18 +514,34 @@ namespace TrackerDotNet.Pages
                     }
                 }
             }
-            bool flag1 = this.Session[CONST_ORDERLINESADDED] != null && (bool)this.Session[CONST_ORDERLINESADDED];
-            bool flag2 = this.Session[CONST_UPDATEORDERLINES] != null && (bool)this.Session[CONST_UPDATEORDERLINES];
-            if (!flag1 || flag2)
+            bool orderLinesAdded = this.Session[CONST_ORDERLINESADDED] != null && (bool)this.Session[CONST_ORDERLINESADDED];
+            bool udpateOrderLines = this.Session[CONST_UPDATEORDERLINES] != null && (bool)this.Session[CONST_UPDATEORDERLINES];
+            if (!orderLinesAdded || udpateOrderLines)
                 return;
-            bool flag3 = true;
-            this.btnUpdate.Visible = flag3;
+            bool needsAnUpdate = true;
+
+            // Use ScriptManager for UpdatePanel compatibility
+            ScriptManager.RegisterStartupScript(this, this.GetType(), "ShowUpdateButton", "showUpdateButton();", true);
+
+            this.btnUpdate.Visible = needsAnUpdate;
             this.upnlOrderSummary.Update();
-            this.Session[CONST_UPDATEORDERLINES] = (object)flag3;
+            this.Session[CONST_UPDATEORDERLINES] = (object)needsAnUpdate;
             if (this.btnRefreshDetails.Enabled)
                 return;
             this.btnRefreshDetails.Enabled = true;
             this.updtButtonPanel.Update();
+        }
+
+        protected void btnUpdate_Click(object sender, EventArgs e)
+        {
+            this.DoHeaderUpdate();
+
+            // Use ScriptManager for UpdatePanel compatibility
+            ScriptManager.RegisterStartupScript(this, this.GetType(), "HideUpdateButton", "hideUpdateButton();", true);
+
+            this.btnUpdate.Visible = false;
+            this.Session[CONST_UPDATEORDERLINES] = (object)false;
+            this.upnlOrderSummary.Update();
         }
 
         protected void DoHeaderUpdate()
@@ -580,7 +597,7 @@ namespace TrackerDotNet.Pages
             if (this.ddlToBeDeliveredBy.Items.FindByValue(num.ToString()) != null)
                 this.ddlToBeDeliveredBy.SelectedValue = num.ToString();
             if (prefs.RequiresPurchOrder)
-                this.tbxPurchaseOrder.Text = "!!!PO required!!!";
+                this.tbxPurchaseOrder.Text = SystemConstants.UIConstants.PORequiredText;
             return prefs;
         }
 
@@ -628,19 +645,33 @@ namespace TrackerDotNet.Pages
 
         protected void cbxDone_CheckedChanged(object sender, EventArgs e) => this.SetUpdateBools();
 
-        protected void btnUpdate_Click(object sender, EventArgs e)
-        {
-            this.DoHeaderUpdate();
-            this.btnUpdate.Visible = false;
-            this.Session[CONST_UPDATEORDERLINES] = (object)false;
-        }
+        //protected void btnUpdate_Click(object sender, EventArgs e)
+        //{
+        //    this.DoHeaderUpdate();
+
+        //    // Use JavaScript function to hide the update button
+        //    ClientScript.RegisterStartupScript(this.GetType(), "HideUpdateButton", "hideUpdateButton();", true);
+
+        //    this.btnUpdate.Visible = false;
+        //    this.Session[CONST_UPDATEORDERLINES] = (object)false;
+        //    this.upnlOrderSummary.Update();
+        //    this.upnlOrderSummary.Update();
+        //}
 
         protected void gvOrderLines_RowUpdated(object sender, GridViewUpdatedEventArgs e)
         {
+
+            // Update the header data for all related order lines
+            this.DoHeaderUpdate();
+
+            this.odsOrderDetail.DataBind();
             this.gvOrderLines.DataBind();
             this.upnlOrderLines.Update();
         }
-
+        public string GetPackagingDesc(int pPackagingID)
+        {
+            return pPackagingID > 0 ? new PackagingTbl().GetPackagingDesc(pPackagingID) : string.Empty;
+        }
         protected void gvOrderLines_RowDataBound(object sender, GridViewRowEventArgs e)
         {
             if (e.Row.RowType == DataControlRowType.Header)
@@ -684,6 +715,25 @@ namespace TrackerDotNet.Pages
                     }
                 }
                 this.Session[CONST_ORDERLINEITEMIDS] = intList;
+                // Format quantity to up to 4 decimal places without trailing zeros
+                Label lblQuantity = e.Row.FindControl("lblQuantityOrdered") as Label;
+                if (lblQuantity != null && !string.IsNullOrEmpty(lblQuantity.Text))
+                {
+                    if (double.TryParse(lblQuantity.Text, out double quantity))
+                    {
+                        lblQuantity.Text = quantity.ToString("0.####");
+                    }
+                }
+
+                // Also format the textbox in edit mode
+                TextBox tbxQuantity = e.Row.FindControl("tbxQuantityOrdered") as TextBox;
+                if (tbxQuantity != null && !string.IsNullOrEmpty(tbxQuantity.Text))
+                {
+                    if (double.TryParse(tbxQuantity.Text, out double quantity))
+                    {
+                        tbxQuantity.Text = quantity.ToString("0.####");
+                    }
+                }
             }
         }
 

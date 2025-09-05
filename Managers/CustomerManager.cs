@@ -22,7 +22,7 @@ namespace TrackerDotNet.Managers
 
                 if (customer == null)
                 {
-                    AppLogger.WriteLog("customer", 
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Customers, 
                         MessageProvider.Format(MessageKeys.Customer.NotFound, customerId));
                     return false;
                 }
@@ -33,7 +33,7 @@ namespace TrackerDotNet.Managers
                 // Send confirmation email using DisableClientManager
                 SendDisableConfirmationEmail(customer);
 
-                AppLogger.WriteLog("customer", 
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, 
                     MessageProvider.Format(MessageKeys.Customer.Disabled, 
                     customer.CompanyName, customerId));
 
@@ -60,7 +60,7 @@ namespace TrackerDotNet.Managers
 
                 if (customer == null)
                 {
-                    AppLogger.WriteLog("customer", 
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Customers, 
                         MessageProvider.Format(MessageKeys.Customer.NotFound, customerId));
                     return false;
                 }
@@ -70,7 +70,7 @@ namespace TrackerDotNet.Managers
 
                 SendDisableConfirmationEmail(customer);
 
-                AppLogger.WriteLog("customer", 
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, 
                     MessageProvider.Format(MessageKeys.Customer.DisabledViaSelfService, 
                     customer.CompanyName, customerId));
 
@@ -100,7 +100,7 @@ namespace TrackerDotNet.Managers
 
             if (!email.SendEmail())
             {
-                AppLogger.WriteLog("email", MessageProvider.Format(MessageKeys.Email.SendError, 
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, MessageProvider.Format(MessageKeys.Email.SendError, 
                     customer.CompanyName, email.LastErrorSummary));
             }
         }
@@ -128,7 +128,7 @@ namespace TrackerDotNet.Managers
             var customer = new CustomersTbl().GetCustomerByCustomerID(customerId);
             if (customer == null)
             {
-                AppLogger.WriteLog("customer", 
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, 
                     MessageProvider.Format(MessageKeys.Customer.NotFound, customerId));
             }
             return customer;
@@ -166,7 +166,7 @@ namespace TrackerDotNet.Managers
             
             if (string.IsNullOrEmpty(result))
             {
-                AppLogger.WriteLog("customer", 
+                AppLogger.WriteLog(SystemConstants.LogTypes.Customers, 
                     MessageProvider.Format(MessageKeys.Customer.EquipmentUpdated, 
                     customerId, equipType, machineSN));
                 return true;
@@ -187,7 +187,7 @@ namespace TrackerDotNet.Managers
             // Note: You'll need to add this method to CustomersTbl
             customersTbl.ResetReminderCount(customerId, forceEnable);
             
-            AppLogger.WriteLog("customer", 
+            AppLogger.WriteLog(SystemConstants.LogTypes.Customers, 
                 MessageProvider.Format(MessageKeys.Customer.ReminderCountReset, 
                 customerId, forceEnable));
         }

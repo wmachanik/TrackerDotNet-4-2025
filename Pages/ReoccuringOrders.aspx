@@ -6,17 +6,16 @@
 <asp:Content ID="cntReoccuringOrdersBdy" ContentPlaceHolderID="MainContent" runat="server">
     <h1>List of ReoccuringOrders</h1>
     <asp:ScriptManager ID="smReoccuringOrderSummary" runat="server"></asp:ScriptManager>
-    <asp:UpdateProgress ID="uprgReoccuringOrderSummary" runat="server" AssociatedUpdatePanelID="upnlReoccuringOrderSummary">
+    <asp:UpdateProgress ID="uprgReoccuringOrderSummary" runat="server" AssociatedUpdatePanelID="upnlSelection">
         <ProgressTemplate>
             <img src="../images/animi/BlueArrowsUpdate.gif" alt="updating" width="16" height="16" />updating.....
         </ProgressTemplate>
     </asp:UpdateProgress>
-    <div class="filter-toolbar">
-        <asp:UpdatePanel ID="upnlSelection" runat="server" UpdateMode="Conditional">
-            <ContentTemplate>
+    <asp:UpdatePanel ID="upnlSelection" runat="server" UpdateMode="Conditional">
+        <ContentTemplate>
+            <div class="filter-toolbar">
                 <div class="filter-section search-controls">
                     <div class="filter-control">
-
                         <asp:Label AssociatedControlID="ddlFilterBy" runat="server" Text="Filter by:" />
                         <asp:DropDownList ID="ddlFilterBy" runat="server" ToolTip="select which item to search form">
                             <asp:ListItem Value="0" Text="none" />
@@ -30,6 +29,9 @@
                     </div>
                 </div>
                 <div class="filter-section admin-controls">
+                    <div class="filter-control" style="margin-right: 12px">
+                        <asp:Button ID="btnCalcNextRequiredDate" runat="server" Text="Calc Next Required" OnClick="btnCalcNextRequiredDate_Click" />
+                    </div>
                     <div class="filter-control">
                         <asp:DropDownList ID="ddlReoccuringOrderEnabled" runat="server" AutoPostBack="true">
                             <asp:ListItem Selected="True" Value="1" Text="enabled only" />
@@ -37,18 +39,20 @@
                             <asp:ListItem Value="-1" Text="both" />
                         </asp:DropDownList>
                     </div>
+                    <div class="filter-section action-buttons">
+                        <asp:HyperLink ImageUrl="~/images/imgButtons/AddItem.gif" ToolTip="New Contact"
+                            NavigateUrl="~/Pages/ReoccuringOrderDetails.aspx" runat="server" />
+                    </div>
                 </div>
-                <div class="filter-section action-buttons">
-                    <asp:HyperLink ImageUrl="~/images/imgButtons/AddItem.gif" ToolTip="New Contact"
-                        NavigateUrl="~/Pages/ReoccuringOrderDetails.aspx" runat="server" />
-                </div>
-            </ContentTemplate>
-            <Triggers>
-                <asp:AsyncPostBackTrigger ControlID="tbxFilterBy" EventName="TextChanged" />
-                <asp:AsyncPostBackTrigger ControlID="btnGon" EventName="Click" />
-            </Triggers>
-        </asp:UpdatePanel>
-    </div>
+            </div>
+        </ContentTemplate>
+        <Triggers>
+            <asp:AsyncPostBackTrigger ControlID="tbxFilterBy" EventName="TextChanged" />
+            <asp:AsyncPostBackTrigger ControlID="btnGon" EventName="Click" />
+            <asp:AsyncPostBackTrigger ControlID="btnReset" EventName="Click" />
+            <asp:AsyncPostBackTrigger ControlID="btnCalcNextRequiredDate" EventName="Click" />
+        </Triggers>
+    </asp:UpdatePanel>
     <br />
     <asp:UpdatePanel ID="upnlReoccuringOrderSummary" runat="server">
         <ContentTemplate>
@@ -57,19 +61,37 @@
                     AllowSorting="True" DataSourceID="odsReoccuringOrderSummarys" AllowPaging="True" PageSize="25">
                     <RowStyle Font-Size="Large" />
                     <Columns>
-                        <asp:HyperLinkField DataNavigateUrlFields="ReoccuringOrderID" HeaderText="Edit" ItemStyle-HorizontalAlign="Center"
-                            DataNavigateUrlFormatString="~/Pages/ReoccuringOrderDetails.aspx?ID={0}&" Text="edit" />
-                        <asp:BoundField DataField="ID" HeaderText="ReoccuringOrderID" SortExpression="ID" Visible="false" />
+                        <asp:TemplateField HeaderText="&nbsp;" ItemStyle-HorizontalAlign="Center"
+                            HeaderStyle-CssClass="col-priority-1" ItemStyle-CssClass="col-priority-1">
+                            <ItemTemplate>
+                                <asp:HyperLink ID="hlEditRepair" runat="server"
+                                    ImageUrl="~/images/imgButtons/EditItem.gif"
+                                    ToolTip="Edit Repair"
+                                    NavigateUrl='<%# Eval("ReoccuringOrderID", "~/Pages/ReoccuringOrderDetails.aspx?ID={0}&") %>' />
+                            </ItemTemplate>
+                            <ItemStyle HorizontalAlign="Center" />
+                        </asp:TemplateField>
+                        <asp:BoundField DataField="ID" HeaderText="ReoccuringOrderID" SortExpression="ID" Visible="false"
+                            HeaderStyle-CssClass="col-priority-1" ItemStyle-CssClass="col-priority-1" />
                         <asp:HyperLinkField DataNavigateUrlFields="CustomerID" DataNavigateUrlFormatString="~/Pages/CustomerDetails.aspx?ID={0}"
-                            DataTextField="CompanyName" HeaderText="Company Name" SortExpression="CompanyName" />
-                        <asp:BoundField DataField="ReoccuranceValue" HeaderText="Value" SortExpression="ReoccuranceValue" ItemStyle-HorizontalAlign="Center" />
-                        <asp:BoundField DataField="ReoccuranceTypeDesc" HeaderText="Type Desc" SortExpression="ReoccuranceTypeDesc" />
-                        <asp:BoundField DataField="ItemTypeDesc" HeaderText="Item Type" SortExpression="ItemTypeDesc" ItemStyle-Font-Size="Smaller" />
-                        <asp:BoundField DataField="QtyRequired" HeaderText="Qty" SortExpression="QtyRequired" ItemStyle-HorizontalAlign="Center" />
-                        <asp:BoundField DataField="DateLastDone" HeaderText="Last Done" SortExpression="LastDone" DataFormatString="{0:d}" />
-                        <asp:BoundField DataField="NextDateRequired" HeaderText="Next Date" SortExpression="NextDateRequired" DataFormatString="{0:d}" />
-                        <asp:BoundField DataField="RequireUntilDate" HeaderText="Until Date" SortExpression="RequireUntilDate" DataFormatString="{0:d}" />
-                        <asp:CheckBoxField DataField="enabled" HeaderText="Enbld" SortExpression="ReoccuringOrdersTbl.enabled" />
+                            DataTextField="CompanyName" HeaderText="Company Name" SortExpression="CompanyName"
+                            HeaderStyle-CssClass="col-priority-1" ItemStyle-CssClass="col-priority-1" ItemStyle-Font-Size="Smaller" />
+                        <asp:BoundField DataField="ReoccuranceValue" HeaderText="Value" SortExpression="ReoccuranceValue" ItemStyle-HorizontalAlign="Center"
+                            HeaderStyle-CssClass="col-priority-1" ItemStyle-CssClass="col-priority-1" />
+                        <asp:BoundField DataField="ReoccuranceTypeDesc" HeaderText="Type Desc" SortExpression="ReoccuranceTypeDesc" ItemStyle-Font-Size="Smaller"
+                            HeaderStyle-CssClass="col-priority-1" ItemStyle-CssClass="col-priority-1" />
+                        <asp:BoundField DataField="ItemTypeDesc" HeaderText="Item Type" SortExpression="ItemTypeDesc" ItemStyle-Font-Size="Smaller"
+                            HeaderStyle-CssClass="col-priority-1" ItemStyle-CssClass="col-priority-1" />
+                        <asp:BoundField DataField="QtyRequired" HeaderText="Qty" SortExpression="QtyRequired" ItemStyle-HorizontalAlign="Center"
+                            HeaderStyle-CssClass="col-priority-1" ItemStyle-CssClass="col-priority-1" />
+                        <asp:BoundField DataField="DateLastDone" HeaderText="Last Done" SortExpression="LastDone" DataFormatString="{0:d}"
+                            HeaderStyle-CssClass="col-priority-3" ItemStyle-CssClass="col-priority-3" />
+                        <asp:BoundField DataField="NextDateRequired" HeaderText="Next Date" SortExpression="NextDateRequired" DataFormatString="{0:d}"
+                            HeaderStyle-CssClass="col-priority-4" ItemStyle-CssClass="col-priority-4" />
+                        <asp:BoundField DataField="RequireUntilDate" HeaderText="Until Date" SortExpression="RequireUntilDate" DataFormatString="{0:d}"
+                            HeaderStyle-CssClass="col-priority-5" ItemStyle-CssClass="col-priority-5" />
+                        <asp:CheckBoxField DataField="enabled" HeaderText="Enbld" SortExpression="ReoccuringOrdersTbl.enabled"
+                            HeaderStyle-CssClass="col-priority-3" ItemStyle-CssClass="col-priority-3" />
                     </Columns>
 
                 </asp:GridView>
@@ -79,6 +101,7 @@
             <asp:AsyncPostBackTrigger ControlID="btnGon" EventName="Click" />
             <asp:AsyncPostBackTrigger ControlID="btnReset" EventName="Click" />
             <asp:AsyncPostBackTrigger ControlID="ddlReoccuringOrderEnabled" EventName="SelectedIndexChanged" />
+            <asp:AsyncPostBackTrigger ControlID="btnCalcNextRequiredDate" EventName="Click" />
         </Triggers>
     </asp:UpdatePanel>
 

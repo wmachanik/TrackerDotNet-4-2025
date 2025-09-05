@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Web;
 using TrackerDotNet.Controls; 
 
@@ -17,7 +18,7 @@ namespace TrackerDotNet.Classes
     {
         public const string CONST_STR_NULLDATE = "1980/01/01";
         public const string CONST_SESSION_DATAACCESSERROR = "DataAccessError";
-        public const string CONST_POREQUIRED = "!!!PO required!!!";
+        //public const string CONST_POREQUIRED = "!!!PO required!!!"; → SystemConstants.UIConstants.PORequiredText
         public const int CONST_SERVTYPECLEAN = 1;
         public const int CONST_SERVTYPECOFFEE = 2;
         public const int CONST_SERVTYPECOUNT = 3;
@@ -73,12 +74,13 @@ namespace TrackerDotNet.Classes
         public const double CONST_TYPICALCLEAN_CONSUMPTION = 200.0;
         public const double CONST_TYPICALDECAL_CONSUMPTION = 500.0;
         public const double CONST_TYPICALFILTER_CONSUMPTION = 300.0;
-        public const int CONST_DEFAULT_DELIVERYBYID = 3;
-        public const string CONST_DEFAULT_DELIVERYBYABBREVIATION = "SQ";
-        public const int CONST_DEFAULT_DELIVERYIDOFCOURIER = 7;
-        public const string CONST_DEFAULT_DELIVERYBYCOURIERABBREVIATION = "Cour";
-        public static DateTime CONST_NULLDATE = DateTime.MinValue;
-        public static DateTime STATIC_TrackerMinDate = DateTime.Parse("1980/01/01").Date;
+        //
+        //public const string CONST_DEFAULT_DELIVERYBYABBREVIATION = "SQ";  - now in SystemConstants   
+        //public const int CONST_DEFAULT_DELIVERYIDOFCOURIER = 7;
+        //public const string CONST_DEFAULT_DELIVERYBYCOURIERABBREVIATION = "Cour";
+        // moved to sytemConstants
+        //public static DateTime CONST_NULLDATE = DateTime.MinValue;
+        //public static DateTime STATIC_TrackerMinDate = DateTime.Parse("1980/01/01").Date;
 
         public int GetDaysToRoastDate(DateTime pThisDate)
         {
@@ -96,7 +98,29 @@ namespace TrackerDotNet.Classes
             int num = pRoastDayOfWeek - dayOfWeek;
             return dayOfWeek <= pRoastDayOfWeek ? 7 + num : 14 + num;
         }
+        public static DateTime ParseUserDate(string dateString)
+        {
+            if (string.IsNullOrWhiteSpace(dateString))
+                return SystemConstants.DatabaseConstants.SystemMinDate;
 
+            dateString = dateString.Trim();
+
+            // Try exact match first
+            if (DateTime.TryParseExact(dateString, SystemConstants.FormatConstants.DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+                return result;
+
+            // Try parsing with time portion
+            if (DateTime.TryParseExact(dateString, SystemConstants.FormatConstants.DateFormat + " HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                return result;
+
+            // Try general parse as fallback (not recommended for user input, but useful for debugging)
+            if (DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                return result;
+
+            // Log and return min date if all parsing fails
+            AppLogger.WriteLog(SystemConstants.LogTypes.System, $"ParseUserDate: Could not parse date string '{dateString}' with format '{SystemConstants.FormatConstants.DateFormat}'. Returning SystemMinDate.");
+            return SystemConstants.DatabaseConstants.SystemMinDate;
+        }
         public int NumDaysTillNextRoast() => this.GetDaysToRoastDate(TimeZoneUtils.Now().Date);
 
         public int NumDaysTillNextRoast(DayOfWeek pRoastDayOfWeek)
@@ -301,13 +325,16 @@ namespace TrackerDotNet.Classes
             HttpContext current = HttpContext.Current;
             return !string.IsNullOrWhiteSpace(current.Session["DataAccessError"] != null ? (string)current.Session["DataAccessError"] : string.Empty);
         }
-
+        public static string SafeString(string value, string defaultValue = "n/a")
+        {
+            return string.IsNullOrWhiteSpace(value) ? defaultValue : value;
+        }
         public int ChangeItemIfGroupToNextItemInGroup(
           long pContactID,
           int pItemTypeID,
           DateTime pDeliveryDate)
         {
-            if (pContactID != -1L && pItemTypeID != -1)
+            if (pContactID != SystemConstants.DatabaseConstants.InvalidID && pItemTypeID != SystemConstants.DatabaseConstants.InvalidID)
             {
                 SysDataTbl sysDataTbl = new SysDataTbl();
                 if (new ItemTypeTbl().GetItemTypeFromID(pItemTypeID).ServiceTypeID == sysDataTbl.GetGroupItemTypeID())
@@ -315,7 +342,19 @@ namespace TrackerDotNet.Classes
             }
             return pItemTypeID;
         }
+        public static DateTime? ConvertToNullableDateTime(object dateObj)
+        {
+            if (dateObj == null || dateObj == DBNull.Value)
+                return null;
 
+            if (dateObj is DateTime dt)
+                return dt;
+
+            if (DateTime.TryParse(dateObj.ToString(), out DateTime parsed))
+                return parsed;
+
+            return null;
+        }
         public enum ServiceType
         {
             stNone,
@@ -353,7 +392,7 @@ namespace TrackerDotNet.Classes
                 this._PreferedItem = 0;
                 this._RequiresPurchOrder = false;
                 this._PreferedQty = 1.0;
-                this._PrefPackagingID = -1;
+                this._PrefPackagingID = SystemConstants.DatabaseConstants.InvalidID;
             }
 
             public long CustID

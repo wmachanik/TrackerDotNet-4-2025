@@ -84,8 +84,8 @@
                         </ajaxToolkit:TabContainer>
                         <asp:Literal ID="ltrlStatus" Text="" runat="server" />
                     </div>
-                    <div style="text-align: center; padding-top: 12px">
-                        <asp:Label ID="Label1" runat="server" Text="Reminder Window (days):" AssociatedControlID="ddlReminderWindow" CssClass="small" />
+                    <div class="button-toolbar-rounded">
+                        <asp:Label ID="lblRemincderWindow" runat="server" Text="Reminder Window (days):" AssociatedControlID="ddlReminderWindow" CssClass="small" />
                         <asp:DropDownList ID="ddlReminderWindow" Style="min-width: 16px" runat="server" CssClass="small" AutoPostBack="true" OnSelectedIndexChanged="ddlReminderWindow_SelectedIndexChanged" />
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         <!-- Make prep data button visible for auto-prep to work -->
@@ -125,7 +125,7 @@
                 <td>
                     <asp:UpdatePanel ID="upnlCustomerCheckup" runat="server" Visible="true" ChildrenAsTriggers="true" UpdateMode="Conditional">
                         <ContentTemplate>
-                            <asp:GridView ID="gvCustomerCheckup" runat="server" CssClass="results-table"
+                            <asp:GridView ID="gvCustomerCheckup" runat="server" CssClass="results-table" Font-Size="X-Small"
                                 AllowPaging="True" PageSize="25" AutoGenerateColumns="False" DataKeyNames="CustomerID"
                                 DataSourceID="odsContactsToSendCheckup" AllowSorting="True">
                                 <EmptyDataTemplate>

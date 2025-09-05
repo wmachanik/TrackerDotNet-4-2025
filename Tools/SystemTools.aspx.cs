@@ -48,6 +48,7 @@ namespace TrackerDotNet.Tools
                 gvResults.Visible = false;
                 ltrlStatus.Visible = false;
                 ResultsTitleLabel.Visible = false;
+                pnlResultsSection.Visible = false;
             }
         }
 
@@ -134,6 +135,7 @@ namespace TrackerDotNet.Tools
 
         protected void btnSetClientType_Click(object sender, EventArgs e)
         {
+            this.pnlResultsSection.Visible = true;
             this.pnlSetClientType.Visible = true;
             this.gvCustomerTypes.Visible = true;
             this.gvResults.Visible = true;
@@ -187,6 +189,7 @@ namespace TrackerDotNet.Tools
                 if (!string.IsNullOrWhiteSpace(sessionErrorString))
                     pMessage = $"{pMessage} TTError: {sessionErrorString}";
                 showMessageBox showMessageBox = new showMessageBox(this.Page, "Error", pMessage);
+                AppLogger.WriteLog(SystemConstants.LogTypes.System, "Set Client Type Error: " + pMessage);
                 if (contactTypeList != null)
                     this._ColsStream.WriteLine("ERROR AT: {0}, Name: {1}, ID: {2}, Pred: {3}", (object)index, (object)contactTypeList[index].CompanyName, (object)contactTypeList[index].CustomerTypeID, (object)contactTypeList[index].PredictionDisabled);
                 else
@@ -202,8 +205,11 @@ namespace TrackerDotNet.Tools
                 this.ResultsTitleLabel.Text = "No updates were necessary.";
             else
             {
-                showMessageBox showMessageBox1 = new showMessageBox(this.Page, "Info", $"A Total of {contactsUpdatedList.Count}, contacts were updated");
+                string msg = $"A Total of {contactsUpdatedList.Count}, contacts were updated";
+                showMessageBox showMessageBox1 = new showMessageBox(this.Page, "Info", msg);
+                AppLogger.WriteLog(SystemConstants.LogTypes.System, "Set Client Type: " + msg);
 
+                pnlResultsSection.Visible = true;
                 this.ltrlStatus.Text = $"A Total of {contactsUpdatedList.Count}, contacts were updated";
                 this.ltrlStatus.Visible = true;
                 this.ResultsTitleLabel.Text = "Set client type results";
@@ -214,77 +220,126 @@ namespace TrackerDotNet.Tools
 
         protected void btnResetPrepDates_Click(object sender, EventArgs e)
         {
+            pnlResultsSection.Visible = true;
             this.pnlResetPrepDate.Visible = true;
             new TrackerTools().SetNextRoastDateByCity();
+            AppLogger.WriteLog(SystemConstants.LogTypes.System, "SystemTools: Prep/Delivery dates reset.");
             this.sdsCityPrepDates.DataBind();
             this.gvCityPrepDates.DataBind();
         }
 
-        protected void btnCreateUpdateLogTables_Click(object sender, EventArgs e)
+        //protected void btnCreateUpdateLogTables_Click(object sender, EventArgs e)
+        //{
+        //    TrackerTools trackerTools = new TrackerTools();
+        //    trackerTools.ClearTrackerSessionErrorString();
+        //    TrackerDb trackerDb = new TrackerDb();
+        //    trackerDb.CreateIfDoesNotExists("LogTbl");
+        //    this.pnlResultsSection.Visible = true;
+        //    this.ltrlStatus.Visible = true;
+        //    this.ltrlStatus.Text = "Log table checked";
+        //    if (trackerTools.IsTrackerSessionErrorString())
+        //    {
+        //        Literal ltrlStatus = this.ltrlStatus;
+        //        ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
+        //        trackerTools.ClearTrackerSessionErrorString();
+        //    }
+        //    List<string> stringList = new PersonsTbl().SecurityUsersNotInPeopleTbl();
+        //    this.pnlSetClientType.Visible = true;
+        //    this.gvCustomerTypes.Visible = false;
+        //    this.gvResults.DataSource = (object)stringList;
+        //    this.ResultsTitleLabel.Text = "Security Users not in People Table ";
+        //    if (trackerTools.IsTrackerSessionErrorString())
+        //    {
+        //        Literal ltrlStatus = this.ltrlStatus;
+        //        ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
+        //        trackerTools.ClearTrackerSessionErrorString();
+        //    }
+        //    this.gvResults.DataBind();
+        //    if (trackerDb.CreateIfDoesNotExists("SectionTypesTbl"))
+        //    {
+        //        this.ltrlStatus.Text += "; Section Types table checked";
+        //        if (trackerTools.IsTrackerSessionErrorString())
+        //        {
+        //            Literal ltrlStatus = this.ltrlStatus;
+        //            ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
+        //            trackerTools.ClearTrackerSessionErrorString();
+        //        }
+        //        if (new SectionTypesTbl().InsertDefaultSections())
+        //            this.ltrlStatus.Text += " - default sections added.";
+        //        if (trackerTools.IsTrackerSessionErrorString())
+        //        {
+        //            Literal ltrlStatus = this.ltrlStatus;
+        //            ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
+        //            trackerTools.ClearTrackerSessionErrorString();
+        //        }
+        //    }
+        //    if (trackerDb.CreateIfDoesNotExists("TransactionTypesTbl"))
+        //    {
+        //        this.ltrlStatus.Text += "; Transaction Types table checked";
+        //        if (trackerTools.IsTrackerSessionErrorString())
+        //        {
+        //            Literal ltrlStatus = this.ltrlStatus;
+        //            ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
+        //            trackerTools.ClearTrackerSessionErrorString();
+        //        }
+        //        if (new TransactionTypesTbl().InsertDefaultTransactions())
+        //            this.ltrlStatus.Text += " - default Transactions added.";
+        //        if (trackerTools.IsTrackerSessionErrorString())
+        //        {
+        //            Literal ltrlStatus = this.ltrlStatus;
+        //            ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
+        //            trackerTools.ClearTrackerSessionErrorString();
+        //        }
+        //    }
+        //    trackerDb.Close();
+        //}
+        protected void btnSetLastOrderDate_Click(object sender, EventArgs e)
         {
-            TrackerTools trackerTools = new TrackerTools();
-            trackerTools.ClearTrackerSessionErrorString();
-            TrackerDb trackerDb = new TrackerDb();
-            trackerDb.CreateIfDoesNotExists("LogTbl");
-            this.ltrlStatus.Visible = true;
-            this.ltrlStatus.Text = "Log table checked";
-            if (trackerTools.IsTrackerSessionErrorString())
-            {
-                Literal ltrlStatus = this.ltrlStatus;
-                ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
-                trackerTools.ClearTrackerSessionErrorString();
-            }
-            List<string> stringList = new PersonsTbl().SecurityUsersNotInPeopleTbl();
-            this.pnlSetClientType.Visible = true;
-            this.gvCustomerTypes.Visible = false;
-            this.gvResults.DataSource = (object)stringList;
-            this.ResultsTitleLabel.Text = "Security Users not in People Table ";
-            if (trackerTools.IsTrackerSessionErrorString())
-            {
-                Literal ltrlStatus = this.ltrlStatus;
-                ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
-                trackerTools.ClearTrackerSessionErrorString();
-            }
-            this.gvResults.DataBind();
-            if (trackerDb.CreateIfDoesNotExists("SectionTypesTbl"))
-            {
-                this.ltrlStatus.Text += "; Section Types table checked";
-                if (trackerTools.IsTrackerSessionErrorString())
-                {
-                    Literal ltrlStatus = this.ltrlStatus;
-                    ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
-                    trackerTools.ClearTrackerSessionErrorString();
-                }
-                if (new SectionTypesTbl().InsertDefaultSections())
-                    this.ltrlStatus.Text += " - default sections added.";
-                if (trackerTools.IsTrackerSessionErrorString())
-                {
-                    Literal ltrlStatus = this.ltrlStatus;
-                    ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
-                    trackerTools.ClearTrackerSessionErrorString();
-                }
-            }
-            if (trackerDb.CreateIfDoesNotExists("TransactionTypesTbl"))
-            {
-                this.ltrlStatus.Text += "; Transaction Types table checked";
-                if (trackerTools.IsTrackerSessionErrorString())
-                {
-                    Literal ltrlStatus = this.ltrlStatus;
-                    ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
-                    trackerTools.ClearTrackerSessionErrorString();
-                }
-                if (new TransactionTypesTbl().InsertDefaultTransactions())
-                    this.ltrlStatus.Text += " - default Transactions added.";
-                if (trackerTools.IsTrackerSessionErrorString())
-                {
-                    Literal ltrlStatus = this.ltrlStatus;
-                    ltrlStatus.Text = $"{ltrlStatus.Text} - Error: {trackerTools.GetTrackerSessionErrorString()}";
-                    trackerTools.ClearTrackerSessionErrorString();
-                }
-            }
-            trackerDb.Close();
-        }
+            AppLogger.WriteLog(SystemConstants.LogTypes.System, "SystemTools: btnSetLastOrderDate_Click started.");
 
+            System.Threading.Thread.Sleep(2000); // For progress bar test
+
+            var reoccurDal = new TrackerDotNet.Controls.ReoccuringOrderDAL();
+            var orders = reoccurDal.GetAll(TrackerDotNet.Controls.ReoccuringOrderDAL.CONST_ENABLEDONLY);
+
+            AppLogger.WriteLog(SystemConstants.LogTypes.System, $"SystemTools: Found {orders.Count} enabled recurring orders.");
+
+            var results = new List<RecurringOrderUpdateResult>();
+            int updatedCount = 0;
+
+            foreach (var order in orders)
+            {
+                DateTime lastOrderDate = order.DateLastDone;
+                string updateResult = reoccurDal.SetReoccuringOrderDates(lastOrderDate, order.ReoccuringOrderID, true);
+
+                results.Add(new RecurringOrderUpdateResult
+                {
+                    OrderID = order.ReoccuringOrderID,
+                    ContactName = order.CompanyName,
+                    Item = order.ItemTypeDesc,
+                    LastOrderDate = lastOrderDate.ToString("yyyy-MM-dd"),
+                    UpdateResult = updateResult
+                });
+
+                if (updateResult != null && !updateResult.StartsWith("Error"))
+                    updatedCount++;
+            }
+
+            ResultsTitleLabel.Text = $"Set Last Order Date Results: {updatedCount} updated.";
+            gvResults.DataSource = results;
+            gvResults.DataBind();
+
+            pnlResultsSection.Visible = true;
+            pnlSetClientType.Visible = true;
+
+            AppLogger.WriteLog(SystemConstants.LogTypes.System, $"SystemTools: SetLastOrderDate updated {updatedCount} recurring orders.");
+
+            // Show message box to user
+            string msg = updatedCount > 0
+                ? $"A Total of {updatedCount} recurring orders were updated."
+                : "No recurring orders were updated.";
+            showMessageBox showMessageBox1 = new showMessageBox(this.Page, "Info", msg);
+        }
         private class ContactsUpdated
         {
             private string _ContactName;
@@ -322,6 +377,14 @@ namespace TrackerDotNet.Tools
                 get => this._PredictionDisabled;
                 set => this._PredictionDisabled = value;
             }
+        }
+        public class RecurringOrderUpdateResult
+        {
+            public int OrderID { get; set; }
+            public string ContactName { get; set; }
+            public string Item { get; set; }
+            public string LastOrderDate { get; set; }
+            public string UpdateResult { get; set; }
         }
     }
 

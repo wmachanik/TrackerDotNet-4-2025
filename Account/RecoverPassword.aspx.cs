@@ -7,6 +7,7 @@
 using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using TrackerDotNet.Classes;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Account
@@ -17,6 +18,7 @@ namespace TrackerDotNet.Account
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            AppLogger.WriteLog(SystemConstants.LogTypes.Login, "User recover password page entered.");
         }
     }
 }

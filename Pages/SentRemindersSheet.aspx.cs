@@ -72,11 +72,11 @@ namespace TrackerDotNet.Pages
                 // Force rebind of the main grid
                 gvSentReminders.DataBind();
                 
-                AppLogger.WriteLog("email", "SentRemindersSheet: Reminder data loaded successfully");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, "SentRemindersSheet: Reminder data loaded successfully");
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"SentRemindersSheet: Error loading reminder data: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersSheet: Error loading reminder data: {ex.Message}");
             }
         }
 
@@ -112,7 +112,7 @@ namespace TrackerDotNet.Pages
                     int.TryParse(Request.QueryString["Successful"], out successful);
                     int.TryParse(Request.QueryString["Failed"], out failed);
                     
-                    AppLogger.WriteLog("email", $"SentRemindersSheet: Using query string stats for {selectedDate:yyyy-MM-dd} - {uniqueCustomers} customers, {successful}/{totalReminders} successful");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersSheet: Using query string stats for {selectedDate:yyyy-MM-dd} - {uniqueCustomers} customers, {successful}/{totalReminders} successful");
                 }
                 else
                 {
@@ -126,7 +126,7 @@ namespace TrackerDotNet.Pages
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"SentRemindersSheet: Error updating summary from query string: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersSheet: Error updating summary from query string: {ex.Message}");
                 UpdateReminderSummaryFromDatabase(); // Fallback
             }
         }
@@ -152,14 +152,14 @@ namespace TrackerDotNet.Pages
                     failed = dayResults.Count(r => !r.ReminderSent);
                 }
                 
-                AppLogger.WriteLog("email", $"SentRemindersSheet: Using database stats for {selectedDate:yyyy-MM-dd} - {uniqueCustomers} customers, {successful}/{totalReminders} successful");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersSheet: Using database stats for {selectedDate:yyyy-MM-dd} - {uniqueCustomers} customers, {successful}/{totalReminders} successful");
                 
                 // Display the summary
                 DisplayReminderSummary(selectedDate, totalReminders, uniqueCustomers, successful, failed);
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"SentRemindersSheet: Error updating summary from database: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersSheet: Error updating summary from database: {ex.Message}");
                 
                 if (ltrlReminderSummary != null)
                 {
@@ -228,7 +228,7 @@ namespace TrackerDotNet.Pages
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"SentRemindersSheet: Error displaying summary: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersSheet: Error displaying summary: {ex.Message}");
             }
         }
 
@@ -286,7 +286,7 @@ namespace TrackerDotNet.Pages
                             gvFailedEmails.DataBind();
                             divFailedEmails.Visible = true;
                             
-                            AppLogger.WriteLog("email", $"Displaying {failureData.Count} failed email attempts on SentRemindersSheet");
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Displaying {failureData.Count} failed email attempts on SentRemindersSheet");
                         }
                     }
                     else
@@ -297,7 +297,7 @@ namespace TrackerDotNet.Pages
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"Error loading failed emails: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Error loading failed emails: {ex.Message}");
                 if (divFailedEmails != null)
                 {
                     divFailedEmails.Visible = false;
@@ -346,7 +346,7 @@ namespace TrackerDotNet.Pages
             {
                 divFailedEmails.Visible = false;
             }
-            AppLogger.WriteLog("email", "Failed email list cleared by user");
+            AppLogger.WriteLog(SystemConstants.LogTypes.Email, "Failed email list cleared by user");
         }
 
         private void ClearFailureSession()

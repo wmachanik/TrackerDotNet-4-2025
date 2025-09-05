@@ -8,6 +8,7 @@ using System;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using TrackerDotNet.Classes;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Administration
@@ -25,6 +26,8 @@ namespace TrackerDotNet.Administration
 
         private void BindUserAccounts()
         {
+            AppLogger.WriteLog(SystemConstants.LogTypes.Login, "User management page entered.");
+
             this.gvUserAccounts.DataSource = (object)Membership.GetAllUsers();
             this.gvUserAccounts.DataBind();
         }

@@ -17,6 +17,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using TrackerDotNet.Classes;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.DataSets
@@ -692,8 +693,8 @@ namespace TrackerDotNet.DataSets
                 this.Columns.Add(this.columnNotes);
                 this.columnCompanyName.MaxLength = 50;
                 this.columnCustomerID.AutoIncrement = true;
-                this.columnCustomerID.AutoIncrementSeed = -1L;
-                this.columnCustomerID.AutoIncrementStep = -1L;
+                this.columnCustomerID.AutoIncrementSeed = SystemConstants.DatabaseConstants.InvalidID;
+                this.columnCustomerID.AutoIncrementStep = SystemConstants.DatabaseConstants.InvalidID;
                 this.columnContactTitle.MaxLength = 50;
                 this.columnContactFirstName.MaxLength = 30;
                 this.columnContactLastName.MaxLength = 50;

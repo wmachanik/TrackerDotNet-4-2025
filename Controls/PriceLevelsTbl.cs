@@ -115,7 +115,7 @@ namespace TrackerDotNet.Controls
             string empty = string.Empty;
             TrackerDb trackerDb = new TrackerDb();
             trackerDb.AddParams((object)pPriceLevelsTbl.PriceLevelDesc, DbType.String, "@PriceLevelDesc");
-            trackerDb.AddParams((object)Math.Round(pPriceLevelsTbl.PricingFactor, 3), DbType.Single, "@PricingFactor");
+            trackerDb.AddParams((object)Math.Round(pPriceLevelsTbl.PricingFactor, SystemConstants.DatabaseConstants.NumDecimalPoints), DbType.Single, "@PricingFactor");
             trackerDb.AddParams((object)pPriceLevelsTbl.Enabled, DbType.Int32, "@Enabled");
             trackerDb.AddParams((object)pPriceLevelsTbl.Notes, DbType.String, "@Notes");
             string str = trackerDb.ExecuteNonQuerySQL("INSERT INTO PriceLevelsTbl (PriceLevelDesc, PricingFactor, Enabled, Notes) VALUES ( ?, ?, ?, ?)");
@@ -136,7 +136,7 @@ namespace TrackerDotNet.Controls
             else
                 trackerDb.AddWhereParams((object)pPriceLevelsTbl.PriceLevelID, DbType.Boolean, "@PriceLevelID");
             trackerDb.AddParams((object)pPriceLevelsTbl.PriceLevelDesc, DbType.String, "@PriceLevelDesc");
-            trackerDb.AddParams((object)Math.Round(pPriceLevelsTbl.PricingFactor, 3), DbType.Double, "@PricingFactor");
+            trackerDb.AddParams((object)Math.Round(pPriceLevelsTbl.PricingFactor, SystemConstants.DatabaseConstants.NumDecimalPoints), DbType.Double, "@PricingFactor");
             trackerDb.AddParams((object)pPriceLevelsTbl.Enabled, DbType.Int32, "@Enabled");
             trackerDb.AddParams((object)pPriceLevelsTbl.Notes, DbType.String, "@Notes");
             string str = trackerDb.ExecuteNonQuerySQL("UPDATE PriceLevelsTbl SET PriceLevelDesc = ?, PricingFactor = ?, Enabled = ?, Notes = ? WHERE (PriceLevelID = ?)");

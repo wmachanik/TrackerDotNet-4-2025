@@ -384,5 +384,28 @@ namespace TrackerDotNet.Controls
             }
             return pSortPos1;
         }
+        // Returns all item IDs in the specified group from the database
+        public static HashSet<int> GetItemIdsForGroup(int groupItemTypeId)
+        {
+            var itemIds = new HashSet<int>();
+            using (var db = new TrackerDb())
+            {
+                string sql = "SELECT ItemTypeID FROM ItemGroupTbl WHERE GroupItemTypeID = ?";
+                db.AddWhereParams(groupItemTypeId, System.Data.DbType.Int32);
+                using (var reader = db.ExecuteSQLGetDataReader(sql, db.WhereParams))
+                {
+                    while (reader != null && reader.Read())
+                    {
+                        if (reader["ItemTypeID"] != DBNull.Value)
+                            itemIds.Add(System.Convert.ToInt32(reader["ItemTypeID"]));
+                    }
+                    reader?.Close();
+                }
+                db.Close();
+            }
+            return itemIds;
+        }
     }
 }
+
+

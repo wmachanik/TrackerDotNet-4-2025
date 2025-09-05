@@ -55,11 +55,11 @@ namespace TrackerDotNet.Managers
                 // Add to batch
                 emailClient.AddToBatch(subject, emailBody, null, toEmail);
                 
-                AppLogger.WriteLog("email", $"Added {contact.CompanyName} to email batch");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Added {contact.CompanyName} to email batch");
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"Failed to add {contact.CompanyName} to batch: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Failed to add {contact.CompanyName} to batch: {ex.Message}");
                 throw;
             }
         }
@@ -83,7 +83,7 @@ namespace TrackerDotNet.Managers
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"Batch send failed: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Batch send failed: {ex.Message}");
                 return new BatchSendResult
                 {
                     IsSuccess = false,
@@ -168,7 +168,7 @@ namespace TrackerDotNet.Managers
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"Error getting email signature: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Error getting email signature: {ex.Message}");
                 
                 // Final fallback to manual signature
                 string userName = GetCurrentUserName();
@@ -204,7 +204,7 @@ namespace TrackerDotNet.Managers
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"Error getting current user name: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Error getting current user name: {ex.Message}");
             }
             
             // Fallback to generic name
@@ -365,31 +365,31 @@ namespace TrackerDotNet.Managers
         {
             try
             {
-                AppLogger.WriteLog("email", $"Generating disable link for customer {contact.CustomerID}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Generating disable link for customer {contact.CustomerID}");
                 
                 // Generate secure disable link using existing manager
                 string disableLink = DisableClientManager.GenerateDisableLink(contact.CustomerID);
                 
-                AppLogger.WriteLog("email", $"Secure disable link generated: {disableLink}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Secure disable link generated: {disableLink}");
                 
                 // Get the message template
                 string template = MessageProvider.Get(MessageKeys.CoffeeCheckup.FooterDisableLink);
-                AppLogger.WriteLog("email", $"Disable link template: {template}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Disable link template: {template}");
                 
                 // Use the proper message template with secure link
                 string result = string.Format(template, disableLink);
-                AppLogger.WriteLog("email", $"Final disable link HTML: {result}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"Final disable link HTML: {result}");
                 
                 return result;
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"DISABLE LINK ERROR for customer {contact.CustomerID}: {ex.Message}");
-                AppLogger.WriteLog("email", $"DISABLE LINK STACK TRACE: {ex.StackTrace}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DISABLE LINK ERROR for customer {contact.CustomerID}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DISABLE LINK STACK TRACE: {ex.StackTrace}");
                 
                 // FIXED: Better fallback - NO MAILTO
                 return $"<br/><br/><p>If you would prefer not to receive these reminders, " +
-                       $"<a href='https://tracker.quaffee.co.za/DisableClient.aspx?CoID={contact.CustomerID}'>click here to disable them</a>.</p>";
+                       $"<a href='https://tracker.quaffee.co.za/DisableClient.aspx?{SystemConstants.UrlParameterConstants.CustomerID}={contact.CustomerID}'>click here to disable them</a>.</p>";
             }
         }
         /// <summary>
@@ -413,18 +413,18 @@ namespace TrackerDotNet.Managers
 
                 if (result)
                 {
-                    AppLogger.WriteLog("email", $"CoffeeCheckupEmailManager: Admin notification sent successfully to {adminEmail}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"CoffeeCheckupEmailManager: Admin notification sent successfully to {adminEmail}");
                 }
                 else
                 {
-                    AppLogger.WriteLog("email", $"CoffeeCheckupEmailManager: Failed to send admin notification: {emailClient.LastErrorSummary}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"CoffeeCheckupEmailManager: Failed to send admin notification: {emailClient.LastErrorSummary}");
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"CoffeeCheckupEmailManager: Error sending admin notification: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"CoffeeCheckupEmailManager: Error sending admin notification: {ex.Message}");
                 return false;
             }
         }
@@ -437,19 +437,19 @@ namespace TrackerDotNet.Managers
             {
                 // Test DisableClientManager configuration
                 string testLink = DisableClientManager.GenerateDisableLink(999999); // Test customer ID
-                AppLogger.WriteLog("email", $"TEST: Disable link generation successful: {testLink}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"TEST: Disable link generation successful: {testLink}");
                 
                 // Test message keys exist
                 string testGreeting = MessageProvider.Get(MessageKeys.CoffeeCheckup.GreetingGeneric);
                 string testSignature = MessageProvider.Get("DefaultEmailSignature");
                 
-                AppLogger.WriteLog("email", "TEST: All message keys accessible");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, "TEST: All message keys accessible");
                 
                 return true;
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"TEST: Configuration validation failed: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"TEST: Configuration validation failed: {ex.Message}");
                 return false;
             }
         }
@@ -464,7 +464,7 @@ namespace TrackerDotNet.Managers
         {
             try
             {
-                AppLogger.WriteLog("email", $"CoffeeCheckupEmailManager: Sending direct email to {toEmail} - {subject}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"CoffeeCheckupEmailManager: Sending direct email to {toEmail} - {subject}");
                 
                 // Use the existing email infrastructure
                 bool result = emailClient.AddToBatch(subject, htmlBody, null, toEmail);
@@ -476,18 +476,18 @@ namespace TrackerDotNet.Managers
                 
                 if (result)
                 {
-                    AppLogger.WriteLog("email", $"CoffeeCheckupEmailManager: Direct email sent successfully to {toEmail}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"CoffeeCheckupEmailManager: Direct email sent successfully to {toEmail}");
                 }
                 else
                 {
-                    AppLogger.WriteLog("email", $"CoffeeCheckupEmailManager: Failed to send direct email to {toEmail}: {emailClient.LastErrorSummary}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"CoffeeCheckupEmailManager: Failed to send direct email to {toEmail}: {emailClient.LastErrorSummary}");
                 }
                 
                 return result;
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"CoffeeCheckupEmailManager: Error sending direct email to {toEmail}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"CoffeeCheckupEmailManager: Error sending direct email to {toEmail}: {ex.Message}");
                 return false;
             }
         }

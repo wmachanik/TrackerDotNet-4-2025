@@ -72,7 +72,7 @@ namespace TrackerDotNet.Controls
             trackerDb.AddParams((object)pOrderData.PurchaseOrder, DbType.String, "@PurchaseOrder");
             trackerDb.AddParams((object)pOrderData.Notes, DbType.String, "@Notes");
             trackerDb.AddParams((object)pOrderData.ItemTypeID, DbType.Int32, "@ItemTypeID");
-            trackerDb.AddParams((object)Math.Round(pOrderData.QuantityOrdered, 2), DbType.Double, "@QuantityOrdered");
+            trackerDb.AddParams((object)Math.Round(pOrderData.QuantityOrdered, SystemConstants.DatabaseConstants.NumDecimalPoints), DbType.Double, "@QuantityOrdered");
             trackerDb.AddParams((object)pOrderData.PrepTypeID, DbType.Int32, "@PrepTypeID");
             trackerDb.AddParams((object)pOrderData.PackagingID, DbType.Int32, "@PackagingID");
             return trackerDb.ExecuteNonQuerySQL(strSQL);
@@ -96,7 +96,7 @@ namespace TrackerDotNet.Controls
             return lastOrderAdded;
         }
 
-        public OrderTblData GetOrderByID(long pOrderID)
+        public OrderTblData GetOrderByID(int pOrderID)
         {
             OrderTblData orderById = (OrderTblData)null;
             TrackerDb trackerDb = new TrackerDb();
@@ -107,6 +107,7 @@ namespace TrackerDotNet.Controls
                 if (dataReader.Read())
                 {
                     orderById = new OrderTblData();
+                    orderById.OrderID = pOrderID; 
                     orderById.CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]);
                     orderById.OrderDate = dataReader["OrderDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["OrderDate"]).Date;
                     orderById.RoastDate = dataReader["RoastDate"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(dataReader["RoastDate"]).Date;
@@ -198,6 +199,17 @@ namespace TrackerDotNet.Controls
             string str = trackerDb.ExecuteNonQuerySQL(strSQL);
             trackerDb.Close();
             return str;
+        }
+
+        public string UpdateOrderNotes(long orderId, string notes)
+        {
+            const string sql = "UPDATE OrdersTbl SET Notes = ? WHERE OrderID = ?";
+            using (var db = new TrackerDb())
+            {
+                db.AddParams(notes, DbType.String);
+                db.AddWhereParams(orderId, DbType.Int64);
+                return db.ExecuteNonQuerySQL(sql);
+            }
         }
     }
 }

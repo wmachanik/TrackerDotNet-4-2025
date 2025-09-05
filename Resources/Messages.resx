@@ -169,7 +169,7 @@
     <value>Dear Valued Customer,</value>
   </data>
   <data name="Email.DefaultRecipient" xml:space="preserve">
-    <value>Valued Customer</value>
+    <value>Coffee Lover</value>
   </data>
   <data name="Email.NoValidRecipient" xml:space="preserve">
     <value>No valid email recipient found</value>
@@ -220,10 +220,10 @@
     <value>Dear {0}&lt;br /&gt;&lt;p&gt;Thank you for ordering from Quaffee. &lt;/p&gt;</value>
   </data>
   <data name="Order.ItemFormatBasic" xml:space="preserve">
-    <value>&lt;li&gt;{0} - Qty: {1}&lt;/li&gt;</value>
+    <value>&lt;li&gt;Item: {0} — Qty: {1}&lt;/li&gt;</value>
   </data>
   <data name="Order.ItemFormatWithPrep" xml:space="preserve">
-    <value>&lt;li&gt;{0} ({1}) - Qty: {2}&lt;/li&gt;</value>
+    <value>&lt;li&gt; Item: {0} — Qty:  {1} ({2})&lt;/li&gt;</value>
   </data>
   <data name="Order.CompletedTitle" xml:space="preserve">
     <value>Order Completed</value>
@@ -259,10 +259,21 @@
     <value>Repair Status Update</value>
   </data>
   <data name="Repairs.StatusEmailBody" xml:space="preserve">
-    <value>Your repair status has been updated</value>
+    <value>Dear {0},&lt;br /&gt;&lt;br /&gt;
+
+&lt;b&gt;Status Update for your equipment:&lt;/b&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;b&gt;Machine:&lt;/b&gt; {1}&lt;/li&gt;
+  &lt;li&gt;&lt;b&gt;Serial Number:&lt;/b&gt; {2}&lt;/li&gt;
+  &lt;li&gt;&lt;b&gt;Job Card:&lt;/b&gt; {4}&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;{3}&lt;/p&gt;</value>
   </data>
-  <data name="Repairs.CollectSwopOutNote" xml:space="preserve">
-    <value>Equipment ready for collection/swap</value>
+  <data name="Repairs.DisclaimerFooter" xml:space="preserve">
+    <value>Note: you're receiving this because your email is linked to a machine repair.&lt;br /&gt;&lt;br /&gt;
+Just a heads-up: Quaffee doesn’t run its own workshop. We help by coordinating with external partners, offering swap-out units when we can, and charging a workshop fee plus a small admin cost.&lt;br /&gt;&lt;br /&gt;
+If you're not a regular coffee client, extra fees for delivery or swap-outs may apply (case-by-case).&lt;br /&gt;&lt;br /&gt;
+&lt;p&gt;Warranty is handled directly by the workshop, not by Quaffee.&lt;/p&gt;</value>
   </data>
   <data name="Repairs.StatusUpdateSuccess" xml:space="preserve">
     <value>Repair status updated successfully</value>
@@ -575,7 +586,7 @@ No further action required unless customer contacts you directly.</value>
     <value>Error validating delivery date for customer {0}: {1}</value>
   </data>
   <data name="Order.StatusBody" xml:space="preserve">
-    <value>Dear {0},&lt;br /&gt;&lt;br /&gt;Just a quick note to notify you that Quaffee order has been{1}.&lt;br /&gt;&lt;br /&gt;</value>
+    <value>Dear {0},&lt;br /&gt;&lt;br /&gt;Just a quick note to notify you that your Quaffee order has been {1}.&lt;br /&gt;&lt;br /&gt;</value>
     <comment>The body of an order status</comment>
   </data>
   <data name="Order.ConfirmationHeader" xml:space="preserve">

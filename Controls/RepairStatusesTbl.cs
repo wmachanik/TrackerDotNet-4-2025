@@ -15,12 +15,14 @@ namespace TrackerDotNet.Controls
 {
     public class RepairStatusesTbl
     {
-        private const string CONST_SQL_SELECT = "SELECT RepairStatusID, RepairStatusDesc, EmailClient, SortOrder, Notes FROM RepairStatusesTbl";
+        private const string CONST_SQL_SELECT = "SELECT RepairStatusID, RepairStatusDesc, EmailClient, SortOrder, StatusNote, Notes FROM RepairStatusesTbl";
+        //private const string CONST_SQL_SELECT = "SELECT RepairStatusID, RepairStatusDesc, EmailClient, SortOrder, Notes FROM RepairStatusesTbl";
         private const string CONST_SQL_SELECTSTATUSDESC = "SELECT RepairStatusDesc FROM RepairStatusesTbl WHERE (RepairStatusID = ?)";
         private int _RepairStatusID;
         private string _RepairStatusDesc;
         private bool _EmailClient;
         private int _SortOrder;
+        private string _StatusNote;
         private string _Notes;
 
         public RepairStatusesTbl()
@@ -55,7 +57,11 @@ namespace TrackerDotNet.Controls
             get => this._SortOrder;
             set => this._SortOrder = value;
         }
-
+        public string StatusNote
+        {
+            get => _StatusNote;
+            set => _StatusNote = value;
+        }
         public string Notes
         {
             get => this._Notes;
@@ -67,7 +73,7 @@ namespace TrackerDotNet.Controls
         {
             List<RepairStatusesTbl> all = new List<RepairStatusesTbl>();
             TrackerDb trackerDb = new TrackerDb();
-            string strSQL = $"SELECT RepairStatusID, RepairStatusDesc, EmailClient, SortOrder, Notes FROM RepairStatusesTbl ORDER BY {(string.IsNullOrEmpty(SortBy) ? "SortOrder" : SortBy)}";
+            string strSQL = $"{CONST_SQL_SELECT} ORDER BY {(string.IsNullOrEmpty(SortBy) ? "SortOrder" : SortBy)}";
             IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader(strSQL);
             if (dataReader != null)
             {
@@ -78,6 +84,7 @@ namespace TrackerDotNet.Controls
                         RepairStatusDesc = dataReader["RepairStatusDesc"] == DBNull.Value ? string.Empty : dataReader["RepairStatusDesc"].ToString(),
                         EmailClient = dataReader["EmailClient"] != DBNull.Value && Convert.ToBoolean(dataReader["EmailClient"]),
                         SortOrder = dataReader["SortOrder"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["SortOrder"]),
+                        StatusNote = dataReader["StatusNote"] == DBNull.Value ? string.Empty : dataReader["StatusNote"].ToString(),
                         Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString()
                     });
                 dataReader.Close();
@@ -100,6 +107,21 @@ namespace TrackerDotNet.Controls
             }
             trackerDb.Close();
             return repairStatusDesc;
+        }
+        public string GetStatusNote(int repairStatusID)
+        {
+            string statusNote = string.Empty;
+            TrackerDb trackerDb = new TrackerDb();
+            trackerDb.AddWhereParams(repairStatusID, DbType.Int32);
+            IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT StatusNote FROM RepairStatusesTbl WHERE (RepairStatusID = ?)");
+            if (dataReader != null)
+            {
+                if (dataReader.Read())
+                    statusNote = dataReader["StatusNote"] == DBNull.Value ? string.Empty : dataReader["StatusNote"].ToString();
+                dataReader.Close();
+            }
+            trackerDb.Close();
+            return string.IsNullOrWhiteSpace(statusNote) ? GetRepairStatusDesc(repairStatusID) : statusNote;
         }
     }
 }

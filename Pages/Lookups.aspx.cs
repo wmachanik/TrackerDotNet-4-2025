@@ -212,16 +212,46 @@ namespace TrackerDotNet.Pages
             if (!e.Row.RowType.Equals((object)DataControlRowType.DataRow))
                 return;
             PackagingTbl dataItem = (PackagingTbl)e.Row.DataItem;
-            if (string.IsNullOrEmpty(dataItem.BGColour))
-                return;
-            try
+
+            // Handle BGColour column (index 3)
+            if (!string.IsNullOrEmpty(dataItem.BGColour))
             {
-                Color color = ColorTranslator.FromHtml(dataItem.BGColour);
-                e.Row.Cells[4].BackColor = color;
+                try
+                {
+                    Color bgColor = ColorTranslator.FromHtml(dataItem.BGColour);
+                    e.Row.Cells[3].BackColor = bgColor;
+
+                    // Set contrasting text color for BGColour column
+                    int brightness = (int)(bgColor.R * 0.299 + bgColor.G * 0.587 + bgColor.B * 0.114);
+                    e.Row.Cells[3].ForeColor = brightness > 128 ? Color.Black : Color.White;
+                }
+                catch (Exception ex)
+                {
+                    this.lblStatus.Text = ex.Message;
+                }
             }
-            catch (Exception ex)
+
+            // Handle Colour column (index 4) - convert int to hex and display
+            if (dataItem.Colour != 0)
             {
-                this.lblStatus.Text = ex.Message;
+                try
+                {
+                    // Convert integer to hex color
+                    Color foreColor = Color.FromArgb(dataItem.Colour);
+                    string hexValue = $"#{foreColor.R:X2}{foreColor.G:X2}{foreColor.B:X2}";
+
+                    // Set the hex value as text and apply the color as background
+                    e.Row.Cells[4].Text = hexValue;
+                    e.Row.Cells[4].BackColor = foreColor;
+
+                    // Set contrasting text color for Colour column
+                    int brightness = (int)(foreColor.R * 0.299 + foreColor.G * 0.587 + foreColor.B * 0.114);
+                    e.Row.Cells[4].ForeColor = brightness > 128 ? Color.Black : Color.White;
+                }
+                catch (Exception ex)
+                {
+                    this.lblStatus.Text = ex.Message;
+                }
             }
         }
 
@@ -231,17 +261,17 @@ namespace TrackerDotNet.Pages
                 return;
             try
             {
-                TextBox control1 = (TextBox)this.gvPackaging.FooterRow.FindControl("TextBoxDescription");
-                TextBox control2 = (TextBox)this.gvPackaging.FooterRow.FindControl("TextBoxAdditionalNotes");
-                TextBox control3 = (TextBox)this.gvPackaging.FooterRow.FindControl("TextBoxBGColour");
-                TextBox control4 = (TextBox)this.gvPackaging.FooterRow.FindControl("TextBoxColour");
-                TextBox control5 = (TextBox)this.gvPackaging.FooterRow.FindControl("TextBoxSymbol");
+                TextBox controlDescription = (TextBox)this.gvPackaging.FooterRow.FindControl("TextBoxDescription");
+                TextBox controlAdditionalNotes = (TextBox)this.gvPackaging.FooterRow.FindControl("TextBoxAdditionalNotes");
+                TextBox controlBGColour = (TextBox)this.gvPackaging.FooterRow.FindControl("TextBoxBGColour");
+                TextBox controlColour = (TextBox)this.gvPackaging.FooterRow.FindControl("TextBoxColour");
+                TextBox controlSymbol = (TextBox)this.gvPackaging.FooterRow.FindControl("TextBoxSymbol");
                 PackagingTbl objPackagingTbl = new PackagingTbl();
-                objPackagingTbl.Description = control1.Text;
-                objPackagingTbl.AdditionalNotes = control2.Text;
-                objPackagingTbl.BGColour = control3.Text;
-                objPackagingTbl.Colour = string.IsNullOrEmpty(control4.Text) ? 0 : Convert.ToInt32(control4.Text);
-                objPackagingTbl.Symbol = control4.Text;
+                objPackagingTbl.Description = controlDescription.Text;
+                objPackagingTbl.AdditionalNotes = controlAdditionalNotes.Text;
+                objPackagingTbl.BGColour = controlBGColour.Text;
+                objPackagingTbl.Colour = string.IsNullOrEmpty(controlColour.Text) ? 0 : Convert.ToInt32(controlColour.Text);
+                objPackagingTbl.Symbol = controlSymbol.Text;
                 objPackagingTbl.InsertPackaging(objPackagingTbl);
                 this.gvPackaging.DataBind();
             }
@@ -315,13 +345,13 @@ namespace TrackerDotNet.Pages
                 DropDownList control1 = (DropDownList)gridViewRow.FindControl("ddlPreperationDoW");
                 TextBox control2 = (TextBox)gridViewRow.FindControl("tbxDeliveryDelay");
                 TextBox control3 = (TextBox)gridViewRow.FindControl("tbxDeliveryOrder");
-                Label control4 = (Label)gridViewRow.FindControl("CityPrepDaysIDLabel");
+                var controlCityPrepDaysID = (HiddenField)gridViewRow.FindControl("CityPrepDaysIDHidden");
                 int int32 = Convert.ToInt32(this.gvCities.SelectedDataKey.Value);
                 CityPrepDaysTbl objCityPrepDaysTbl = new CityPrepDaysTbl();
                 objCityPrepDaysTbl.CityID = int32;
                 objCityPrepDaysTbl.PrepDayOfWeekID = Convert.ToByte(control1.SelectedValue);
                 objCityPrepDaysTbl.DeliveryDelayDays = Convert.ToInt32(control2.Text);
-                objCityPrepDaysTbl.CityPrepDaysID = Convert.ToInt32(control4.Text);
+                objCityPrepDaysTbl.CityPrepDaysID = Convert.ToInt32(controlCityPrepDaysID.Value);
                 objCityPrepDaysTbl.DeliveryOrder = Convert.ToInt32(control3.Text);
                 if (e.CommandName.Equals("Update"))
                     objCityPrepDaysTbl.UpdateCityPrepDay(objCityPrepDaysTbl);
@@ -334,9 +364,9 @@ namespace TrackerDotNet.Pages
             {
                 if (!e.CommandName.Equals("Delete"))
                     return;
-                Label control = (Label)((Control)e.CommandSource).NamingContainer.FindControl("CityPrepDaysIDLabel");
+                var controlCityPrepDaysID = (HiddenField)((Control)e.CommandSource).NamingContainer.FindControl("CityPrepDaysIDHidden");
                 CityPrepDaysTbl cityPrepDaysTbl = new CityPrepDaysTbl();
-                cityPrepDaysTbl.CityPrepDaysID = Convert.ToInt32(control.Text);
+                cityPrepDaysTbl.CityPrepDaysID = Convert.ToInt32(controlCityPrepDaysID.Value);
                 cityPrepDaysTbl.DeleteByCityPrepDayID(cityPrepDaysTbl.CityPrepDaysID);
                 this.gvCityDays.DataBind();
                 this.upnlCities.Update();
@@ -353,14 +383,13 @@ namespace TrackerDotNet.Pages
                 result2 = 1;
             int num = result1 + result2;
             string[] strArray = new string[7]
-            {
-      "Sun",
-      "Mon",
-      "Tue",
-      "Wed",
-      "Thu",
-      "Fri",
-      "Sat"
+            {"Sun",
+                "Mon",
+                "Tue",
+                "Wed",
+                "Thu",
+                "Fri",
+                "Sat"
             };
             if (num > 7)
                 num -= 7;
@@ -372,23 +401,23 @@ namespace TrackerDotNet.Pages
             GridViewRow namingContainer = (GridViewRow)((Control)e.CommandSource).NamingContainer;
             if (namingContainer == null)
                 return;
-            TextBox control1 = (TextBox)namingContainer.FindControl("InvoiceTypeDescTextBox");
-            if (control1 == null || string.IsNullOrEmpty(control1.Text))
+            TextBox controlTypeDesc = (TextBox)namingContainer.FindControl("InvoiceTypeDescTextBox");
+            if (controlTypeDesc == null || string.IsNullOrEmpty(controlTypeDesc.Text))
                 return;
             InvoiceTypeTbl pInvoiceTypeTbl = new InvoiceTypeTbl();
-            Literal control2 = (Literal)namingContainer.FindControl("InvoiceTypeIDLiteral");
-            pInvoiceTypeTbl.InvoiceTypeID = control2 != null ? Convert.ToInt32(control2.Text) : 0;
+            var controlInvoiceTypeID = (HiddenField)namingContainer.FindControl("InvoiceTypeIDHidden");
+            pInvoiceTypeTbl.InvoiceTypeID = controlInvoiceTypeID != null ? Convert.ToInt32(controlInvoiceTypeID.Value) : 0;
             if (e.CommandName.Equals("Delete"))
             {
                 pInvoiceTypeTbl.Delete(pInvoiceTypeTbl.InvoiceTypeID);
             }
             else
             {
-                CheckBox control3 = (CheckBox)namingContainer.FindControl("EnabledCheckBox");
-                TextBox control4 = (TextBox)namingContainer.FindControl("NotesTextBox");
-                pInvoiceTypeTbl.InvoiceTypeDesc = control1.Text;
-                pInvoiceTypeTbl.Enabled = control3 != null && control3.Checked;
-                pInvoiceTypeTbl.Notes = control4 != null ? control4.Text : string.Empty;
+                CheckBox controlEnabled = (CheckBox)namingContainer.FindControl("EnabledCheckBox");
+                TextBox controlNotes = (TextBox)namingContainer.FindControl("NotesTextBox");
+                pInvoiceTypeTbl.InvoiceTypeDesc = controlTypeDesc.Text;
+                pInvoiceTypeTbl.Enabled = controlEnabled != null && controlEnabled.Checked;
+                pInvoiceTypeTbl.Notes = controlNotes != null ? controlNotes.Text : string.Empty;
                 if (e.CommandName.Equals("Add") || e.CommandName.Equals("Insert"))
                     pInvoiceTypeTbl.Insert(pInvoiceTypeTbl);
                 else if (e.CommandName.Equals("Update"))
@@ -402,19 +431,19 @@ namespace TrackerDotNet.Pages
             GridViewRow namingContainer = (GridViewRow)((Control)e.CommandSource).NamingContainer;
             if (namingContainer == null)
                 return;
-            TextBox control1 = (TextBox)namingContainer.FindControl("PriceLevelDescTextBox");
-            if (control1 == null || string.IsNullOrEmpty(control1.Text))
+            TextBox controlDesc = (TextBox)namingContainer.FindControl("PriceLevelDescTextBox");
+            if (controlDesc == null || string.IsNullOrEmpty(controlDesc.Text))
                 return;
-            TextBox control2 = (TextBox)namingContainer.FindControl("PricingFactorTextBox");
-            CheckBox control3 = (CheckBox)namingContainer.FindControl("EnabledCheckBox");
-            TextBox control4 = (TextBox)namingContainer.FindControl("NotesTextBox");
-            Literal control5 = (Literal)namingContainer.FindControl("PriceLevelIDLiteral");
+            TextBox controlFactor = (TextBox)namingContainer.FindControl("PricingFactorTextBox");
+            CheckBox controlEnabled = (CheckBox)namingContainer.FindControl("EnabledCheckBox");
+            TextBox controlNotes = (TextBox)namingContainer.FindControl("NotesTextBox");
+            var controlID = (HiddenField)namingContainer.FindControl("hdnPriceLevelID");
             PriceLevelsTbl pPriceLevelsTbl = new PriceLevelsTbl();
-            pPriceLevelsTbl.PriceLevelDesc = control1.Text;
-            pPriceLevelsTbl.PricingFactor = control2 != null ? (double)Convert.ToSingle(control2.Text) : 1.0;
-            pPriceLevelsTbl.Enabled = control3 != null && control3.Checked;
-            pPriceLevelsTbl.Notes = control4 != null ? control4.Text : string.Empty;
-            pPriceLevelsTbl.PriceLevelID = control5 != null ? Convert.ToInt32(control5.Text) : 0;
+            pPriceLevelsTbl.PriceLevelDesc = controlDesc.Text;
+            pPriceLevelsTbl.PricingFactor = controlFactor != null ? (double)Convert.ToSingle(controlFactor.Text) : 1.0;
+            pPriceLevelsTbl.Enabled = controlEnabled != null && controlEnabled.Checked;
+            pPriceLevelsTbl.Notes = controlNotes != null ? controlNotes.Text : string.Empty;
+            pPriceLevelsTbl.PriceLevelID = controlID != null ? Convert.ToInt32(controlID.Value) : 0;
             if (e.CommandName.Equals("Add") || e.CommandName.Equals("Insert"))
                 pPriceLevelsTbl.Insert(pPriceLevelsTbl);
             else if (e.CommandName.Equals("Update"))
@@ -429,23 +458,23 @@ namespace TrackerDotNet.Pages
             GridViewRow namingContainer = (GridViewRow)((Control)e.CommandSource).NamingContainer;
             if (namingContainer == null)
                 return;
-            TextBox control1 = (TextBox)namingContainer.FindControl("PaymentTermDescTextBox");
-            if (control1 == null || string.IsNullOrEmpty(control1.Text))
+            var controlDesc = (TextBox)namingContainer.FindControl("PaymentTermDescTextBox");
+            if (controlDesc == null || string.IsNullOrEmpty(controlDesc.Text))
                 return;
-            TextBox control2 = (TextBox)namingContainer.FindControl("PaymentDaysTextBox");
-            TextBox control3 = (TextBox)namingContainer.FindControl("DayOfMonthTextBox");
-            CheckBox control4 = (CheckBox)namingContainer.FindControl("UseDaysCheckBox");
-            CheckBox control5 = (CheckBox)namingContainer.FindControl("EnabledCheckBox");
-            TextBox control6 = (TextBox)namingContainer.FindControl("NotesTextBox");
-            Literal control7 = (Literal)namingContainer.FindControl("PaymentTermIDLiteral");
+            var controlPaymentDays = (TextBox)namingContainer.FindControl("PaymentDaysTextBox");
+            var controlDayOfMonth = (TextBox)namingContainer.FindControl("DayOfMonthTextBox");
+            var controlUseDays = (CheckBox)namingContainer.FindControl("UseDaysCheckBox");
+            var controlEnabled = (CheckBox)namingContainer.FindControl("EnabledCheckBox");
+            var controlNotes = (TextBox)namingContainer.FindControl("NotesTextBox");
+            var controlPaymentTermID = (HiddenField)namingContainer.FindControl("PaymentTermIDHidden");
             PaymentTermsTbl pPaymentTermsTbl = new PaymentTermsTbl();
-            pPaymentTermsTbl.PaymentTermDesc = control1.Text;
-            pPaymentTermsTbl.PaymentDays = control2 != null ? Convert.ToInt32(control2.Text) : 0;
-            pPaymentTermsTbl.DayOfMonth = control3 != null ? Convert.ToInt32(control3.Text) : 0;
-            pPaymentTermsTbl.UseDays = control4 != null && control4.Checked;
-            pPaymentTermsTbl.Enabled = control5 == null || control5.Checked;
-            pPaymentTermsTbl.Notes = control6 != null ? control6.Text : string.Empty;
-            pPaymentTermsTbl.PaymentTermID = control7 != null ? Convert.ToInt32(control7.Text) : 0;
+            pPaymentTermsTbl.PaymentTermDesc = controlDesc.Text;
+            pPaymentTermsTbl.PaymentDays = controlPaymentDays != null ? Convert.ToInt32(controlPaymentDays.Text) : 0;
+            pPaymentTermsTbl.DayOfMonth = controlDayOfMonth != null ? Convert.ToInt32(controlDayOfMonth.Text) : 0;
+            pPaymentTermsTbl.UseDays = controlUseDays != null && controlUseDays.Checked;
+            pPaymentTermsTbl.Enabled = controlEnabled == null || controlEnabled.Checked;
+            pPaymentTermsTbl.Notes = controlNotes != null ? controlNotes.Text : string.Empty;
+            pPaymentTermsTbl.PaymentTermID = controlPaymentTermID != null ? Convert.ToInt32(controlPaymentTermID.Value) : 0;
             if (e.CommandName.Equals("Add") || e.CommandName.Equals("Insert"))
                 pPaymentTermsTbl.Insert(pPaymentTermsTbl);
             else if (e.CommandName.Equals("Update"))

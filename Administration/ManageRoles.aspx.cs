@@ -9,6 +9,7 @@ using System.Data;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using TrackerDotNet.Classes;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Administration
@@ -67,6 +68,7 @@ namespace TrackerDotNet.Administration
                 this.MsgLabel.Text = $"Role '{this.Server.HtmlEncode(text)}' <u>not</u> created.";
                 this.Response.Write(ex.ToString());
             }
+            AppLogger.WriteLog(SystemConstants.LogTypes.Login,this.MsgLabel.Text);
         }
 
         public void RenameRoleAndUsers(string OldRoleName, string NewRoleName)
@@ -76,6 +78,7 @@ namespace TrackerDotNet.Administration
             Roles.AddUsersToRole(usersInRole, NewRoleName);
             Roles.RemoveUsersFromRole(usersInRole, OldRoleName);
             Roles.DeleteRole(OldRoleName);
+            AppLogger.WriteLog(SystemConstants.LogTypes.Login, $"Role renamed from {OldRoleName} to {NewRoleName}");
         }
 
         public void UpdateRole_OnClick(object sender, EventArgs args) => this.BindRoles();

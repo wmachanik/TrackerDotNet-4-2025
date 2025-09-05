@@ -203,7 +203,7 @@ namespace TrackerDotNet.Controls
             trackerDb.AddParams((object)NewOrderData.RequiredByDate, DbType.Date, "@RequiredByDate");
             trackerDb.AddParams((object)NewOrderData.ToBeDeliveredBy, DbType.Int32, "@ToBeDeliveredBy");
             trackerDb.AddParams((object)NewOrderData.ItemTypeID, DbType.Int32, "@ItemTypeID");
-            trackerDb.AddParams((object)Math.Round(NewOrderData.QuantityOrdered, 2), DbType.Double, "@QuantityOrdered");
+            trackerDb.AddParams((object)Math.Round(NewOrderData.QuantityOrdered, SystemConstants.DatabaseConstants.NumDecimalPoints), DbType.Double, "@QuantityOrdered");
             trackerDb.AddParams((object)NewOrderData.Confirmed, DbType.Boolean, "@Confirmed");
             trackerDb.AddParams((object)NewOrderData.Done, DbType.Boolean, "@Done");
             trackerDb.AddParams(NewOrderData.Notes == null ? (object)string.Empty : (object)NewOrderData.Notes, DbType.String, "@Notes");

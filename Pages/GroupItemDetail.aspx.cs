@@ -36,7 +36,7 @@ namespace TrackerDotNet.Pages
             if (this.Request.QueryString["ItemTypeID"] == null)
                 return;
             ItemTypeTbl itemTypeFromId = new ItemTypeTbl().GetItemTypeFromID(Convert.ToInt32(this.Request.QueryString["ItemTypeID"].ToString()));
-            if (itemTypeFromId.ItemTypeID.Equals(-1))
+            if (itemTypeFromId.ItemTypeID.Equals(SystemConstants.DatabaseConstants.InvalidID))
                 return;
             this.lblGroupItemID.Visible = true;
             this.btnAdd.Visible = false;

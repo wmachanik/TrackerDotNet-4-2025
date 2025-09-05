@@ -52,7 +52,7 @@ namespace TrackerDotNet.Controls
         }
         public ItemTypeTbl()
         {
-            this._ItemTypeID = -1;
+            this._ItemTypeID = SystemConstants.DatabaseConstants.InvalidID;
             this._SKU = string.Empty;
             this._ItemDesc = string.Empty;
             this._ItemEnabled = false;
@@ -221,46 +221,26 @@ namespace TrackerDotNet.Controls
             return itemsNotInItemGroup;
         }
         // Static cache: ItemTypeID -> (ItemDesc, ItemEnabled)
-        private static Dictionary<int, (string Desc, bool Enabled)> _itemDescCache;
-
-        private static void EnsureItemDescCache()
-        {
-            if (_itemDescCache == null)
-            {
-                _itemDescCache = new Dictionary<int, (string, bool)>();
-                var trackerDb = new TrackerDb();
-                var dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT ItemTypeID, ItemDesc, ItemEnabled FROM ItemTypeTbl");
-                if (dataReader != null)
-                {
-                    while (dataReader.Read())
-                    {
-                        int id = dataReader["ItemTypeID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemTypeID"]);
-                        string desc = dataReader["ItemDesc"] == DBNull.Value ? string.Empty : dataReader["ItemDesc"].ToString();
-                        bool enabled = dataReader["ItemEnabled"] != DBNull.Value && Convert.ToBoolean(dataReader["ItemEnabled"]);
-                        if (!_itemDescCache.ContainsKey(id))
-                            _itemDescCache.Add(id, (desc, enabled));
-                    }
-                    dataReader.Close();
-                }
-                trackerDb.Close();
-            }
-        }
-
         [DataObjectMethod(DataObjectMethodType.Select)]
-        //public string GetItemTypeDescById(int pItemID) => this.GetItemTypeDescById(pItemID, true);
-        /// <summary>
-        /// Returns the item description for the given ID, with " SOLD OUT" if disabled and pCheckIfSoldOut is true.
-        /// </summary>
         public static string GetItemTypeDescById(int pItemID, bool pCheckIfSoldOut = true)
         {
-            EnsureItemDescCache();
-            if (_itemDescCache != null && _itemDescCache.TryGetValue(pItemID, out var entry))
+            string itemTypeDesc = string.Empty;
+            bool enabled = true;
+            using (var trackerDb = new TrackerDb())
             {
-                if (pCheckIfSoldOut && !entry.Enabled)
-                    return entry.Desc + " SOLD OUT";
-                return entry.Desc;
+                trackerDb.AddWhereParams(pItemID, DbType.Int32, "@ItemTypeID");
+                using (var dataReader = trackerDb.ExecuteSQLGetDataReader(CONST_SQL_SELECTITEMDESC))  // "SELECT ItemDesc, ItemEnabled FROM ItemTypeTbl WHERE ItemTypeID = ?"))
+                {
+                    if (dataReader != null && dataReader.Read())
+                    {
+                        itemTypeDesc = dataReader["ItemDesc"] == DBNull.Value ? string.Empty : dataReader["ItemDesc"].ToString();
+                        enabled = dataReader["ItemEnabled"] != DBNull.Value && Convert.ToBoolean(dataReader["ItemEnabled"]);
+                    }
+                }
             }
-            return string.Empty;
+            if (pCheckIfSoldOut && !enabled)
+                return itemTypeDesc + " SOLD OUT";
+            return itemTypeDesc;
         }
 
         //public string GetItemTypeDescById(int pItemID, bool pCheckIfSoldOut)
@@ -494,6 +474,24 @@ namespace TrackerDotNet.Controls
             }
             trackerDb.Close();
             return flag;
+        }
+        // Returns the ServiceTypeID for a given item
+        public static int GetServiceTypeForItem(int itemId)
+        {
+            using (var db = new TrackerDb())
+            {
+                string sql = "SELECT ServiceTypeID FROM ItemTypeTbl WHERE ItemTypeID = ?";
+                db.AddWhereParams(itemId, System.Data.DbType.Int32);
+                using (var reader = db.ExecuteSQLGetDataReader(sql, db.WhereParams))
+                {
+                    if (reader != null && reader.Read() && reader["ServiceTypeID"] != DBNull.Value)
+                        return System.Convert.ToInt32(reader["ServiceTypeID"]);
+                    reader?.Close();
+                }
+                db.Close();
+            }
+            // Fallback to Coffee if not found
+            return SystemConstants.ServiceTypeConstants.Coffee;
         }
     }
 }

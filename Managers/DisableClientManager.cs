@@ -19,7 +19,7 @@ namespace TrackerDotNet.Managers
             ValidateSecret();
             string token = GenerateToken(customerId);
             string baseUrl = GetApplicationUrl();
-            return $"{baseUrl}/DisableClient.aspx?CoID={customerId}&token={token}";
+            return $"{baseUrl}/DisableClient.aspx?{SystemConstants.UrlParameterConstants.CustomerID}={customerId}&token={token}";
         }
 
         /// <summary>

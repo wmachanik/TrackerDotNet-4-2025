@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Web.Security;
+using TrackerDotNet.Classes;
 
 namespace TrackerDotNet.Administration
 {
@@ -49,6 +50,7 @@ namespace TrackerDotNet.Administration
             {
                 lblError.Text = "Error: " + ex.Message;
             }
+            AppLogger.WriteLog(SystemConstants.LogTypes.Login, $"Reset Password - {lblMessage.Text}");
         }
     }
 }

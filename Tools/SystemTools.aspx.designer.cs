@@ -87,13 +87,13 @@ namespace TrackerDotNet.Tools
         protected global::System.Web.UI.WebControls.Button btnEditSystemData;
 
         /// <summary>
-        /// btnCreateUpdateLogTables control.
+        /// btnLogViewer control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnCreateUpdateLogTables;
+        protected global::System.Web.UI.WebControls.Button btnLogViewer;
 
         /// <summary>
         /// btnMergQBAccData control.
@@ -112,6 +112,24 @@ namespace TrackerDotNet.Tools
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnEmailDiagnostics;
+
+        /// <summary>
+        /// btnSetLastOrderDate control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnSetLastOrderDate;
+
+        /// <summary>
+        /// pnlResultsSection control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlResultsSection;
 
         /// <summary>
         /// ltrlStatus control.

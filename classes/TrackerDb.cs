@@ -9,19 +9,23 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Data.Common;
 using System.Data.OleDb;
 using System.Globalization;
 using System.Linq;
 using System.Web;
+using System.Web.Configuration;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Classes
 {
     public class TrackerDb : IDisposable
     {
-        public const string CONST_CONSTRING = "Tracker08ConnectionString";
-        public const int CONST_INVALIDID = -1;
-        public const string CONST_INVALIDIDSTR = "-1";
+        /*/ Moved to SystemConstants:
+        public const string CONST_CONSTRING = "Tracker08ConnectionString"; → SystemConstants.DatabaseConstants.ConnectionStringName
+        public const int CONST_INVALIDID = -1;                             → SystemConstants.DatabaseConstants.InvalidID
+        public const string CONST_INVALIDIDSTR = "-1";                     → SystemConstants.DatabaseConstants.InvalidIDStr
+        */
         public const string SQLTABLENAME_LOGTBL = "LogTbl";
         public const string SQLTABLENAME_SECTIONTYPESTBL = "SectionTypesTbl";
         public const string SQLTABLENAME_TRANSACTIONTYPESTBL = "TransactionTypesTbl";
@@ -33,6 +37,8 @@ namespace TrackerDotNet.Classes
         private OleDbConnection _TrackerDbConn;
         private int _numRecs;
         private OleDbCommand _command;
+
+
 
         public TrackerDb()
         {
@@ -99,7 +105,8 @@ namespace TrackerDotNet.Classes
                             AppLogger.WriteLog("database", $"DateTime value {dtVal} is outside Access supported range, using minimum date");
                             dtVal = new DateTime(1900, 1, 1);
                         }
-                        return dtVal.ToString("MM/dd/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+                        // FIX: Return DateTime object instead of string to match DbType.Date behavior
+                        return dtVal;
 
                     case DbType.Int16:
                         short shortVal = Convert.ToInt16(value);
@@ -130,7 +137,7 @@ namespace TrackerDotNet.Classes
                         string strVal = Convert.ToString(value);
                         if (string.IsNullOrWhiteSpace(strVal))
                             return DBNull.Value;
-                        
+
                         // Access has a 255 character limit for many string fields
                         if (strVal.Length > 255)
                         {
@@ -164,20 +171,35 @@ namespace TrackerDotNet.Classes
                 return DBNull.Value;
             }
         }
+        /// <summary>
+        /// Normalizes DateTime parameters for Access database compatibility
+        /// </summary>
+        private DbType NormalizeDateTypeForAccess(DbType originalType)
+        {
+            // For Access compatibility, always use DbType.Date for date comparisons
+            if (originalType == DbType.Date || originalType == DbType.DateTime2 || originalType == DbType.DateTimeOffset)
+            {
+                return DbType.DateTime;
+            }
+            return originalType;
+        }
         private OleDbParameter BuildOleDbParameter(DBParameter param)
         {
             OleDbParameter oleParam = new OleDbParameter();
 
-            oleParam.Value = PrepareValueForOleDb(param.DataDbType, param.DataValue);
+            // Normalize date types for Access compatibility
+            var normalizedType = NormalizeDateTypeForAccess(param.DataDbType);
+
+            oleParam.Value = PrepareValueForOleDb(normalizedType, param.DataValue);
 
             if (param.ParamName != null && !param.ParamName.Equals("?"))
             {
                 oleParam.ParameterName = param.ParamName;
-                oleParam.DbType = param.DataDbType;
+                oleParam.DbType = normalizedType;
             }
             else
             {
-                oleParam.OleDbType = ConvertToOleDbType(param.DataDbType);
+                oleParam.OleDbType = ConvertToOleDbType(normalizedType);
             }
 
             return oleParam;
@@ -375,18 +397,18 @@ namespace TrackerDotNet.Classes
                     this._TrackerDbConn = null;
                 }
 
-                string connectionString = ConfigurationManager.ConnectionStrings["Tracker08ConnectionString"]?.ConnectionString;
+                string connectionString = ConfigurationManager.ConnectionStrings[SystemConstants.DatabaseConstants.ConnectionStringName]?.ConnectionString;
                 if (string.IsNullOrWhiteSpace(connectionString))
                 {
                     throw new ConfigurationErrorsException("Connection string 'Tracker08ConnectionString' is missing or empty in configuration.");
                 }
 
                 this._TrackerDbConn = new OleDbConnection(connectionString);
-                
+
                 // Test the connection
                 this._TrackerDbConn.Open();
                 this._TrackerDbConn.Close();
-                
+
                 // Remove this line - only log on errors
                 // AppLogger.WriteLog("database", "Database connection initialized successfully");
             }
@@ -397,6 +419,19 @@ namespace TrackerDotNet.Classes
             }
         }
 
+        // Helper method to combine parameter lists for error logging
+        private List<DBParameter> CombineParameters(List<DBParameter> pParams, List<DBParameter> pWhereParams)
+        {
+            var combined = new List<DBParameter>();
+
+            if (pParams != null)
+                combined.AddRange(pParams);
+
+            if (pWhereParams != null)
+                combined.AddRange(pWhereParams);
+
+            return combined.Count > 0 ? combined : null;
+        }
         public bool TableExists(string pTableName)
         {
             bool flag = false;
@@ -472,7 +507,17 @@ namespace TrackerDotNet.Classes
             }
             catch (OleDbException ex)
             {
-                this.ErrorResult = ex.Message;
+                // Enhanced error logging with detailed parameter information
+                this.ErrorResult = BuildDetailedErrorMessage(ex, strSQL, CombineParameters(pParams, pWhereParams));
+
+                // Also log to AppLogger like the retry method
+                AppLogger.WriteLog("database", $"ExecuteNonQuerySQL failed: {this.ErrorResult}");
+            }
+            catch (Exception ex)
+            {
+                // Handle non-OleDb exceptions
+                this.ErrorResult = $"Unexpected Error in ExecuteNonQuery: {ex.Message}\nQuery: {strSQL}";
+                AppLogger.WriteLog("database", this.ErrorResult);
             }
             finally
             {
@@ -514,7 +559,16 @@ namespace TrackerDotNet.Classes
             }
             catch (OleDbException ex)
             {
-                this.ErrorResult = ex.Message;
+                // Enhanced error logging with detailed parameter information
+                this.ErrorResult = BuildDetailedErrorMessage(ex, strSQL, pWhereParams);
+                // Also log to AppLogger like the retry method
+                AppLogger.WriteLog("database", $"ReturnDataSet failed: {this.ErrorResult}");
+            }
+            catch (Exception ex)
+            {
+                // Handle non-OleDb exceptions
+                this.ErrorResult = $"Unexpected Error in ReturnDataSet: {ex.Message}\nQuery: {strSQL}";
+                AppLogger.WriteLog("database", this.ErrorResult);
             }
             finally
             {
@@ -527,12 +581,13 @@ namespace TrackerDotNet.Classes
             return dataSet;
         }
 
-        private static readonly bool EnableDetailedLogging = 
+        private static readonly bool EnableDetailedLogging =
     ConfigurationManager.AppSettings["EnableDatabaseDetailedLogging"]?.ToLower() == "true";
 
         public IDataReader ExecuteSQLGetDataReader(string strSQL)
         {
-            return this.ExecuteSQLGetDataReader(strSQL, this.WhereParams.Count == 0 ? (List<DBParameter>)null : this.WhereParams);
+            IDataReader dataReader = this.ExecuteSQLGetDataReader(strSQL, this.WhereParams.Count == 0 ? (List<DBParameter>)null : this.WhereParams);
+            return dataReader;
         }
         public IDataReader ExecuteSQLGetDataReader(string strSQL, List<DBParameter> pWhereParams)
         {
@@ -551,16 +606,32 @@ namespace TrackerDotNet.Classes
                     }
                 }
 
-                dataReader = this._command.ExecuteReader();
+                // ✅ This automatically closes connection when reader is closed
+                dataReader = this._command.ExecuteReader(); // CommandBehavior.CloseConnection);
             }
             catch (OleDbException ex)
             {
-                // Enhanced error message only when errors occur
                 this.ErrorResult = BuildDetailedErrorMessage(ex, strSQL, pWhereParams);
+                AppLogger.WriteLog("database", $"ExecuteSQLGetDataReader failed: {this.ErrorResult}");
+
+                if (this._TrackerDbConn?.State == ConnectionState.Open)
+                {
+                    this._TrackerDbConn.Close();
+                }
+
+                return null;
             }
             catch (Exception ex)
             {
-                this.ErrorResult = $"Unexpected Error: {ex.Message}\nQuery: {strSQL}";
+                this.ErrorResult = $"Unexpected Error in ExecuteSQLGetDataReader: {ex.Message}\nQuery: {strSQL}";
+                AppLogger.WriteLog("database", this.ErrorResult);
+
+                if (this._TrackerDbConn?.State == ConnectionState.Open)
+                {
+                    this._TrackerDbConn.Close();
+                }
+
+                return null;
             }
 
             return dataReader;
@@ -586,10 +657,10 @@ namespace TrackerDotNet.Classes
                 {
                     retryCount++;
                     AppLogger.WriteLog("database", $"Transient error on attempt {retryCount}, retrying in {delay.TotalMilliseconds}ms: {ex.Message}");
-                    
+
                     System.Threading.Thread.Sleep(delay);
                     delay = TimeSpan.FromMilliseconds(delay.TotalMilliseconds * 2); // Exponential backoff
-                    
+
                     // Reset connection for retry
                     try
                     {
@@ -631,7 +702,7 @@ namespace TrackerDotNet.Classes
             var errorDetails = new System.Text.StringBuilder();
             errorDetails.AppendLine($"SQL Error: {ex.Message}");
             errorDetails.AppendLine($"Query: {strSQL}");
-            
+
             // Only include parameter details if command was created and has parameters
             if (this._command?.Parameters.Count > 0 && pWhereParams?.Count > 0)
             {
@@ -644,7 +715,7 @@ namespace TrackerDotNet.Classes
                     errorDetails.AppendLine($"  [{i}] {originalParam.DataValue} ({originalParam.DataDbType}) -> {param.Value}");
                 }
             }
-            
+
             return errorDetails.ToString();
         }
 
@@ -736,7 +807,13 @@ namespace TrackerDotNet.Classes
             {
                 this.ErrorResult = ex.Message;
                 HttpContext.Current.Session["DataAccessError"] = ex.Message;
-                throw;
+                AppLogger.WriteLog("database", $"ReturnHashTable failed: {this.ErrorResult}");
+            }
+            catch (Exception ex)
+            {
+                // Handle non-OleDb exceptions
+                this.ErrorResult = $"Unexpected Error in ReturnHashTable: {ex.Message}\nQuery: {strSQL}";
+                AppLogger.WriteLog("database", this.ErrorResult);
             }
             finally
             {
@@ -883,7 +960,7 @@ namespace TrackerDotNet.Classes
             try
             {
                 using (var testConn = new OleDbConnection(
-                    ConfigurationManager.ConnectionStrings["Tracker08ConnectionString"].ConnectionString))
+                    ConfigurationManager.ConnectionStrings[SystemConstants.DatabaseConstants.ConnectionStringName].ConnectionString))
                 {
                     testConn.Open();
                     using (var cmd = new OleDbCommand("SELECT COUNT(*) FROM MSysObjects WHERE Type=1", testConn))
@@ -906,11 +983,11 @@ namespace TrackerDotNet.Classes
             {
                 if (!TestConnection())
                     return "Database connection failed";
-                    
+
                 // Test basic query performance
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 using (var testConn = new OleDbConnection(
-                    ConfigurationManager.ConnectionStrings["Tracker08ConnectionString"].ConnectionString))
+                    ConfigurationManager.ConnectionStrings[SystemConstants.DatabaseConstants.ConnectionStringName].ConnectionString))
                 {
                     testConn.Open();
                     using (var cmd = new OleDbCommand("SELECT TOP 1 * FROM CustomersTbl", testConn))
@@ -922,7 +999,7 @@ namespace TrackerDotNet.Classes
                     }
                 }
                 stopwatch.Stop();
-                
+
                 return $"Database healthy - Query time: {stopwatch.ElapsedMilliseconds}ms";
             }
             catch (Exception ex)

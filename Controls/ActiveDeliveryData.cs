@@ -15,7 +15,7 @@ namespace TrackerDotNet.Controls
 {
     public class ActiveDeliveryData
     {
-        private const string CONST_CONSTRING = "Tracker08ConnectionString";
+        //private const string CONST_CONSTRING = "Tracker08ConnectionString";  SystemConstants.DatabaseConstants.ConnectionStringName
         private const string CONST_SQL_SELECT_ACTIVEDELIVERIES = "SELECT DISTINCT OrdersTbl.RequiredByDate, PersonsTbl.Person, PersonsTbl.PersonID  FROM (OrdersTbl LEFT OUTER JOIN PersonsTbl ON OrdersTbl.ToBeDeliveredBy = PersonsTbl.PersonID) WHERE (OrdersTbl.Done = false)";
         private const string CONST_SQL_SELECT_DISTINTDELIVERYDATES = "SELECT DISTINCT OrdersTbl.RequiredByDate FROM OrdersTbl WHERE (OrdersTbl.Done = false) ORDER BY RequiredByDate";
         private DateTime _RequiredByDate;

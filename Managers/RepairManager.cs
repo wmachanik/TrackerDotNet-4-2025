@@ -1,6 +1,8 @@
 using System;
-using TrackerDotNet.Controls;
+using System.Collections.Generic;
+using System.ComponentModel;
 using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 namespace TrackerDotNet.Managers
 {
@@ -20,7 +22,7 @@ namespace TrackerDotNet.Managers
         public string HandleStatusChange(RepairsTbl repair)
         {
             bool orderUpdated = true;
-            
+
             switch (repair.RepairStatusID)
             {
                 case 1: // LOGGED
@@ -60,16 +62,79 @@ namespace TrackerDotNet.Managers
             }
 
             bool updateSuccess = string.IsNullOrEmpty(_repairsTbl.UpdateRepair(repair));
-            string emailError = updateSuccess ? SendStatusNotification(repair) : null;
-
             if (!updateSuccess)
                 return MessageProvider.Get(MessageKeys.Repairs.ErrorUpdating);
+
+            // Update order notes with the status note from the database
+            string statusNote = new RepairStatusesTbl().GetStatusNote(repair.RepairStatusID);
+            if (repair.RelatedOrderID > 0)
+            {
+                RepairsTbl.UpdateOrderNotesWithRepairStatus(repair, statusNote);
+            }
+
+            string emailError = SendStatusNotification(repair);
 
             if (!string.IsNullOrEmpty(emailError))
                 return emailError;
 
             return null; // Success
         }
+
+        public List<RepairsTbl> GetRepairsByDateFilter(string dateFilter, string repairStatus, string sortBy = "DateLogged DESC")
+        {
+            DateTime? fromDate = null;
+            DateTime? toDate = null;
+
+            var today = TimeZoneUtils.Now().Date;
+
+            switch (dateFilter?.ToUpper())
+            {
+                case "THISWEEK":
+                    var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
+                    fromDate = startOfWeek;
+                    toDate = startOfWeek.AddDays(6);
+                    break;
+
+                case "LASTWEEK":
+                    var lastWeekStart = today.AddDays(-(int)today.DayOfWeek - 7);
+                    fromDate = lastWeekStart;
+                    toDate = lastWeekStart.AddDays(6);
+                    break;
+
+                case "THISMONTH":
+                    fromDate = new DateTime(today.Year, today.Month, 1);
+                    toDate = fromDate.Value.AddMonths(1).AddDays(-1);
+                    break;
+
+                case "LASTMONTH":
+                    var lastMonthStart = new DateTime(today.Year, today.Month, 1).AddMonths(-1);
+                    fromDate = lastMonthStart;
+                    toDate = lastMonthStart.AddMonths(1).AddDays(-1);
+                    break;
+
+                case "ALL":
+                case null:
+                case "":
+                    // No date filtering
+                    break;
+
+                default:
+                    // For custom date ranges, dates should be passed separately
+                    break;
+            }
+
+            return _repairsTbl.GetRepairsByStatusAndDateRange(sortBy, repairStatus, fromDate, toDate, null, null);
+        }
+
+        [DataObjectMethod(DataObjectMethodType.Select, true)]
+        public List<RepairsTbl> GetRepairsByStatusAndDateRange(string sortBy, string repairStatus, object fromDateObj, object toDateObj, string filterBy, string filterText)
+        {
+            // Convert objects to DateTime? and call the main method
+            DateTime? fromDate = TrackerTools.ConvertToNullableDateTime(fromDateObj);
+            DateTime? toDate = TrackerTools.ConvertToNullableDateTime(toDateObj);
+            return _repairsTbl.GetRepairsByStatusAndDateRange(sortBy, repairStatus, fromDate, toDate, null, null);
+        }
+        private string SafeString(string value) => string.IsNullOrWhiteSpace(value) ? "n/a" : value;
 
         private string SendStatusNotification(RepairsTbl repair)
         {
@@ -84,22 +149,31 @@ namespace TrackerDotNet.Managers
 
             email.SetEmailSubject(MessageProvider.Get(MessageKeys.Repairs.StatusEmailSubject));
 
+            // Get the status note from the database
+            string statusNote = repairStatusesTbl.GetStatusNote(repair.RepairStatusID);
+
+            // Format the email body using Messages.resx template
+
+            // Usage in SendStatusNotification:
             string body = MessageProvider.Format(
                 MessageKeys.Repairs.StatusEmailBody,
-                repair.ContactName,
-                equipTypeTbl.GetEquipName(repair.MachineTypeID),
-                repair.MachineSerialNumber,
-                repairStatusesTbl.GetRepairStatusDesc(repair.RepairStatusID)
+                TrackerTools.SafeString(repair.ContactName, SystemConstants.EmailConstants.DefaultContact),  // {0} = contact name
+                TrackerTools.SafeString(equipTypeTbl.GetEquipName(repair.MachineTypeID), SystemConstants.RepairConstants.DefaultEquipName ),   // {1} the equipment being repaired
+                TrackerTools.SafeString(repair.MachineSerialNumber),                                         // {2} = equipment serial number
+                statusNote,
+                TrackerTools.SafeString(repair.JobCardNumber)                                                // {4} the job card assocaited to this repair
             );
 
+            body += MessageProvider.Get(MessageKeys.Repairs.DisclaimerFooter) +
+                MessageProvider.Get(MessageProvider.GetEmailSignature());
+
             email.AddToBody(body);
-            email.AddToBody(MessageProvider.Get(MessageProvider.GetEmailSignature()));
 
             bool success = email.SendEmail();
 
             if (!success)
             {
-                AppLogger.WriteLog("email", MessageProvider.Format(
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, MessageProvider.Format(
                     MessageKeys.Email.SendError,
                     repair.ContactEmail,
                     email.LastErrorSummary));
@@ -110,42 +184,59 @@ namespace TrackerDotNet.Managers
 
         private bool LogNewRepair(RepairsTbl repair, bool calculateDelivery)
         {
-            var orderData = new OrderTblData
-            {
-                CustomerID = repair.CustomerID,
-                ItemTypeID = 36,
-                QuantityOrdered = 1.0,
-                Notes = MessageProvider.Get(MessageKeys.Repairs.CollectSwopOutNote)
-            };
 
             DateTime delivery = TimeZoneUtils.Now().Date.AddDays(7.0);
 
-            if (calculateDelivery)
+            if (repair.RelatedOrderID == 0)
             {
-                var tools = new TrackerTools();
-                orderData.RoastDate = tools.GetNextRoastDateByCustomerID(repair.CustomerID, ref delivery);
-                var prefs = tools.RetrieveCustomerPrefs(repair.CustomerID);
-                
-                orderData.OrderDate = TimeZoneUtils.Now().Date;
-                orderData.RequiredByDate = delivery;
-                orderData.ToBeDeliveredBy = prefs.PreferredDeliveryByID;
-                
-                if (prefs.RequiresPurchOrder)
-                    orderData.PurchaseOrder = TrackerTools.CONST_POREQUIRED;
+                // Create new order
+                var orderData = new OrderTblData
+                {
+                    CustomerID = repair.CustomerID,
+                    ItemTypeID = 36,
+                    QuantityOrdered = 1.0,
+                    Notes = string.Empty
+                };
+
+                if (calculateDelivery)
+                {
+                    var tools = new TrackerTools();
+                    orderData.RoastDate = tools.GetNextRoastDateByCustomerID(repair.CustomerID, ref delivery);
+                    var prefs = tools.RetrieveCustomerPrefs(repair.CustomerID);
+
+                    orderData.OrderDate = TimeZoneUtils.Now().Date;
+                    orderData.RequiredByDate = delivery;
+                    orderData.ToBeDeliveredBy = prefs.PreferredDeliveryByID;
+
+                    if (prefs.RequiresPurchOrder)
+                        orderData.PurchaseOrder = SystemConstants.UIConstants.PORequiredText;
+                }
+                else
+                {
+                    DateTime today = TimeZoneUtils.Now().Date;
+                    orderData.OrderDate = today;
+                    orderData.RoastDate = today;
+                    orderData.RequiredByDate = delivery;
+                }
+
+                _orderTbl.InsertNewOrderLine(orderData);
+                repair.RelatedOrderID = _orderTbl.GetLastOrderAdded(
+                    orderData.CustomerID,
+                    orderData.OrderDate,
+                    36);
             }
             else
             {
-                DateTime today = TimeZoneUtils.Now().Date;
-                orderData.OrderDate = today;
-                orderData.RoastDate = today;
-                orderData.RequiredByDate = delivery;
+                // Optionally update delivery date or other fields if needed
+                if (calculateDelivery)
+                {
+                    var tools = new TrackerTools();
+                    var prefs = tools.RetrieveCustomerPrefs(repair.CustomerID);
+                    DateTime newDelivery = TimeZoneUtils.Now().Date.AddDays(7.0);
+                    _orderTbl.UpdateOrderDeliveryDate(newDelivery, repair.RelatedOrderID);
+                }
             }
-
-            _orderTbl.InsertNewOrderLine(orderData);
-            repair.RelatedOrderID = _orderTbl.GetLastOrderAdded(
-                orderData.CustomerID, 
-                orderData.OrderDate, 
-                36);
+            // UpdateOrderNotesWithRepairStatus - > done later
 
             return true;
         }
@@ -174,7 +265,7 @@ namespace TrackerDotNet.Managers
         {
             var repairsTbl = new RepairsTbl();
             var tempOrders = repairsTbl.GetListOfRelatedTempOrders();
-            
+
             if (tempOrders.Count > 0)
             {
                 var tempOrdersLinesTbl = new TempOrdersLinesTbl();

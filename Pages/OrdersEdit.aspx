@@ -233,11 +233,8 @@
         </Fields>
         <FooterStyle BackColor="Tan" />
         <HeaderStyle BackColor="Tan" Font-Bold="True" />
-        <PagerSettings FirstPageImageUrl="~/images/imgButtons/FirstPage.gif" 
+        <PagerSettings PagerStyle-CssClass="aspNetPager" FirstPageImageUrl="~/images/imgButtons/FirstPage.gif" 
           LastPageImageUrl="~/images/imgButtons/LastPage.gif" NextPageImageUrl="~/images/imgButtons/NextPage.gif"
-          PreviousPageImageUrl="~/images/imgButtons/PrevPage.gif" />
-        <PagerSettings FirstPageImageUrl="~/images/imgButtons/FirstPage.gif" LastPageImageUrl="~/images/imgButtons/LastPage.gif"
-          Mode="NextPreviousFirstLast" NextPageImageUrl="~/images/imgButtons/NextPage.gif"
           PreviousPageImageUrl="~/images/imgButtons/PrevPage.gif" />
         <PagerStyle BackColor="PaleGoldenrod" ForeColor="DarkSlateBlue" 
           HorizontalAlign="Center" />

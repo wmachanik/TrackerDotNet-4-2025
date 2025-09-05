@@ -210,15 +210,15 @@ namespace TrackerDotNet.Controls
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    AppLogger.WriteLog("email", $"SentRemindersLogTbl: Error deleting entries: {result}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersLogTbl: Error deleting entries: {result}");
                     throw new Exception($"Failed to delete reminder entries: {result}");
                 }
 
-                AppLogger.WriteLog("email", $"SentRemindersLogTbl: Deleted {deletedCount} entries for {targetDate:yyyy-MM-dd}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersLogTbl: Deleted {deletedCount} entries for {targetDate:yyyy-MM-dd}");
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"SentRemindersLogTbl: Error deleting entries for {targetDate:yyyy-MM-dd}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersLogTbl: Error deleting entries for {targetDate:yyyy-MM-dd}: {ex.Message}");
                 throw new Exception($"Failed to delete reminder entries: {ex.Message}", ex);
             }
 
@@ -266,11 +266,11 @@ namespace TrackerDotNet.Controls
 
                 trackerDb.Close();
 
-                AppLogger.WriteLog("email", $"SentRemindersLogTbl: Found {count} entries for {targetDate:yyyy-MM-dd}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersLogTbl: Found {count} entries for {targetDate:yyyy-MM-dd}");
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"SentRemindersLogTbl: Error counting entries for {targetDate:yyyy-MM-dd}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"SentRemindersLogTbl: Error counting entries for {targetDate:yyyy-MM-dd}: {ex.Message}");
             }
 
             return count;

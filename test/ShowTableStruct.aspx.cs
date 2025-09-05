@@ -56,7 +56,7 @@ namespace TrackerDotNet.test
             try
             {
                 // Get the connection string from TrackerDb
-                string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["Tracker08ConnectionString"].ConnectionString;
+                string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings[SystemConstants.DatabaseConstants.ConnectionStringName].ConnectionString;
                 
                 using (OleDbConnection conn = new OleDbConnection(connectionString))
                 {

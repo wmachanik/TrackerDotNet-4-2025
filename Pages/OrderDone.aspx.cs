@@ -41,19 +41,73 @@ namespace TrackerDotNet.Pages
         protected SqlDataSource sdsItemTypes;
         protected SqlDataSource sdsPackagingTypes;
 
+        // Add this helper method using existing constants
+        private string GetDeliveryMethodFromPersonID(int deliveryPersonID)
+        {
+            // Use existing constants from SystemConstants.DeliveryConstants
+            switch (deliveryPersonID)
+            {
+                case SystemConstants.DeliveryConstants.CourierDeliveryID:
+                    return "dispatched"; // Courier = dispatched
+                case SystemConstants.DeliveryConstants.ParcelDispatchID:
+                    return "dispatched"; // Courier = dispatched
+                case SystemConstants.DeliveryConstants.CollectionID:
+                    return "collected"; // Courier = dispatched
+                case SystemConstants.DeliveryConstants.DefaultDeliveryPersonID:
+                    return "done"; // Squad (SQ) = delivered
+                default:
+                    return "done"; // Default case, assume delivered
+            }
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
             {
                 sdsOrderDoneHeader.Select(DataSourceSelectArguments.Empty);
                 fvOrderDone.ChangeMode(FormViewMode.Edit);
+
+                // NEW: Set the radio button selection based on delivery type
+                SetDefaultRadioButtonFromDeliveryType();
+            }
+        }
+
+        // NEW: Method to set radio button based on delivery person type
+        private void SetDefaultRadioButtonFromDeliveryType()
+        {
+            try
+            {
+                // Get the delivery person ID from the temp order using the control class
+                TempOrdersHeaderTbl tempOrderHeader = new TempOrdersHeaderTbl().GetFirst();
+
+                if (tempOrderHeader != null)
+                {
+                    // Map delivery person ID to radio button value using existing constants
+                    string radioButtonValue = GetDeliveryMethodFromPersonID(tempOrderHeader.ToBeDeliveredByID);
+
+                    // Set the radio button selection
+                    rbtnSendConfirm.SelectedValue = radioButtonValue;
+
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"OrderDone: Set delivery method to '{radioButtonValue}' based on delivery person ID '{tempOrderHeader.ToBeDeliveredByID}'");
+                }
+                else
+                {
+                    // No temp order found, keep default
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "OrderDone: No temp order found, keeping default radio button selection");
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"OrderDone: Error setting delivery method: {ex.Message}");
+                // Fall back to default selection if there's an error
+                rbtnSendConfirm.SelectedValue = "done";
             }
         }
         private bool TempOrderExists(string customerID)
         {
             string query = "SELECT COUNT(*) FROM TempOrdersHeaderTbl WHERE CustomerID = @CustomerID";
 
-            using (var conn = new OleDbConnection(ConfigurationManager.ConnectionStrings["Tracker08ConnectionString"].ConnectionString))
+            using (var conn = new OleDbConnection(ConfigurationManager.ConnectionStrings[SystemConstants.DatabaseConstants.ConnectionStringName].ConnectionString))
             using (var cmd = new OleDbCommand(query, conn))
             {
                 cmd.Parameters.AddWithValue("@CustomerID", customerID);

@@ -9,6 +9,7 @@ using System.Web;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using TrackerDotNet.Classes;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Account
@@ -33,18 +34,19 @@ namespace TrackerDotNet.Account
 
             try
             {
-                // Ensure table exists
-                TrackerDotNet.Classes.UserPreferencesHelper.EnsureUserPreferencesTableExists();
+                // Ensure table exists -> this is done in GetCurrentPreferences anyway
+                // TrackerDotNet.Classes.UserPreferencesHelper.EnsureUserPreferencesTableExists();
 
                 // Get preferences or fallback
                 var prefs = TrackerDotNet.Classes.UserPreferencesHelper.GetCurrentPreferencesForUser(userId);
 
                 // Store in Session
                 Session["UserPreferences"] = prefs;
+                Session["UserTimeZoneInfo"] = prefs.GetTimeZoneInfo(); // <-- Set this first
+
                 // log that they are logged in
                 DateTime userNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, Session["UserTimeZoneInfo"] as TimeZoneInfo);
-                TrackerDotNet.Classes.AppLogger.WriteLog("logins", $"User '{LoginUser.UserName}' logged in at {userNow:yyyy-MM-dd HH:mm:ss} ({(Session["UserTimeZoneInfo"] as TimeZoneInfo)?.Id})");
-
+                TrackerDotNet.Classes.AppLogger.WriteLog(SystemConstants.LogTypes.Login, $"User '{LoginUser.UserName}' logged in at {userNow:yyyy-MM-dd HH:mm:ss} ({(Session["UserTimeZoneInfo"] as TimeZoneInfo)?.Id})");
 
                 // Optional shortcut: store just the TimeZoneInfo
                 Session["UserTimeZoneInfo"] = prefs.GetTimeZoneInfo();
@@ -65,7 +67,7 @@ namespace TrackerDotNet.Account
 
                 Session["UserTimeZoneInfo"] = defaultZone;
 
-                TrackerDotNet.Classes.AppLogger.WriteLog("userprefs", $"Fallback to default zone for {username}: {ex.Message}");
+                TrackerDotNet.Classes.AppLogger.WriteLog(SystemConstants.LogTypes.Login, $"Fallback to default zone for {username}: {ex.Message}");
             }
         }
     }

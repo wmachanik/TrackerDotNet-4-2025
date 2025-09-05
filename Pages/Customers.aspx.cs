@@ -8,6 +8,9 @@ using AjaxControlToolkit;
 using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
+using static TrackerDotNet.Classes.MessageKeys;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
@@ -32,6 +35,7 @@ namespace TrackerDotNet.Pages
         {
             if (!this.IsPostBack)
             {
+
                 if (this.Request.QueryString["CompanyName"] != null)
                 {
                     this.tbxFilterBy.Text = this.Request.QueryString["CompanyName"].ToString();
@@ -54,8 +58,36 @@ namespace TrackerDotNet.Pages
         {
             if (!(this.ddlFilterBy.SelectedValue != "0") || string.IsNullOrWhiteSpace(this.tbxFilterBy.Text))
                 return;
-            this.Session["CustomerSummaryWhereFilter"] = (object)$"{this.ddlFilterBy.SelectedValue} LIKE '%{this.tbxFilterBy.Text}%'";
+
+            string filterField = this.ddlFilterBy.SelectedValue;
+            string filterValue = this.tbxFilterBy.Text.Trim();
+
+            if (filterField == "CustomerID")
+            {
+                if (int.TryParse(filterValue, out int customerId))
+                {
+                    this.Session["CustomerSummaryWhereFilter"] = (object)$"CustomerID = {customerId}";
+                    this.lblFilter.Text = $"Filterred by CustomerID={customerId}.";
+                }
+                else
+                {
+                    this.Session["CustomerSummaryWhereFilter"] = (object)"1=0";
+                    this.lblFilter.Text = "Please enter a valid numeric Customer ID.";
+
+                    // Show message using showMessageBox
+                    new showMessageBox(this.Page, "Input Error", "Please enter a valid numeric Customer ID.");
+
+                    this.upnlCustomerSummary.Update();
+                    return;
+                }
+            }
+            else
+            {
+                this.Session["CustomerSummaryWhereFilter"] = (object)$"{filterField} LIKE '%{filterValue}%'";
+                this.lblFilter.Text = $"Filterred by {filterField} LIKE '%{filterValue}%'"; ;
+            }
             this.odsCustomerSummarys.DataBind();
+            //this.upnlCustomerSummary.Update();
         }
 
         protected void btnReset_Click(object sender, EventArgs e)
@@ -65,7 +97,7 @@ namespace TrackerDotNet.Pages
             this.tbxFilterBy.Text = "";
             this.odsCustomerSummarys.DataBind();
         }
-
+        
         protected void tbxFilterBy_TextChanged(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(this.tbxFilterBy.Text) || this.ddlFilterBy.SelectedIndex != 0)

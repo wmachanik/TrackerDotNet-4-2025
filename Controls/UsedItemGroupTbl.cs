@@ -31,10 +31,10 @@ namespace TrackerDotNet.Controls
 
         public UsedItemGroupTbl()
         {
-            this._UsedItemGroupID = -1;
-            this._ContactID = -1L;
-            this._GroupItemTypeID = -1;
-            this._LastItemTypeID = -1;
+            this._UsedItemGroupID = SystemConstants.DatabaseConstants.InvalidID;
+            this._ContactID = SystemConstants.DatabaseConstants.InvalidID;
+            this._GroupItemTypeID = SystemConstants.DatabaseConstants.InvalidID;
+            this._LastItemTypeID = SystemConstants.DatabaseConstants.InvalidID;
             this._LastItemTypeSortPos = 0;
             this._LastItemDateChanged = TimeZoneUtils.Now().Date;
             this._Notes = string.Empty;
@@ -200,7 +200,7 @@ namespace TrackerDotNet.Controls
             UsedItemGroupTbl usedItemGroupTbl = new UsedItemGroupTbl();
             UsedItemGroupTbl pUsedItemGroupTbl = this.ContactLastGroupItem(pContactID, pGroupItemTypeID);
             ItemGroupTbl nextGroupItem;
-            if (pUsedItemGroupTbl.UsedItemGroupID == -1)
+            if (pUsedItemGroupTbl.UsedItemGroupID == SystemConstants.DatabaseConstants.InvalidID)
             {
                 nextGroupItem = itemGroupTbl.GetFirstGroupItemType(pGroupItemTypeID);
                 pUsedItemGroupTbl.ContactID = pContactID;
@@ -232,7 +232,7 @@ namespace TrackerDotNet.Controls
             {
                 UsedItemGroupTbl usedItemGroupTbl = new UsedItemGroupTbl();
                 UsedItemGroupTbl lastUsedItemId = this.GetLastUsedItemID(pContactID, pItemTypeID, pOldDeliveryDate);
-                if (lastUsedItemId.UsedItemGroupID != -1)
+                if (lastUsedItemId.UsedItemGroupID != SystemConstants.DatabaseConstants.InvalidID)
                 {
                     lastUsedItemId.LastItemDateChanged = pNewDeliveryDate;
                     flag = this.Update(lastUsedItemId) == string.Empty;
@@ -253,9 +253,9 @@ namespace TrackerDotNet.Controls
             {
                 if (dataReader.Read())
                 {
-                    lastUsedItemId.UsedItemGroupID = dataReader["UsedItemGroupID"] == DBNull.Value ? -1 : Convert.ToInt32(dataReader["UsedItemGroupID"]);
+                    lastUsedItemId.UsedItemGroupID = dataReader["UsedItemGroupID"] == DBNull.Value ? SystemConstants.DatabaseConstants.InvalidID : Convert.ToInt32(dataReader["UsedItemGroupID"]);
                     lastUsedItemId.ContactID = pContactID;
-                    lastUsedItemId.GroupItemTypeID = dataReader["GroupItemTypeID"] == DBNull.Value ? -1 : Convert.ToInt32(dataReader["GroupItemTypeID"]);
+                    lastUsedItemId.GroupItemTypeID = dataReader["GroupItemTypeID"] == DBNull.Value ? SystemConstants.DatabaseConstants.InvalidID : Convert.ToInt32(dataReader["GroupItemTypeID"]);
                     lastUsedItemId.LastItemTypeID = pItemID;
                     lastUsedItemId.LastItemTypeSortPos = dataReader["LastItemTypeSortPos"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["LastItemTypeSortPos"]);
                     lastUsedItemId.LastItemDateChanged = pDeliveryDate;
@@ -277,7 +277,7 @@ namespace TrackerDotNet.Controls
             if (dataReader != null)
             {
                 if (dataReader.Read())
-                    pItemID = dataReader["GroupItemTypeID"] == DBNull.Value ? -1 : Convert.ToInt32(dataReader["GroupItemTypeID"]);
+                    pItemID = dataReader["GroupItemTypeID"] == DBNull.Value ? SystemConstants.DatabaseConstants.InvalidID : Convert.ToInt32(dataReader["GroupItemTypeID"]);
                 dataReader.Close();
             }
             trackerDb.Close();

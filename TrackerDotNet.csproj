@@ -116,7 +116,7 @@
     <Content Include="Administration\ManageUsers.aspx" />
     <Content Include="Administration\ResetPasswordHelper.aspx" />
     <Content Include="Administration\UserInformation.aspx" />
-    <Content Include="App_Data\QuaffeeTracker08.mdb" />
+    <Content Include="App_Data\SQLCommands-RepStatusUpdate-01.xml" />
     <Content Include="App_Data\SQLCommands001.xml" />
     <Content Include="Default.aspx" />
     <Content Include="DisableClient.aspx" />
@@ -199,7 +199,6 @@
     <Content Include="Pages\LeaveApp.aspx" />
     <Content Include="Pages\LogTable.aspx" />
     <Content Include="Pages\Lookups.aspx" />
-    <Content Include="Pages\NewOrderDetail.aspx" />
     <Content Include="Pages\OrderBuiten2Vineyard.aspx" />
     <Content Include="Pages\OrderDetail.aspx" />
     <Content Include="Pages\OrderDone.aspx" />
@@ -212,7 +211,6 @@
     <Content Include="Pages\ReoccuringOrderDetails.aspx" />
     <Content Include="Pages\ReoccuringOrders.aspx" />
     <Content Include="Pages\RepairDetail.aspx" />
-    <Content Include="Pages\RepairDetailOld.aspx" />
     <Content Include="Pages\Repairs.aspx" />
     <Content Include="Pages\RepairStatusChange.aspx" />
     <Content Include="Pages\SendCoffeeCheckup.aspx" />
@@ -228,7 +226,6 @@
     <Content Include="smpttester\index.aspx" />
     <Content Include="Styles\MobileSite.css" />
     <Content Include="Styles\Site.css" />
-    <Content Include="Styles\_old_Site.css" />
     <Content Include="test\About.aspx" />
     <Content Include="test\AutoClassMaker.aspx" />
     <Content Include="Tools\EmailDiagnostics.aspx" />
@@ -241,6 +238,7 @@
     <Content Include="Tools\About.aspx" />
     <Content Include="Tools\AutoClassMaker.aspx" />
     <Content Include="Tools\GenMachineKeys.aspx" />
+    <Content Include="Tools\LogViewer.aspx" />
     <Content Include="Tools\MergeCustomersFromQB.aspx" />
     <Content Include="Tools\MoveDeliveryDate.aspx" />
     <Content Include="Tools\PrintingTblHeadersTest.htm" />
@@ -323,7 +321,9 @@
       <DependentUpon>UserInformation.aspx</DependentUpon>
     </Compile>
     <Compile Include="Classes\BatchSendResult.cs" />
-    <Compile Include="Classes\DeliveryDateCalculator.cs" />
+    <Compile Include="Classes\CustomersTbl.cs" />
+    <Compile Include="Classes\DateCalculator.cs" />
+    <Compile Include="Classes\SystemConstants.cs" />
     <Compile Include="Controls\OrderCheckTbl.cs" />
     <Compile Include="Controls\ServiceTypeTbl.cs" />
     <Compile Include="Managers\CoffeeCheckupEmailManager.cs" />
@@ -337,7 +337,6 @@
     <Compile Include="Managers\OrderManager.cs" />
     <Compile Include="Classes\AppLogger.cs" />
     <Compile Include="Classes\CheckBrowser.cs" />
-    <Compile Include="Classes\DateTimeExtensions.cs" />
     <Compile Include="Classes\DBParameter.cs" />
     <Compile Include="Classes\EmailMailKitCls.cs" />
     <Compile Include="Classes\EmailUtils.cs" />
@@ -537,13 +536,6 @@
     <Compile Include="Pages\Lookups.aspx.designer.cs">
       <DependentUpon>Lookups.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Pages\NewOrderDetail.aspx.cs">
-      <DependentUpon>NewOrderDetail.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Pages\NewOrderDetail.aspx.designer.cs">
-      <DependentUpon>NewOrderDetail.aspx</DependentUpon>
-    </Compile>
     <Compile Include="Pages\OrderBuiten2Vineyard.aspx.designer.cs">
       <DependentUpon>OrderBuiten2Vineyard.aspx</DependentUpon>
     </Compile>
@@ -612,9 +604,6 @@
     <Compile Include="Pages\RepairDetail.aspx.designer.cs">
       <DependentUpon>RepairDetail.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Pages\RepairDetailOld.aspx.designer.cs">
-      <DependentUpon>RepairDetailOld.aspx</DependentUpon>
-    </Compile>
     <Compile Include="Pages\Repairs.aspx.cs">
       <DependentUpon>Repairs.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -674,7 +663,7 @@
       <DependentUpon>Print.master</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources\Messages.Designer.cs">
+    <Compile Include="Resources\Messages1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Messages.resx</DependentUpon>
@@ -724,6 +713,11 @@
     <Compile Include="Tools\GenMachineKeys.aspx.designer.cs">
       <DependentUpon>GenMachineKeys.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Tools\LogViewer.aspx.cs">
+      <DependentUpon>LogViewer.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Tools\LogViewer.aspx.designer.cs" />
     <Compile Include="Tools\MergeCustomersFromQB.aspx.cs">
       <DependentUpon>MergeCustomersFromQB.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

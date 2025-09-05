@@ -6,20 +6,76 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head runat="server">
     <title>QOnT</title>
-    <link href="~/Styles/Site.css" rel="stylesheet" type="text/css" />
+    <link href="~/Styles/Site.css?v=20250904" rel="stylesheet" type="text/css" />
     <link rel="icon" type="image/ico" href="~/images/icon/QonTIcon.ico" />
     <meta name="viewport" content="min-width=340px, width=device-width,initial-scale=1.0, minimum-scale=0.5, user-scalable=yes" />
     <meta name="MobileOptimized" content="width" />
     <meta name="HandheldFriendly" content="true" />
     <asp:ContentPlaceHolder ID="HeadContent" runat="server">
     </asp:ContentPlaceHolder>
-
+    <!-- Loading Indicator Styles -->
+    <style type="text/css">
+        /* Loading overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 99999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        /* Loading spinner */
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-green, #4e664d);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Loading text */
+        .loading-text {
+            margin-top: 20px;
+            font-family: Calibri, 'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif;
+            font-size: 1.2em;
+            color: var(--primary-green, #4e664d);
+            font-weight: bold;
+        }
+        
+        /* Spinner animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Alternative pulse animation for loading text */
+        .loading-text {
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { opacity: 0.6; }
+            to { opacity: 1; }
+        }
+        
+        /* Hide loading overlay when page is loaded */
+        .page-loaded #loadingOverlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+        }
+    </style>
     <script type="text/javascript">
         function showAppMessage(thisMessage) {
             alert(thisMessage);
         }
-    </script>
-    <script type="text/javascript">
         function toggleMobileNav() {
             var nav = document.getElementById('mobileNavMenu');
             var hamburger = document.getElementById('mobileHamburger');
@@ -42,9 +98,40 @@
                 hamburger.classList.remove('open');
             }
         });
+        // Loading indicator functionality
+        function hideLoadingIndicator() {
+            var overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                document.body.classList.add('page-loaded');
+                // Remove the overlay after animation completes
+                setTimeout(function () {
+                    if (overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                }, 300);
+            }
+        }
+
+        // Hide loading when page is fully loaded
+        window.addEventListener('load', hideLoadingIndicator);
+
+        // Fallback: Hide loading after DOM is ready (faster)
+        document.addEventListener('DOMContentLoaded', function () {
+            // Give a small delay to ensure content is rendered
+            setTimeout(hideLoadingIndicator, 500);
+        });
+
+        // Additional fallback for slow pages
+        setTimeout(function () {
+            hideLoadingIndicator();
+        }, 5000); // Force hide after 5 seconds
     </script>
 </head>
 <body>
+    <div id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading QOnT...</div>
+    </div>
     <form id="frmMain" runat="server">
         <div class="header">
             <table border="0" cellpadding="0" cellspacing="0" style="width: 100%">
@@ -79,7 +166,7 @@
                                             Value="Sent Reminders List" />
                                     </asp:MenuItem>
                                     <asp:MenuItem Selectable="False" Text="Orders" Value="Orders">
-                                        <asp:MenuItem NavigateUrl="~/Pages/NewOrderDetail.aspx" Text="New Order"
+                                        <asp:MenuItem NavigateUrl="~/Pages/OrderDetail.aspx?NewOrder=true" Text="New Order"
                                             Value="New Order"></asp:MenuItem>
                                         <asp:MenuItem NavigateUrl="~/Pages/OrderEntry.aspx" Text="View/Edit Orders"
                                             Value="View/Edit Orders"></asp:MenuItem>
@@ -104,8 +191,13 @@
                                         <asp:MenuItem NavigateUrl="~/Pages/ItemGroups.aspx" Text="Item Groups" Value="Item Groups" />
                                         <asp:MenuItem NavigateUrl="~/Pages/Lookups.aspx" Text="Lookup Tables" Value="Lookup Tables" />
                                         <asp:MenuItem NavigateUrl="~/Pages/QuaffeeCoffeeTastingSheet.aspx" Text="Tasting Sheet" Value="Tasting Sheet" />
-                                        <asp:MenuItem NavigateUrl="~/Pages/LogTable.aspx" Text="Log Tables" Value="Log Table" />
-                                        <asp:MenuItem NavigateUrl="~/Tools/SystemTools.aspx" Text="System Tools" Value="System Tools" />
+                                        <asp:MenuItem NavigateUrl="~/Tools/LogViewer.aspx" Text="Log Viewer" Value="Logs" />
+                                        <asp:MenuItem NavigateUrl="~/Tools/SystemTools.aspx" Text="System Tools" Value="System Tools">
+                                            <asp:MenuItem NavigateUrl="~/Tools/SystemTools.aspx" Text="All Tools" Value="All Tools" />
+                                            <asp:MenuItem NavigateUrl="~/Tools/MoveDeliveryDate.aspx" Text="Move Del. Dt" Value="Move Delivery Date"></asp:MenuItem>
+                                            <asp:MenuItem NavigateUrl="~/Tools/SystemData.aspx" Text="System Data" Value="System Date"></asp:MenuItem>
+                                            <asp:MenuItem NavigateUrl="~/Tools/EmailDiagnostics.aspx" Text="Email Diag." Value="Email Diag."></asp:MenuItem>
+                                        </asp:MenuItem>
                                         <asp:MenuItem Text="Forms" Value="Forms">
                                             <asp:MenuItem NavigateUrl="~/Pages/LeaveApp.aspx" Text="Leave App" Value="Leave App"></asp:MenuItem>
                                             <asp:MenuItem NavigateUrl="~/Pages/OrderBuiten2Vineyard.aspx" Text="Order from Vineyard" Value="OrderVBuit2Vin"></asp:MenuItem>
@@ -143,7 +235,7 @@
                             </LoggedInTemplate>
                         </asp:LoginView>
                         <br />
-                        <span class="small" style="font-style: normal; text-decoration: none">v2.2.1.7</span>
+                        <span class="small" style="font-style: normal; text-decoration: none">v2.2.2.1</span>
                     </td>
                 </tr>
             </table>
@@ -163,7 +255,7 @@
             <ul class="mobile-nav-list">
                 <li><a href="/Default.aspx">🏠 Home</a></li>
                 <li><a href="/Pages/Customers.aspx">👥 Customers</a></li>
-                <li><a href="/Pages/NewOrderDetail.aspx">📋 New Order</a></li>
+                <li><a href="/Pages/OrderDetail.aspx?NewOrder=true">📋 New Order</a></li>
                 <li><a href="/Pages/DeliverySheet.aspx">🚚 Deliveries</a></li>
                 <li><a href="/Pages/Repairs.aspx">🔧 Repairs</a></li>
                 <li><a href="/Pages/Lookups.aspx">📊 Lookup Tables</a></li>
@@ -185,13 +277,13 @@
         <div class="page">
             <div class="main">
                 <asp:ContentPlaceHolder ID="MainContent" runat="server" />
+                <br />
             </div>
         </div>
         <div class="clear">
             &nbsp;
         </div>
     </form>
-
 
 </body>
 </html>

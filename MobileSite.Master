@@ -83,7 +83,7 @@
                     <li><asp:HyperLink ID="hlHome" NavigateUrl="~/Default.aspx" Text="🏠 Home" runat="server" /></li>
                     <li><asp:HyperLink ID="hlDeliveries" NavigateUrl="~/Pages/DeliverySheet.aspx" Text="🚚 Deliveries" runat="server" /></li>
                     <li><asp:HyperLink ID="hlRepairs" NavigateUrl="~/Pages/Repairs.aspx" Text="🔧 Repairs" runat="server" /></li>
-                    <li><asp:HyperLink ID="hlOrders" NavigateUrl="~/Pages/NewOrderDetail.aspx" Text="📋 New Order" runat="server" /></li>
+                    <li><asp:HyperLink ID="hlOrders" NavigateUrl="~/Pages/OrderDetail.aspx?NewOrder=true" Text="📋 New Order" runat="server" /></li>
                     <li><asp:HyperLink ID="hlCustomers" NavigateUrl="~/Pages/Customers.aspx" Text="👥 Customers" runat="server" /></li>
                     <li><asp:HyperLink ID="hlLookups" NavigateUrl="~/Pages/Lookups.aspx" Text="📊 Lookup Tables" runat="server" /></li>
                 </ul>

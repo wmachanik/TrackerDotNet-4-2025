@@ -75,12 +75,12 @@ namespace TrackerDotNet.Managers
                     if (string.IsNullOrEmpty(line.PackagingName) || line.PackagingID == 0)
                     {
                         // No packaging specified
-                        email.AddFormatToBody(MessageProvider.Get(MessageKeys.Order.ItemFormatBasic), line.Qty, line.ItemName);
+                        email.AddFormatToBody(MessageProvider.Get(MessageKeys.Order.ItemFormatBasic), line.ItemName, line.Qty);
                     }
                     else
                     {
                         // Packaging specified
-                        email.AddFormatToBody(MessageProvider.Get(MessageKeys.Order.ItemFormatWithPrep), line.Qty, line.ItemName, line.PackagingName);
+                        email.AddFormatToBody(MessageProvider.Get(MessageKeys.Order.ItemFormatWithPrep), line.ItemName, line.Qty, line.PackagingName);
                     }
                 }
             }
@@ -92,7 +92,7 @@ namespace TrackerDotNet.Managers
             // Add Purchase Order info if present
             if (!string.IsNullOrWhiteSpace(header.PurchaseOrder))
             {
-                if (header.PurchaseOrder.EndsWith("!!!PO required!!!"))
+                if (header.PurchaseOrder.EndsWith(SystemConstants.UIConstants.PORequiredText))
                 {
                     email.AddStrAndNewLineToBody(MessageProvider.Get(MessageKeys.Order.ConfirmationPORequired));
                 }

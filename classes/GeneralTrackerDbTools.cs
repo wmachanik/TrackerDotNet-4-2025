@@ -232,7 +232,7 @@ namespace TrackerDotNet.Classes
                 for (int index3 = 0; index3 < doubleList.Count; ++index3)
                     num6 += doubleList[index3];
                 if (num6 > 0.0)
-                    num1 = Math.Round(num6 / (double)doubleList.Count, 3);
+                    num1 = Math.Round(num6 / (double)doubleList.Count, SystemConstants.DatabaseConstants.NumDecimalPoints);
             }
             else
                 num1 = !pPerDayCalc ? pTypicalAverageConsumption : 5.0;

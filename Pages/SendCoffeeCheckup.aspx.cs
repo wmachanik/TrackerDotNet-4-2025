@@ -36,8 +36,7 @@ namespace TrackerDotNet.Pages
         {
             if (!IsPostBack)
             {
-                AppLogger.WriteLog("performance", "SendCoffeeCheckup: Page_Load started");
-                
+               
                 // Make sure panels are visible
                 upnlCustomerCheckup.Visible = true;
                 upnlContactItems.Visible = true;
@@ -65,28 +64,6 @@ namespace TrackerDotNet.Pages
                 else
                     ddlReminderWindow.SelectedValue = def.ToString();
                 
-                AppLogger.WriteLog("performance", "SendCoffeeCheckup: Page_Load completed, auto-prep will trigger via JavaScript");
-            }
-        }
-
-        /// <summary>
-        /// Automatically prepare customer data on page load
-        /// </summary>
-        private void AutoPrepareCustomerData()
-        {
-            try
-            {
-                // Show initial loading status
-                //autoLoadingStatus.Visible = true;
-                
-                // Start async preparation (this will be called by the JavaScript auto-trigger)
-                // The actual work happens in btnPrepData_Click
-            }
-            catch (Exception ex)
-            {
-                AppLogger.WriteLog("error", $"SendCoffeeCheckup: Error in auto-prepare: {ex.Message}");
-                //autoLoadingStatus.Visible = false;
-                btnPrepData.Visible = true; // Show manual option
             }
         }
 
@@ -103,7 +80,7 @@ namespace TrackerDotNet.Pages
                 LoadEmailTexts();
                 
                 stopwatch.Stop();
-                AppLogger.WriteLog("performance", $"SendCoffeeCheckup: Email templates loaded in {stopwatch.ElapsedMilliseconds}ms");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup: Email templates loaded in {stopwatch.ElapsedMilliseconds}ms");
             }
             catch (Exception ex)
             {
@@ -118,7 +95,7 @@ namespace TrackerDotNet.Pages
             uprgCustomerCheckup.DisplayAfter = 100; // Show customer prep progress quickly
             uprgSendEmail.DisplayAfter = int.MaxValue; // Don't show email progress
             
-            AppLogger.WriteLog("performance", "SendCoffeeCheckup: btnPrepData_Click triggered");
+            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "SendCoffeeCheckup: Prep Data Click triggered");
             
             try
             {
@@ -133,7 +110,7 @@ namespace TrackerDotNet.Pages
                 // Force immediate update
                 upnlSendEmail.Update();
                 
-                AppLogger.WriteLog("performance", "SendCoffeeCheckup: Starting CoffeeCheckupManager.PrepareCustomerReminderData()");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "SendCoffeeCheckup: Starting CoffeeCheckupManager.PrepareCustomerReminderData()");
                 
                 // Use the enhanced CoffeeCheckupManager
                 int reminderWindowDays = CoffeeCheckupManager.GetReminderWindowDays(); // fallback
@@ -142,7 +119,7 @@ namespace TrackerDotNet.Pages
 
                 _coffeeCheckupManager.PrepareCustomerReminderData(reminderWindowDays);
                 
-                AppLogger.WriteLog("performance", "SendCoffeeCheckup: PrepareCustomerReminderData completed, refreshing grids");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "SendCoffeeCheckup: PrepareCustomerReminderData completed, refreshing grids");
                 
                 // Refresh the grid data
                 odsContactsToSendCheckup.DataBind();
@@ -163,7 +140,7 @@ namespace TrackerDotNet.Pages
                 ltrlStatus.Text = $"<div style='background-color: #d4edda; color: #155724; padding: 8px; border-radius: 4px; margin: 5px 0; text-align: left;'>" +
                                  $"<strong>Success!</strong> Customer data prepared automatically. You can now send reminders or test emails.</div>";
                 
-                AppLogger.WriteLog("performance", $"SendCoffeeCheckup: Auto-prep completed successfully in {stopwatch.ElapsedMilliseconds}ms - {customerCount} customers");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup: Auto-prep completed successfully in {stopwatch.ElapsedMilliseconds}ms - {customerCount} customers");
                 
                 // Force update of all panels
                 upnlCustomerCheckup.Update();
@@ -274,7 +251,7 @@ namespace TrackerDotNet.Pages
             catch (Exception ex)
             {
                 UpdateStatus($"❌ Error: {ex.Message}");
-                AppLogger.WriteLog("email", $"SendCoffeeCheckup: Error in btnSend_Click: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup: Error in btnSend_Click: {ex.Message}");
                 
                 var errorMsg = new showMessageBox(this.Page, 
                     "Email Sending Error", 
@@ -297,7 +274,7 @@ namespace TrackerDotNet.Pages
                 }
 
                 var testContact = allContacts.First();
-                AppLogger.WriteLog("email", $"TEST: Using customer {testContact.CompanyName} (ID: {testContact.CustomerID})");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"TEST: Using customer {testContact.CompanyName} (ID: {testContact.CustomerID})");
 
                 // Validate eligibility
                 if (!_coffeeCheckupManager.ValidateCustomerEligibility(testContact))
@@ -318,12 +295,12 @@ namespace TrackerDotNet.Pages
                 var testResult = _coffeeCheckupManager.ProcessCoffeeCheckupReminders(emailData);
 
                 this.ltrlStatus.Text = $"✅ Test completed: Sent: {testResult.TotalSent}, Failed: {testResult.TotalFailed}";
-                AppLogger.WriteLog("email", $"TEST: Completed - Sent: {testResult.TotalSent}, Failed: {testResult.TotalFailed}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"TEST: Completed - Sent: {testResult.TotalSent}, Failed: {testResult.TotalFailed}");
             }
             catch (Exception ex)
             {
                 this.ltrlStatus.Text = $"❌ Test failed: {ex.Message}";
-                AppLogger.WriteLog("email", $"TEST ERROR: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"TEST ERROR: {ex.Message}");
             }
         }
 
@@ -343,12 +320,12 @@ namespace TrackerDotNet.Pages
                     "Data Cleared",
                     $"Successfully removed {deletedCount} reminder log entries from today ({TimeZoneUtils.Now().Date:yyyy-MM-dd}).\n\nYou can now test again with clean data.");
 
-                AppLogger.WriteLog("email", $"SendCoffeeCheckup: Cleared {deletedCount} today's reminder entries");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup: Cleared {deletedCount} today's reminder entries");
             }
             catch (Exception ex)
             {
                 UpdateStatus($"❌ Error clearing data: {ex.Message}");
-                AppLogger.WriteLog("email", $"SendCoffeeCheckup: Error clearing today's data: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup: Error clearing today's data: {ex.Message}");
 
                 var errorMsg = new showMessageBox(this.Page,
                     "Clear Data Error",
@@ -379,12 +356,12 @@ namespace TrackerDotNet.Pages
                                    $"&Successful={successful}" +
                                    $"&Failed={failed}";
 
-                AppLogger.WriteLog("email", $"SendCoffeeCheckup: Redirecting with stats - {uniqueCustomers} customers, {successful}/{totalReminders} successful");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup: Redirecting with stats - {uniqueCustomers} customers, {successful}/{totalReminders} successful");
                 Response.Redirect(redirectUrl, false);
             }
             catch (Exception redirectEx)
             {
-                AppLogger.WriteLog("email", $"SendCoffeeCheckup: Redirect failed: {redirectEx.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup: Redirect failed: {redirectEx.Message}");
                 UpdateStatus("✅ Process completed successfully!");
             }
         }
@@ -392,7 +369,7 @@ namespace TrackerDotNet.Pages
         private void UpdateStatus(string message)
         {
             this.ltrlStatus.Text = message;
-            AppLogger.WriteLog("email", $"SendCoffeeCheckup STATUS: {message}");
+            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup STATUS: {message}");
         }
 
         private void LoadEmailTexts()

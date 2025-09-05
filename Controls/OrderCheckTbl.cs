@@ -110,7 +110,7 @@ namespace TrackerDotNet.Controls
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"OrderCheckTbl: Error getting customers without conflicts: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"OrderCheckTbl: Error getting customers without conflicts: {ex.Message}");
             }
 
             return customers;
@@ -146,7 +146,7 @@ namespace TrackerDotNet.Controls
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"OrderCheckTbl: Error getting typical items for customer {customerId}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"OrderCheckTbl: Error getting typical items for customer {customerId}: {ex.Message}");
             }
 
             return items;
@@ -176,7 +176,7 @@ namespace TrackerDotNet.Controls
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"OrderCheckTbl: Error checking orders for customer {customerId}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"OrderCheckTbl: Error checking orders for customer {customerId}: {ex.Message}");
             }
 
             return hasOrders;
@@ -216,7 +216,7 @@ namespace TrackerDotNet.Controls
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"OrderCheckTbl: Error getting coffee orders for customer {customerId}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"OrderCheckTbl: Error getting coffee orders for customer {customerId}: {ex.Message}");
             }
 
             return orders;

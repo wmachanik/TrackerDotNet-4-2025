@@ -54,12 +54,12 @@
           <td>Until Date</td>
           <td><asp:TextBox ID="UntilDateTextBox" runat="server" Text='<%# Bind("RequireUntilDate") %>' />
               <ajaxToolkit:CalendarExtender ID="UntilDateTextBox_CalendarExtender" runat="server" 
-                          Enabled="True" TargetControlID="UntilDateTextBox" />
+                  Enabled="True" TargetControlID="UntilDateTextBox" Format="dd/MM/yyyy" />
             </td>
           <td>Last Date  </td>
           <td><asp:TextBox ID="LastDateTextBox" runat="server" Text='<%# Bind("RequireLastDate") %>' />
               <ajaxToolkit:CalendarExtender ID="LastDateTextBox_CalendarExtender" runat="server" 
-                          Enabled="True" TargetControlID="LastDateTextBox" />
+                  Enabled="True" TargetControlID="LastDateTextBox" Format="dd/MM/yyyy" />
         </tr>
         <tr>
           <td>Packaging Type</td>

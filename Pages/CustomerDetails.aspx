@@ -1,12 +1,6 @@
 ﻿<%@ Page Title="Customer Details" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" MaintainScrollPositionOnPostback="true"
     CodeBehind="CustomerDetails.aspx.cs" Inherits="TrackerDotNet.Pages.CustomerDetails" %>
 
-<%--
- <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="cc1" %> 
---%>
-
-<%--<%@ Import Namespace="TrackerDotNet.control" %>--%>
-
 <asp:Content ID="cntCustomerDetailsHdr" ContentPlaceHolderID="HeadContent" runat="server">
     <script type="text/javascript">
         function redirect(url) {
@@ -140,7 +134,7 @@
                     </td>
                     <td>Pri Pref Qty</td>
                     <td>
-                        <asp:TextBox ID="PriPrefQtyTextBox" runat="server" Text='<%# Bind("PriPrefQty") %>' /></td>
+                        <asp:TextBox ID="PriPrefQtyTextBox" runat="server" Text='<%# String.Format("{0:0.###}",Eval("PriPrefQty")) %>' /></td>
                     <td>Packaging</td>
                     <td>
                         <asp:DropDownList ID="ddlPackagingTypes" runat="server" AppendDataBoundItems="true"
@@ -166,8 +160,7 @@
                             <asp:ListItem Text="none" Value="0" />
                         </asp:DropDownList>
                     </td>
-                    <td>Reminders: 
-            [<asp:Label ID="ReminderCountLabel" runat="server" Text='<%# Eval("ReminderCount") %>' />]</td>
+                    <td>Reminders: [<asp:Label ID="ReminderCountLabel" runat="server" Text='<%# Eval("ReminderCount") %>' />]</td>
                     <td>LastReminderSent:
                         <asp:Label ID="LastReminderLabel" runat="server" Text='<%# Eval("LastDateSentReminder") %>' />
                     </td>
@@ -354,7 +347,7 @@
                         <asp:UpdatePanel ID="upnlNextItems" runat="server" UpdateMode="Conditional">
                             <ContentTemplate>
                                 <div style="padding: 4px">
-                                    <asp:DataGrid ID="dgCustomerUsage" runat="server" CssClass="TblWhite small" DataSourceID="dsCustomerUsage" AutoGenerateColumns="false">
+                                    <asp:DataGrid ID="dgCustomerUsage" runat="server" CssClass="TblWhite small" HeaderStyle-BackColor="Khaki"   DataSourceID="dsCustomerUsage" AutoGenerateColumns="false">
                                         <Columns>
                                             <asp:BoundColumn DataField="CustomerID" Visible="false" />
                                             <asp:BoundColumn DataField="LastCupCount" HeaderText="Last Count" ItemStyle-HorizontalAlign="Right" />
@@ -436,10 +429,10 @@
                                                 </asp:TemplateField>
                                                 <asp:TemplateField HeaderText="Qty" SortExpression="AmountProvided">
                                                     <EditItemTemplate>
-                                                        <asp:TextBox ID="tbxAmountProvided" runat="server" Text='<%# Bind("AmountProvided") %>' Width="3em" />
+                                                        <asp:TextBox ID="tbxAmountProvided" runat="server" Text='<%# Bind("AmountProvided","{0:0.###}") %>' Width="3em" />
                                                     </EditItemTemplate>
                                                     <ItemTemplate>
-                                                        <asp:Label ID="lblAmountProvided" runat="server" Text='<%# Bind("AmountProvided") %>' />
+                                                        <asp:Label ID="lblAmountProvided" runat="server" Text='<%# Eval("AmountProvided","{0:0.###}") %>' />
                                                     </ItemTemplate>
                                                 </asp:TemplateField>
                                                 <asp:TemplateField HeaderText="Packaging" SortExpression="PackagingID">

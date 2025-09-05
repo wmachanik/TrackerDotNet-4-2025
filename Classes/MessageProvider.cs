@@ -114,7 +114,7 @@ namespace TrackerDotNet.Classes
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"MessageProvider: Error building formatted HTML email: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"MessageProvider: Error building formatted HTML email: {ex.Message}");
                 return "<html><body><p>Error building email content.</p></body></html>";
             }
         }

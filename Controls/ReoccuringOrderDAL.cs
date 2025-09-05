@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using TrackerDotNet.Classes;
+using static TrackerDotNet.Classes.MessageKeys;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Controls
@@ -45,6 +46,7 @@ namespace TrackerDotNet.Controls
 
         public List<ReoccuringOrderExtData> GetAll(int IsEnabled, string SortBy, string WhereFilter)
         {
+
             List<ReoccuringOrderExtData> all = new List<ReoccuringOrderExtData>();
             TrackerDb trackerDb = new TrackerDb();
             string strSQL = "SELECT ReoccuringOrderTbl.ID, CustomersTbl.CustomerID, ReoccuranceType, [Value], ItemRequiredID, QtyRequired, DateLastDone, NextDateRequired, RequireUntilDate, PackagingID, " +
@@ -80,9 +82,9 @@ namespace TrackerDotNet.Controls
                     reoccuringOrderExtData.ReoccuranceValue = dataReader["Value"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["Value"]);
                     reoccuringOrderExtData.ItemRequiredID = dataReader["ItemRequiredID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemRequiredID"]);
                     reoccuringOrderExtData.QtyRequired = dataReader["QtyRequired"] == DBNull.Value ? 0.0 : Convert.ToDouble(dataReader["QtyRequired"]);
-                    reoccuringOrderExtData.DateLastDone = dataReader["DateLastDone"] == DBNull.Value ? TrackerTools.STATIC_TrackerMinDate : Convert.ToDateTime(dataReader["DateLastDone"]).Date;
+                    reoccuringOrderExtData.DateLastDone = dataReader["DateLastDone"] == DBNull.Value ? SystemConstants.DatabaseConstants.SystemMinDate : Convert.ToDateTime(dataReader["DateLastDone"]).Date;
                     reoccuringOrderExtData.NextDateRequired = dataReader["NextDateRequired"] == DBNull.Value ? TimeZoneUtils.Now().Date : Convert.ToDateTime(dataReader["NextDateRequired"]).Date;
-                    reoccuringOrderExtData.RequireUntilDate = dataReader["RequireUntilDate"] == DBNull.Value ? TrackerTools.STATIC_TrackerMinDate : Convert.ToDateTime(dataReader["RequireUntilDate"]).Date;
+                    reoccuringOrderExtData.RequireUntilDate = dataReader["RequireUntilDate"] == DBNull.Value ? SystemConstants.DatabaseConstants.SystemMinDate : Convert.ToDateTime(dataReader["RequireUntilDate"]).Date;
                     reoccuringOrderExtData.PackagingID = dataReader["PackagingID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["PackagingID"]);
                     reoccuringOrderExtData.Enabled = dataReader["Enabled"] != DBNull.Value && Convert.ToBoolean(dataReader["Enabled"]);
                     reoccuringOrderExtData.Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString();
@@ -116,9 +118,9 @@ namespace TrackerDotNet.Controls
                     reoccuringOrderById.ReoccuranceValue = dataReader["Value"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["Value"]);
                     reoccuringOrderById.ItemRequiredID = dataReader["ItemRequiredID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemRequiredID"]);
                     reoccuringOrderById.QtyRequired = dataReader["QtyRequired"] == DBNull.Value ? 0.0 : Convert.ToDouble(dataReader["QtyRequired"]);
-                    reoccuringOrderById.DateLastDone = dataReader["DateLastDone"] == DBNull.Value ? TrackerTools.STATIC_TrackerMinDate : Convert.ToDateTime(dataReader["DateLastDone"]).Date;
+                    reoccuringOrderById.DateLastDone = dataReader["DateLastDone"] == DBNull.Value ? SystemConstants.DatabaseConstants.SystemMinDate : Convert.ToDateTime(dataReader["DateLastDone"]).Date;
                     reoccuringOrderById.NextDateRequired = dataReader["NextDateRequired"] == DBNull.Value ? TimeZoneUtils.Now().Date : Convert.ToDateTime(dataReader["NextDateRequired"]).Date;
-                    reoccuringOrderById.RequireUntilDate = dataReader["RequireUntilDate"] == DBNull.Value ? TrackerTools.STATIC_TrackerMinDate : Convert.ToDateTime(dataReader["RequireUntilDate"]).Date;
+                    reoccuringOrderById.RequireUntilDate = dataReader["RequireUntilDate"] == DBNull.Value ? SystemConstants.DatabaseConstants.SystemMinDate : Convert.ToDateTime(dataReader["RequireUntilDate"]).Date;
                     reoccuringOrderById.PackagingID = dataReader["PackagingID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["PackagingID"]);
                     reoccuringOrderById.Enabled = dataReader["Enabled"] != DBNull.Value && Convert.ToBoolean(dataReader["Enabled"]);
                     reoccuringOrderById.Notes = dataReader["Notes"] == DBNull.Value ? string.Empty : dataReader["Notes"].ToString();
@@ -134,24 +136,127 @@ namespace TrackerDotNet.Controls
             int num = (int)(1 - pDate.DayOfWeek);
             return pDate.AddDays((double)num);
         }
-
-        public string UpdateReoccuringOrder(
-          ReoccuringOrderTbl pReoccuranceTypeTbl,
-          long pOrig_ReoccuringIDToUpdate)
+        //public static DateTime CalculateNextDateRequired(DateTime dateLastDone, int recurrenceTypeId, int recurrenceValue)
+        //{
+        //    var recurrenceType = ReoccuranceTypeTbl.GetRecurrenceType(recurrenceTypeId);
+        //    switch (recurrenceType)
+        //    {
+        //        case ReoccuranceTypeTbl.RecurrenceType.Weekly:
+        //            return dateLastDone.AddDays(recurrenceValue * 7);
+        //        case ReoccuranceTypeTbl.RecurrenceType.Monthly:
+        //            var nextMonth = dateLastDone.AddMonths(1);
+        //            int day = Math.Min(recurrenceValue, DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month));
+        //            return new DateTime(nextMonth.Year, nextMonth.Month, day);
+        //        default:
+        //            return dateLastDone;
+        //    }
+        //}
+        public DateTime CalculateNextDateRequired(ReoccuringOrderTbl reoccuranceOrder)
         {
+            DateCalculator deliveryDateCalculator = new DateCalculator();
+            var recurrenceType = reoccuranceOrder.ReoccuranceTypeID;
+            var today = TimeZoneUtils.Now().Date;
+
+            DateTime calculatedNextDate = today;
+
+            switch (recurrenceType)
+            {
+                case ReoccuranceTypeTbl.CONST_WEEKTYPEID:
+                    {
+                        // Calculate the interval in days (e.g., 4 weeks = 28 days)
+                        int intervalDays = reoccuranceOrder.ReoccuranceValue * 7;
+                        DateTime lastDone = reoccuranceOrder.DateLastDone;
+
+                        if (lastDone <= SystemConstants.DatabaseConstants.SystemMinDate)
+                        {
+                            // If no previous order, schedule for today
+                            calculatedNextDate = today;
+                        }
+                        else
+                        {
+                            // Calculate how many full intervals have passed since last done
+                            int daysSinceLastDone = (int)(today - lastDone).TotalDays;
+                            int intervalsPassed = daysSinceLastDone / intervalDays;
+
+                            // If at least one interval has passed, schedule for today (catch up immediately)
+                            // Otherwise, schedule for the next recurrence after last done
+                            if (intervalsPassed > 0)
+                            {
+                                calculatedNextDate = today;
+                            }
+                            else
+                            {
+                                calculatedNextDate = lastDone.AddDays(intervalDays);
+                            }
+                        }
+                    }
+                    break;
+
+                case ReoccuranceTypeTbl.CONST_DAYOFMONTHID:
+                    {
+                        int targetDay = reoccuranceOrder.ReoccuranceValue;
+                        DateTime lastDone = reoccuranceOrder.DateLastDone;
+
+                        if (lastDone <= SystemConstants.DatabaseConstants.SystemMinDate)
+                        {
+                            // If no previous order, and today is after the target day, schedule for today
+                            if (today.Day >= targetDay)
+                            {
+                                calculatedNextDate = today;
+                            }
+                            else
+                            {
+                                // Otherwise, schedule for the target day in the current month
+                                int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+                                int validDay = Math.Min(targetDay, daysInMonth);
+                                calculatedNextDate = new DateTime(today.Year, today.Month, validDay);
+                            }
+                        }
+                        else
+                        {
+                            // Schedule for the target day in the next month after last done
+                            DateTime nextMonth = lastDone.AddMonths(1);
+                            int daysInNextMonth = DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month);
+                            int validDay = Math.Min(targetDay, daysInNextMonth);
+                            DateTime candidateDate = new DateTime(nextMonth.Year, nextMonth.Month, validDay);
+
+                            // If candidate date is before today, schedule for today (catch up)
+                            calculatedNextDate = candidateDate < today ? today : candidateDate;
+                        }
+                    }
+                    break;
+
+                default:
+                    // Fallback: schedule for today
+                    calculatedNextDate = today;
+                    break;
+            }
+
+            // Optimize delivery date based on city schedule
+            return deliveryDateCalculator.CalculateOptimalWeeklyDeliveryDate(
+                reoccuranceOrder.CustomerID,
+                DateCalculator.WEEKLY_INTERVAL,
+                calculatedNextDate);
+        }
+        public string UpdateReoccuringOrder(ReoccuringOrderTbl reoccuranceOrder, int origReoccuringIDToUpdate, bool recalcNextDateRequired = true)
+        {
+            // since we are updating the record, also update next date required based on last done, type and value
+            if (recalcNextDateRequired)
+                reoccuranceOrder.NextDateRequired = CalculateNextDateRequired(reoccuranceOrder);
+            // no update the data
             TrackerDb trackerDb = new TrackerDb();
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.CustomerID, DbType.Int64, "@CustomerID");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.ReoccuranceTypeID, DbType.Int32, "@ReoccuranceTypeID");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.ReoccuranceValue, DbType.Int32, "@ReoccuranceValue");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.ItemRequiredID, DbType.Int32, "@ItemRequiredID");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.QtyRequired, DbType.Double, "@QtyRequired");
-            trackerDb.AddParams((object)this.GetMonday(pReoccuranceTypeTbl.DateLastDone), DbType.DateTime, "@DateLastDone");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.NextDateRequired, DbType.DateTime, "@NextDateRequired");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.RequireUntilDate, DbType.DateTime, "@RequireUntilDate");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.PackagingID, DbType.Int32, "@PackagingID");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.Enabled, DbType.Boolean, "@Enabled");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.Notes, DbType.String, "@Notes");
-            trackerDb.AddWhereParams((object)pOrig_ReoccuringIDToUpdate, DbType.Int32, "@ReoccuringID");
+            trackerDb.AddParams((object)reoccuranceOrder.CustomerID, DbType.Int64, "@CustomerID");
+            trackerDb.AddParams((object)reoccuranceOrder.ReoccuranceTypeID, DbType.Int32, "@ReoccuranceTypeID");
+            trackerDb.AddParams((object)reoccuranceOrder.ReoccuranceValue, DbType.Int32, "@ReoccuranceValue");
+            trackerDb.AddParams((object)reoccuranceOrder.ItemRequiredID, DbType.Int32, "@ItemRequiredID");
+            trackerDb.AddParams((object)reoccuranceOrder.QtyRequired, DbType.Double, "@QtyRequired");
+            trackerDb.AddParams((object)this.GetMonday(reoccuranceOrder.DateLastDone), DbType.DateTime, "@DateLastDone");
+            trackerDb.AddParams((object)reoccuranceOrder.NextDateRequired, DbType.DateTime, "@NextDateRequired");
+            trackerDb.AddParams((object)reoccuranceOrder.RequireUntilDate, DbType.DateTime, "@RequireUntilDate");
+            trackerDb.AddParams((object)reoccuranceOrder.PackagingID, DbType.Int32, "@PackagingID");
+            trackerDb.AddParams((object)reoccuranceOrder.Enabled, DbType.Boolean, "@Enabled");
+            trackerDb.AddParams((object)reoccuranceOrder.Notes, DbType.String, "@Notes");
+            trackerDb.AddWhereParams((object)origReoccuringIDToUpdate, DbType.Int32, "@ReoccuringID");
             string str = trackerDb.ExecuteNonQuerySQL("UPDATE ReoccuringOrderTbl SET CustomerID = ?, ReoccuranceType = ?, [Value]= ?,  ItemRequiredID = ?, QtyRequired= ?, DateLastDone= ?, NextDateRequired= ?, RequireUntilDate = ?, PackagingID = ?, Enabled = ?, Notes = ? WHERE ReoccuringOrderTbl.ID = ?");
             trackerDb.Close();
             return str;
@@ -187,14 +292,18 @@ namespace TrackerDotNet.Controls
 
         public bool SetReoccuringItemsLastDate()
         {
-            List<ReoccuringOrderTbl> reoccuringOrderTblList = new List<ReoccuringOrderTbl>();
+            List<ReoccuringOrderTbl> reoccuringOrders = new List<ReoccuringOrderTbl>();
             TrackerDb trackerDb = new TrackerDb();
-            IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT CustomerID, ItemRequiredID, MAX(LastDate) AS LastDatePerItem FROM (SELECT ReoccuringOrderTbl.CustomerID, ReoccuringOrderTbl.ItemRequiredID, ClientUsageLinesTbl.[Date] AS LastDate FROM  ((ClientUsageLinesTbl INNER JOIN ReoccuringOrderTbl ON ClientUsageLinesTbl.CustomerID = ReoccuringOrderTbl.CustomerID AND ClientUsageLinesTbl.[Date] > ReoccuringOrderTbl.DateLastDone) INNER JOIN ItemTypeTbl ON ReoccuringOrderTbl.ItemRequiredID = ItemTypeTbl.ItemTypeID)) ListOfOrdersRequired GROUP BY CustomerID, ItemRequiredID");
+            IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader("SELECT CustomerID, ItemRequiredID, MAX(LastDate) AS LastDatePerItem" +
+                " FROM (SELECT ReoccuringOrderTbl.CustomerID, ReoccuringOrderTbl.ItemRequiredID, ClientUsageLinesTbl.[Date] AS LastDate" +
+                " FROM ((ClientUsageLinesTbl INNER JOIN ReoccuringOrderTbl ON ClientUsageLinesTbl.CustomerID = ReoccuringOrderTbl.CustomerID" +
+                    " AND ClientUsageLinesTbl.[Date] > ReoccuringOrderTbl.DateLastDone) INNER JOIN ItemTypeTbl ON ReoccuringOrderTbl.ItemRequiredID = ItemTypeTbl.ItemTypeID))" +
+                    " ListOfOrdersRequired GROUP BY CustomerID, ItemRequiredID");
             bool flag = dataReader != null;
             if (flag)
             {
                 while (dataReader.Read())
-                    reoccuringOrderTblList.Add(new ReoccuringOrderTbl()
+                    reoccuringOrders.Add(new ReoccuringOrderTbl()
                     {
                         CustomerID = dataReader["CustomerID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["CustomerID"]),
                         ItemRequiredID = dataReader["ItemRequiredID"] == DBNull.Value ? 0 : Convert.ToInt32(dataReader["ItemRequiredID"]),
@@ -203,12 +312,12 @@ namespace TrackerDotNet.Controls
                 dataReader.Close();
             }
             trackerDb.Close();
-            for (int index = 0; index < reoccuringOrderTblList.Count; ++index)
+            for (int index = 0; index < reoccuringOrders.Count; ++index)
             {
                 trackerDb.Open();
-                trackerDb.AddParams((object)this.GetMonday(reoccuringOrderTblList[index].DateLastDone), DbType.Date, "@DateLastDone");
-                trackerDb.AddWhereParams((object)reoccuringOrderTblList[index].CustomerID, DbType.Int64, "@CustomerID");
-                trackerDb.AddWhereParams((object)reoccuringOrderTblList[index].ItemRequiredID, DbType.Int32, "@ItemRequiredID");
+                trackerDb.AddParams((object)this.GetMonday(reoccuringOrders[index].DateLastDone), DbType.Date, "@DateLastDone");
+                trackerDb.AddWhereParams((object)reoccuringOrders[index].CustomerID, DbType.Int64, "@CustomerID");
+                trackerDb.AddWhereParams((object)reoccuringOrders[index].ItemRequiredID, DbType.Int32, "@ItemRequiredID");
                 flag = flag || string.IsNullOrEmpty(trackerDb.ExecuteNonQuerySQL("UPDATE ReoccuringOrderTbl SET DateLastDone = ? WHERE (CustomerID = ?) AND (ItemRequiredID = ?)"));
                 trackerDb.Close();
             }
@@ -226,7 +335,7 @@ namespace TrackerDotNet.Controls
                 case ReoccuranceTypeTbl.RecurrenceType.Weekly:
                     // For weekly orders, use Monday of the week containing the base date
                     return GetMonday(baseDate);
-                    
+
                 case ReoccuranceTypeTbl.RecurrenceType.Monthly:
                     // For monthly orders, use the actual target day of month
                     // This prevents the "duplicate send" issue you identified
@@ -240,7 +349,7 @@ namespace TrackerDotNet.Controls
                         int daysInMonth = DateTime.DaysInMonth(baseDate.Year, baseDate.Month);
                         return new DateTime(baseDate.Year, baseDate.Month, Math.Min(targetValue, daysInMonth)).Date;
                     }
-                    
+
                 default:
                     // Fallback to Monday normalization
                     return GetMonday(baseDate);
@@ -248,29 +357,55 @@ namespace TrackerDotNet.Controls
         }
 
         /// <summary>
-        /// UPDATED: Uses centralized date calculation
+        /// Updates the order datr (if it is done and the next order date 
         /// </summary>
-        public string SetReoccuringOrdersLastDate(DateTime pDate, long pReoccuringOrderId)
+        public string SetReoccuringOrderDates(DateTime orderDate, long reoccuringOrderId, bool orderDone = false)
         {
-            // Get the recurring order details to determine proper date calculation
-            var recurringOrder = GetByReoccuringOrderByID((int)pReoccuringOrderId);
-            if (recurringOrder != null)
+            try
             {
+                var recurringOrder = GetByReoccuringOrderByID((int)reoccuringOrderId);
+                if (recurringOrder == null)
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
+                        $"ReoccuringOrderDAL: Failed to update dates - recurring order {reoccuringOrderId} not found.");
+                    return "Recurring order not found";
+                }
+
+                // Always update DateLastDone in memory for correct calculation
                 var recurrenceType = ReoccuranceTypeTbl.GetRecurrenceType(recurringOrder.ReoccuranceTypeID);
-                pDate = CalculateRecurringLastDate(pDate, recurrenceType, recurringOrder.ReoccuranceValue);
+                recurringOrder.DateLastDone = CalculateRecurringLastDate(orderDate, recurrenceType, recurringOrder.ReoccuranceValue);
+                recurringOrder.NextDateRequired = CalculateNextDateRequired(recurringOrder);
+
+                // Build SQL and parameters
+                string sql;
+                TrackerDb trackerDb = new TrackerDb();
+                if (orderDone)
+                {
+                    sql = "UPDATE ReoccuringOrderTbl SET DateLastDone = ?, NextDateRequired = ? WHERE (ID = ?)";
+                    trackerDb.AddParams((object)recurringOrder.DateLastDone, DbType.Date, "@DateLastDone");
+                    trackerDb.AddParams((object)recurringOrder.NextDateRequired, DbType.Date, "@NextDateRequired");
+                }
+                else
+                {
+                    sql = "UPDATE ReoccuringOrderTbl SET NextDateRequired = ? WHERE (ID = ?)";
+                    trackerDb.AddParams((object)recurringOrder.NextDateRequired, DbType.Date, "@NextDateRequired");
+                }
+                trackerDb.AddWhereParams((object)reoccuringOrderId, DbType.Int32, "@ID");
+
+                string result = trackerDb.ExecuteNonQuerySQL(sql);
+                trackerDb.Close();
+
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
+                    $"ReoccuringOrderDAL: Updated {(orderDone ? "DateLastDone and " : "")}NextDateRequired for recurring order {reoccuringOrderId} - DateLastDone: {recurringOrder.DateLastDone:yyyy-MM-dd}, NextDateRequired: {recurringOrder.NextDateRequired:yyyy-MM-dd}");
+
+                return result;
             }
-            else
+            catch (Exception ex)
             {
-                // Fallback to Monday normalization if we can't get order details
-                pDate = GetMonday(pDate);
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
+                    $"ReoccuringOrderDAL: Error updating dates for recurring order {reoccuringOrderId}: {ex.Message}");
+                return $"Error: {ex.Message}";
             }
-            
-            TrackerDb trackerDb = new TrackerDb();
-            trackerDb.AddParams((object)pDate, DbType.Date, "@DateLastDone");
-            trackerDb.AddWhereParams((object)pReoccuringOrderId, DbType.Int64, "@ID");
-            string str = trackerDb.ExecuteNonQuerySQL("UPDATE ReoccuringOrderTbl SET DateLastDone = ? WHERE (ID = ?)");
-            trackerDb.Close();
-            return str;
         }
     }
 }

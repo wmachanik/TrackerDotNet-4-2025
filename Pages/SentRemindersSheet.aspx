@@ -37,7 +37,7 @@
             <asp:Literal ID="ltrlReminderSummary" runat="server" />
             <br />
             <div class="simpleLightBrownForm" style="padding-left: 1em; padding-right: 1em">
-                <asp:GridView ID="gvSentReminders" runat="server" AutoGenerateColumns="False" CssClass="TblDetailZebra"
+                <asp:GridView ID="gvSentReminders" runat="server" AutoGenerateColumns="False" CssClass="TblZebra"
                     AllowSorting="True" DataSourceID="odsSentRemindersSummarys" AllowPaging="True" PageSize="20">
                     <Columns>
                         <asp:BoundField DataField="ReminderID" HeaderText="ReminderID"

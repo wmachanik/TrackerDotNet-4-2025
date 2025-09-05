@@ -56,7 +56,7 @@ namespace TrackerDotNet.Classes
             var config = EmailSettings.CreateFromConfig();
             if (config == null || !config.IsInitialized)
             {
-                AppLogger.WriteLog("email", "❌ Failed to initialize EmailSettings from Web.config.");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, "❌ Failed to initialize EmailSettings from Web.config.");
                 throw new InvalidOperationException("EmailSettings failed to initialize from Web.config.");
             }
 
@@ -65,14 +65,14 @@ namespace TrackerDotNet.Classes
             bodyBuilder = new BodyBuilder();
             myResults = new SendMailResults();
 
-            AppLogger.WriteLog("email", "✅ EmailMailKitCls initialized using Web.config settings.");
+            AppLogger.WriteLog(SystemConstants.LogTypes.Email, "✅ EmailMailKitCls initialized using Web.config settings.");
         }
 
         public EmailMailKitCls(EmailSettings config)
         {
             if (config == null || !config.IsInitialized)
             {
-                AppLogger.WriteLog("email", "❌ Provided EmailSettings instance is not initialized.");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, "❌ Provided EmailSettings instance is not initialized.");
                 throw new InvalidOperationException("EmailSettings must be initialized before use.");
             }
 
@@ -81,7 +81,7 @@ namespace TrackerDotNet.Classes
             bodyBuilder = new BodyBuilder();
             myResults = new SendMailResults();
 
-            AppLogger.WriteLog("email", "✅ EmailMailKitCls initialized using provided EmailSettings.");
+            AppLogger.WriteLog(SystemConstants.LogTypes.Email, "✅ EmailMailKitCls initialized using provided EmailSettings.");
         }
         public bool SetEmailFromTo(string sFrom = null, string sTo = null)
         {
@@ -93,13 +93,13 @@ namespace TrackerDotNet.Classes
                 if (!string.IsNullOrEmpty(sTo))
                     emailConfig.UpdateCommonSettings(emailConfig.SmtpUser, emailConfig.SmtpPass, newTo: sTo);
 
-                AppLogger.WriteLog("email", $"✍️ Overwrote From and To in emailConfig: {emailConfig.FromAddress} → {emailConfig.ToAddress}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"✍️ Overwrote From and To in emailConfig: {emailConfig.FromAddress} → {emailConfig.ToAddress}");
 
                 return true;
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"⚠️ Failed to overwrite From/To in emailConfig: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"⚠️ Failed to overwrite From/To in emailConfig: {ex.Message}");
                 return false;
             }
         }
@@ -131,11 +131,11 @@ namespace TrackerDotNet.Classes
             if (File.Exists(filePath))
             {
                 bodyBuilder.Attachments.Add(filePath);
-                AppLogger.WriteLog("email", $"📎 PDF attached: {Path.GetFileName(filePath)}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"📎 PDF attached: {Path.GetFileName(filePath)}");
             }
             else
             {
-                AppLogger.WriteLog("email", $"❗ Attachment not found: {filePath}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"❗ Attachment not found: {filePath}");
             }
         }
         /// <summary>
@@ -156,12 +156,12 @@ namespace TrackerDotNet.Classes
                     m.Address.Equals(fromAddress.Address, StringComparison.OrdinalIgnoreCase)))
                 {
                     message.Cc.Add(fromAddress);
-                    AppLogger.WriteLog("email", $"📋 CC added: {fromAddress.Address}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"📋 CC added: {fromAddress.Address}");
                 }
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"❌ Failed to add CC from address: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"❌ Failed to add CC from address: {ex.Message}");
             }
         }
 
@@ -169,7 +169,7 @@ namespace TrackerDotNet.Classes
         {
             if (emailConfig == null || !emailConfig.IsInitialized)
             {
-                AppLogger.WriteLog("email", "❌ SendEmail aborted: EmailSettings not initialized.");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, "❌ SendEmail aborted: EmailSettings not initialized.");
                 return false;
             }
 
@@ -228,13 +228,13 @@ namespace TrackerDotNet.Classes
                     // Log test mode warning at runtime
                     if (IsTestMode) 
                     {
-                        AppLogger.WriteLog("email", "🚨 SEND EMAIL BATCH IS IN TEST MODE 🚨");
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Email, "🚨 SEND EMAIL BATCH IS IN TEST MODE 🚨");
                     }
 
-                    AppLogger.WriteLog("email", $"🔌 SMTP session opened for batch delivery.");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"🔌 SMTP session opened for batch delivery.");
 
                     client.Send(message);
-                    AppLogger.WriteLog("email", $"📧 Sent to: {string.Join(", ", message.To)}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"📧 Sent to: {string.Join(", ", message.To)}");
 
                     client.Disconnect(true);
                 }
@@ -257,7 +257,7 @@ namespace TrackerDotNet.Classes
 
                 LastErrorSummary = $"{ex.GetType().Name}: {ex.Message}";
                 myResults.sResult = "ERROR:\n" + details.ToString();
-                AppLogger.WriteLog("email", $"❌ Send failed:\n{details}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"❌ Send failed:\n{details}");
                 return false;
             }
         }
@@ -296,13 +296,13 @@ namespace TrackerDotNet.Classes
 
                 msg.Body = builder.ToMessageBody();
                 batchMessages.Add(msg);
-                AppLogger.WriteLog("email", $"📦 Added message to batch: {subject} → {to}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"📦 Added message to batch: {subject} → {to}");
 
                 return true;
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"⚠️ Failed to add message to batch: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"⚠️ Failed to add message to batch: {ex.Message}");
                 return false;
             }
         }
@@ -322,7 +322,7 @@ namespace TrackerDotNet.Classes
             if (emailConfig == null || !emailConfig.IsInitialized || !batchMessages.Any())
             {
                 myResults.sResult = "ERROR: EmailSettings not initialized or batch empty";
-                AppLogger.WriteLog("email", "❌ Batch send aborted: Invalid config or no messages.");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, "❌ Batch send aborted: Invalid config or no messages.");
                 return false;
             }
 
@@ -345,13 +345,13 @@ namespace TrackerDotNet.Classes
 
                     client.Connect(emailConfig.SmtpHost, emailConfig.SmtpPort, option);
                     client.Authenticate(emailConfig.SmtpUser, emailConfig.SmtpPass);
-                    if (IsTestMode) AppLogger.WriteLog("email", "!!!!! SendEmailBatch is in TestMode !!!!!");
-                    AppLogger.WriteLog("email", $"🔌 SMTP session opened for batch delivery.");
+                    if (IsTestMode) AppLogger.WriteLog(SystemConstants.LogTypes.Email, "!!!!! SendEmailBatch is in TestMode !!!!!");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"🔌 SMTP session opened for batch delivery.");
 
                     foreach (var msg in batchMessages)
                     {
                         client.Send(msg);
-                        AppLogger.WriteLog("email", $"📧 Sent batch message to: {string.Join(", ", msg.To)}");
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"📧 Sent batch message to: {string.Join(", ", msg.To)}");
                     }
 
                     client.Disconnect(true);
@@ -377,7 +377,7 @@ namespace TrackerDotNet.Classes
 
                 myResults.sResult = "ERROR:\n" + details.ToString();
                 LastErrorSummary = $"{ex.GetType().Name}: {ex.Message}";
-                AppLogger.WriteLog("email", $"❌ Batch send failed:\n{details}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"❌ Batch send failed:\n{details}");
 
                 return false;
             }
@@ -406,7 +406,7 @@ namespace TrackerDotNet.Classes
             if (emailConfig == null || !emailConfig.IsInitialized)
             {
                 diagnostics.AppendLine("❌ EmailSettings is not initialized.");
-                AppLogger.WriteLog("email", diagnostics.ToString());
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, diagnostics.ToString());
                 return diagnostics.ToString();
             }
 
@@ -437,7 +437,7 @@ namespace TrackerDotNet.Classes
                     client.Disconnect(true);
                 }
 
-                AppLogger.WriteLog("email", "📊 Diagnostics complete:\n" + diagnostics.ToString());
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, "📊 Diagnostics complete:\n" + diagnostics.ToString());
             }
             catch (Exception ex)
             {
@@ -446,7 +446,7 @@ namespace TrackerDotNet.Classes
                 if (ex.InnerException != null)
                     diagnostics.AppendLine("Inner: " + ex.InnerException.Message);
 
-                AppLogger.WriteLog("email", "⚠️ Diagnostics failed:\n" + diagnostics.ToString());
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, "⚠️ Diagnostics failed:\n" + diagnostics.ToString());
             }
 
             return diagnostics.ToString();

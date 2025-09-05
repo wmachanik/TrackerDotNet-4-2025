@@ -6,6 +6,7 @@
 
 using System;
 using System.Web.UI;
+using TrackerDotNet.Classes;
 
 ////- only form later versions #nullable disable
 namespace TrackerDotNet.Account
@@ -17,6 +18,8 @@ namespace TrackerDotNet.Account
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            AppLogger.WriteLog(SystemConstants.LogTypes.Login, "User change password page entered.");
+
         }
     }
 }

@@ -446,48 +446,6 @@ table.TblMudZebra {
     background-color: #DFDF9F;
 }
 
-/* Mobile TblDetailZebra */
-.TblDetailZebra,
-table.TblDetailZebra {
-    width: 100%;
-    border: 1px solid #999;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.TblDetailZebra th,
-.TblDetailZebra tr:first-child td {
-    background: #a3a360;
-    color: #ffffff;
-    padding: 12px 8px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-    border-bottom: 2px solid #999;
-    position: sticky;
-    top: 0;
-}
-
-.TblDetailZebra td {
-    padding: 8px;
-    font-size: 14px;
-    border-bottom: 1px solid #ddd;
-    vertical-align: middle;
-}
-
-.TblDetailZebra tr:nth-child(odd) {
-    background-color: #f4f4d7;
-}
-
-.TblDetailZebra tr:nth-child(even) {
-    background-color: #ededa3;
-}
-
-.TblDetailZebra tr:hover td {
-    background-color: #d3d390;
-}
-
 /* Mobile TblWhite */
 .TblWhite,
 table.TblWhite {

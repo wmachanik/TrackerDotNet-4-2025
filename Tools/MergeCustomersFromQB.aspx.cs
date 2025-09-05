@@ -771,10 +771,10 @@ namespace TrackerDotNet.Tools
         // if we still get nothing then
         if (pCustomer.SalesAgentID == 0)
         {
-          if (pCustomer.PostalCode.StartsWith("8") || pCustomer.PostalCode.StartsWith("7"))
-            pCustomer.PreferedAgent = TrackerTools.CONST_DEFAULT_DELIVERYBYID;
-          else
-            pCustomer.PreferedAgent = TrackerTools.CONST_DEFAULT_DELIVERYIDOFCOURIER;
+                    if (pCustomer.PostalCode.StartsWith("8") || pCustomer.PostalCode.StartsWith("7"))
+                        pCustomer.PreferedAgent = SystemConstants.DeliveryConstants.DefaultDeliveryPersonID;  // TrackerTools.CONST_DEFAULT_DELIVERYBYID;
+                    else
+                        pCustomer.PreferedAgent = SystemConstants.DeliveryConstants.CourierDeliveryID; //  TrackerTools.CONST_DEFAULT_DELIVERYIDOFCOURIER;
 
           pCustomer.PreferedAgent = pCustomer.SalesAgentID;
         }

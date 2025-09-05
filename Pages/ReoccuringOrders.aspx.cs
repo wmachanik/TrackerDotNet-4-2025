@@ -8,6 +8,8 @@ using AjaxControlToolkit;
 using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using TrackerDotNet.Classes;
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Pages
@@ -75,6 +77,29 @@ namespace TrackerDotNet.Pages
                 return;
             this.ddlFilterBy.SelectedIndex = 1;
             this.upnlSelection.Update();
+        }
+
+        protected void btnCalcNextRequiredDate_Click(object sender, EventArgs e)
+        {
+            // Example: Get all recurring orders and update their next required date
+            var reoccuringOrderDal = new ReoccuringOrderDAL();
+            var dateCalculator = new DateCalculator();
+            var allOrders = reoccuringOrderDal.GetAll(1, "CustomersTbl.CustomerID");
+
+            if (allOrders != null && allOrders.Count > 0)
+            {
+                var updatedOrders = dateCalculator.FilterAndUpdateRecurringOrdersDates(allOrders);
+                // Optionally, rebind your grid or show a message
+                this.odsReoccuringOrderSummarys.DataBind();
+                ScriptManager.RegisterStartupScript(this, GetType(), "alertSuccess", "alert('Next required dates calculated and updated.');", true);
+            }
+            else
+            {
+                ScriptManager.RegisterStartupScript(this, GetType(), "alertNone", "alert('No recurring orders found.');", true);
+            }
+            // Rebind the ObjectDataSource and GridView to refresh the data
+            odsReoccuringOrderSummarys.Select(); // Optional: forces ObjectDataSource to re-select
+            gvReoccuringOrders.DataBind();
         }
     }
 }

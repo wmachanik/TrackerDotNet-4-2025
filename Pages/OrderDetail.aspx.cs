@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Web;
 using System.Web.Security;
 using System.Web.UI;
@@ -23,6 +24,41 @@ namespace TrackerDotNet.Pages
 {
     public partial class OrderDetail : Page
     {
+        // Add new constants for New Order mode
+        private const string CONST_NEWORDER_MODE = "NewOrderMode";
+        private const string CONST_QRYSTR_NEWORDER = "NewOrder";
+
+        // Add constants from NewOrderDetail for URL parameters
+        //public const string CONST_URL_REQUEST_CustomerID = "CoID";
+        //public const string CONST_URL_REQUEST_NAME = "Name";
+        //public const string CONST_URL_REQUEST_COMPANYNAME = "CoName";
+        //public const string CONST_URL_REQUEST_EMAIL = "EMail";
+        //public const string CONST_URL_REQUEST_LASTORDER = "LastOrder";
+        //public const string CONST_URL_REQUEST_SKU1 = "SKU1";
+        // Add missing controls from NewOrderDetail for manual header mode
+        protected ComboBox cboManualContacts;
+        protected TextBox tbxManualOrderDate;
+        protected TextBox tbxManualRoastDate;
+        protected TextBox tbxManualRequiredByDate;
+        protected DropDownList ddlManualToBeDeliveredBy;
+        protected TextBox tbxManualPurchaseOrder;
+        protected CheckBox cbxManualConfirmed;
+        protected CheckBox cbxManualInvoiceDone;
+        protected CheckBox cbxManualDone;
+        protected TextBox tbxManualNotes;
+        protected Button btnUpdate;
+        protected Panel pnlManualHeader;
+
+        // Missing controls from NewOrderDetail for new item section
+        //protected ComboBox cboNewItemDesc;
+        //protected ComboBox cboNewPackaging;
+
+        // Add constants for NewOrderDetail session management
+        private const string CONST_UPDATEORDERLINES = "UpdateOrderLines";
+        private const string CONST_ORDERLINESADDED = "OrderLinesAdded";
+        private const string CONST_ORDERLINEIDS = "OrderLineIDS";
+        private const string CONST_ORDERLINEITEMIDS = "OrderLineItemIDS";
+        // Constants for Order Detail
         public const string CONST_EMAILDELIMITERSTART = "[#";
         public const string CONST_EMAILDELIMITEREND = "#]";
         public const string CONST_QRYSTR_CustomerID = "CustomerID";
@@ -36,6 +72,12 @@ namespace TrackerDotNet.Pages
         private const string CONST_ORDERHEADERVALUES = "OrderHeaderValues";
         private const string CONST_ORDERHEADER_CONTACT_ID = "cboContacts";
         private const string CONST_ORDERLINE_ITEM_COMBOBOX_ID = "cboItemDesc";
+        private const string CONST_ORDERLINE_HIDDENFIELD_ITEM_LABEL = "lblItemDesc";
+        private const string CONST_ORDERLINE_HIDDENFIELD_ITEM_ID = "hdnItemTypeID";
+        private const string CONST_ORDERLINE_PACKAGING_COMBOBOX_ID = "cboPackaging";
+        private const string CONST_ORDERLINE_HIDDENFIELD_PACKAGING_LABEL = "lblPackaging";
+        private const string CONST_ORDERLINE_HIDDENFIELD_PACKAGING_ID = "hdnPackagingID";
+        private const string CONST_ORDERLINE_HIDDENFIELD_ORDER_ID = "hdnOrderID";
         protected ScriptManager scrmOrderDetail;
         protected UpdateProgress udtpOrderDetail;
         protected UpdatePanel pnlOrderHeader;
@@ -45,9 +87,7 @@ namespace TrackerDotNet.Pages
         protected UpdatePanel upnlNewOrderItem;
         protected Button btnNewItem;
         protected Panel pnlNewItem;
-        protected DropDownList ddlNewItemDesc;
         protected TextBox tbxNewQuantityOrdered;
-        protected DropDownList ddlNewPackaging;
         protected Button btnAdd;
         protected Button btnCancel;
         protected Literal ltrlStatus;
@@ -65,51 +105,1037 @@ namespace TrackerDotNet.Pages
         protected ObjectDataSource odsItemTypes;
         protected SqlDataSource sdsPackagingTypes;
 
+        // Property to check if we're in New Order mode
+        private bool IsNewOrderMode
+        {
+            get
+            {
+                return Session[CONST_NEWORDER_MODE] != null && (bool)Session[CONST_NEWORDER_MODE];
+            }
+            set
+            {
+                Session[CONST_NEWORDER_MODE] = value;
+            }
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!this.IsPostBack)
             {
-                long num = 1;
-                DateTime date = TimeZoneUtils.Now().Date;
-                string empty = string.Empty;
-                if (this.Request.QueryString["CustomerID"] != null)
-                    num = (long)Convert.ToInt32(this.Request.QueryString["CustomerID"].ToString());
-                if (this.Request.QueryString["DeliveryDate"] != null)
-                    date = Convert.ToDateTime(this.Request.QueryString["DeliveryDate"]).Date;
-                if (this.Request.QueryString["Notes"] != null)
-                    empty = this.Request.QueryString["Notes"].ToString();
-                this.Session["BoundCustomerID"] = (object)num;
-                this.Session["BoundDeliveryDate"] = (object)date.Date;
-                this.Session["BoundNotes"] = (object)empty;
-                this.Session["OrderHeaderValues"] = (object)null;
-                OrderItemTbl orderItemTbl = new OrderItemTbl();
-                this.btnOrderCancelled.Enabled = Membership.GetUser().UserName.ToLower() == "warren";
-                this.btnNewItem.Enabled = this.User.IsInRole("Administrators") || this.User.IsInRole("AgentManager") || this.User.IsInRole("Agents");
-                new TrackerTools().SetTrackerSessionErrorString(string.Empty);
-                if (this.Request.QueryString["Invoiced"] != null)
+                // Determine if this is new order mode vs existing order mode
+                bool isNewOrder = DetermineOrderMode();
+
+                if (isNewOrder)
                 {
-                    if (!this.Request.QueryString["Invoiced"].Equals("Y"))
-                        return;
-                    this.MarkItemAsInvoiced();
+                    InitializeNewOrderMode();
                 }
                 else
                 {
-                    if (this.Request.QueryString["Delivered"] == null || !this.Request.QueryString["Delivered"].Equals("Y"))
-                        return;
-                    this.btnOrderDelivered_Click(sender, e);
+                    InitializeExistingOrderMode();
                 }
+
+                // Common initialization
+                this.btnOrderCancelled.Enabled = Membership.GetUser().UserName.ToLower() == SystemConstants.UserConstants.AdminUserName;
+                // Use combined role + customer validation to determin srtate of new button
+                UpdateNewItemButtonStateWithRoleCheck();
+                new TrackerTools().ClearTrackerSessionErrorString();
+
+                // Handle NON-LastOrder special query string actions only
+                HandleNonLastOrderQueryStringActions();
             }
             else
             {
                 TrackerTools trackerTools = new TrackerTools();
                 string sessionErrorString = trackerTools.GetTrackerSessionErrorString();
-                if (string.IsNullOrEmpty(sessionErrorString))
-                    return;
-                showMessageBox showMessageBox = new showMessageBox(this.Page, "Tracker Error", "ERROR: " + sessionErrorString);
-                trackerTools.SetTrackerSessionErrorString(string.Empty);
+                if (!string.IsNullOrEmpty(sessionErrorString))
+                {
+                    new showMessageBox(this.Page, "Tracker Error", "ERROR: " + sessionErrorString);
+                    trackerTools.SetTrackerSessionErrorString(string.Empty);
+                }
             }
         }
 
+        private void HandleNonLastOrderQueryStringActions()
+        {
+            // Handle Invoiced parameter
+            if (this.Request.QueryString[CONST_QRYSTR_INVOICED] != null &&
+                this.Request.QueryString[CONST_QRYSTR_INVOICED].Equals("Y"))
+            {
+                this.MarkItemAsInvoiced();
+                return;
+            }
+
+            // Handle Delivered parameter
+            if (this.Request.QueryString[CONST_QRYSTR_DELIVERED] != null &&
+                this.Request.QueryString[CONST_QRYSTR_DELIVERED].Equals("Y"))
+            {
+                this.btnOrderDelivered_Click(this, EventArgs.Empty);
+                return;
+            }
+
+            // Handle SKU parameters
+            if (IsNewOrderMode && this.Request.QueryString[SystemConstants.UrlParameterConstants.SKU1] != null)
+            {
+                ProcessSKUParameters();
+            }
+        }
+        protected void Page_PreRenderComplete(object sender, EventArgs e)
+        {
+            // Only process query string on initial load, not postbacks
+            if (!this.IsPostBack && this.Request.QueryString.Count > 0)
+            {
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Page_PreRenderComplete: Processing query string parameters");
+
+                // Handle CoID parameter
+                if (this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID] != null)
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Page_PreRenderComplete: Processing CoID={this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID]}");
+                    SetContactByID(this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID]);
+                }
+                // Handle Name/CoName/Email parameters
+                else if (this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerName] != null)
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Page_PreRenderComplete: Processing Name parameters");
+                    SetContactValue(
+                        this.Request.QueryString[SystemConstants.UrlParameterConstants.CompanyName],
+                        this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerName],
+                        this.Request.QueryString[SystemConstants.UrlParameterConstants.Email]);
+                }
+
+                // Handle LastOrder parameter ONLY here, after all controls are properly initialized
+                if (IsNewOrderMode && this.Request.QueryString[SystemConstants.UrlParameterConstants.LastOrder] != null &&
+                    this.Request.QueryString[SystemConstants.UrlParameterConstants.LastOrder] == "Y")
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Page_PreRenderComplete: Processing LastOrder=Y");
+
+                    // Ensure session is updated first
+                    UpdateSessionFromManualControls();
+
+                    if (ProcessLastOrderRequest(true))
+                    {
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Page_PreRenderComplete: Last order items added, redirecting");
+                        RedirectToExistingOrderMode();
+                    }
+                    else
+                    {
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Page_PreRenderComplete: No last order items found");
+                        ltrlStatus.Text = "No previous order found for this customer.";
+                    }
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Determines whether to show New Order mode or Existing Order mode.
+        /// Defaults to New Order mode when no query string parameters are present.
+        /// </summary>
+        /// <returns>True for New Order mode, False for Existing Order mode</returns>
+        private bool DetermineOrderMode()
+        {
+            // If explicitly requesting new order mode, ALWAYS honor it and clear session
+            if (Request.QueryString[CONST_QRYSTR_NEWORDER] != null &&
+                Request.QueryString[CONST_QRYSTR_NEWORDER].Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Explicit new order mode requested - clearing session");
+                ClearOrderSession(); // Clear session when explicitly requesting new order
+                return true; // New Order mode
+            }
+
+            // If existing order parameters are present, use existing order mode
+            if (Request.QueryString[CONST_QRYSTR_CustomerID] != null ||
+                Request.QueryString[CONST_QRYSTR_DELIVERYDATE] != null ||
+                Request.QueryString[CONST_QRYSTR_NOTES] != null ||
+                Request.QueryString[CONST_QRYSTR_DELIVERED] != null ||
+                Request.QueryString[CONST_QRYSTR_INVOICED] != null)
+            {
+                return false; // Existing Order mode
+            }
+
+            // If NewOrderDetail-style parameters are present, use new order mode
+            if (Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID] != null ||
+                Request.QueryString[SystemConstants.UrlParameterConstants.CustomerName] != null ||
+                Request.QueryString[SystemConstants.UrlParameterConstants.CompanyName] != null ||
+                Request.QueryString[SystemConstants.UrlParameterConstants.Email] != null ||
+                Request.QueryString[SystemConstants.UrlParameterConstants.LastOrder] != null ||
+                Request.QueryString[SystemConstants.UrlParameterConstants.SKU1] != null)
+            {
+                return true; // New Order mode
+            }
+
+            // DEFAULT: If no query string parameters at all, assume New Order mode and clear session
+            if (Request.QueryString.Count == 0)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "No query parameters - default new order mode, clearing session");
+                ClearOrderSession(); // Clear session for clean new order
+                return true; // New Order mode (DEFAULT BEHAVIOR)
+            }
+
+            // Fallback: if there are unknown parameters, assume New Order mode
+            return true; // New Order mode
+        }
+        /// <summary>
+        /// Clears all order-related session variables to ensure clean new order state
+        /// </summary>
+        private void ClearOrderSession()
+        {
+            Session.Remove(SystemConstants.SessionConstants.BoundCustomerID);
+            Session.Remove(SystemConstants.SessionConstants.BoundDeliveryDate);
+            Session.Remove(SystemConstants.SessionConstants.BoundNotes);
+            Session.Remove(CONST_ORDERHEADERVALUES);
+            Session.Remove(CONST_NEWORDER_MODE);
+            Session.Remove(CONST_UPDATEORDERLINES);
+            Session.Remove(CONST_ORDERLINESADDED);
+            Session.Remove(CONST_ORDERLINEIDS);
+            Session.Remove(CONST_ORDERLINEITEMIDS);
+
+            //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Order session cleared for new order");
+        }
+        private void InitializeNewOrderMode()
+        {
+            IsNewOrderMode = true;
+
+            // Use OrderManager for date calculations
+            var orderManager = new TrackerDotNet.Managers.OrderManager();
+            DateTime orderDate = TimeZoneUtils.Now().Date;
+            var (roastDate, deliveryDate) = orderManager.CalculateOrderDates(orderDate);
+
+            // Set default session values for new order
+            this.Session[SystemConstants.SessionConstants.BoundCustomerID] = (long)0; // Changed: No customer by default
+            this.Session[SystemConstants.SessionConstants.BoundDeliveryDate] = deliveryDate.Date;
+            this.Session[SystemConstants.SessionConstants.BoundNotes] = string.Empty;
+            this.Session[CONST_ORDERHEADERVALUES] = null;
+
+            ProcessNewOrderQueryString();
+            ShowManualHeaderMode();
+        }
+        /// <summary>
+        /// Control btnNewItem based on both user roles AND customer selection/notes validation
+        /// Enhanced to handle both manual and DetailsView scenarios
+        /// </summary>
+        private void UpdateNewItemButtonStateWithRoleCheck()
+        {
+            // First check if user has the required roles
+            bool hasPermission = this.User.IsInRole("Administrators") || this.User.IsInRole("AgentManager") || this.User.IsInRole("Agents");
+
+            if (!hasPermission)
+            {
+                btnNewItem.Enabled = false;
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "btnNewItem disabled - user lacks required roles");
+                return;
+            }
+
+            // User has permission, now check customer/notes validation
+            if (IsNewOrderMode)
+            {
+                bool shouldEnable = true;
+                string currentNotes = tbxManualNotes?.Text?.Trim() ?? string.Empty;
+                string currentCustomer = cboManualContacts?.SelectedValue ?? "0";
+
+                // Check if customer is selected
+                if (cboManualContacts == null || cboManualContacts.SelectedIndex <= 0)
+                {
+                    shouldEnable = false;
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "New Order: No customer selected");
+                }
+                // Special validation for default customer ("ZZName") - must have notes
+                else if (currentCustomer == SystemConstants.CustomerConstants.SundryCustomerIDStr &&
+                         string.IsNullOrEmpty(currentNotes))
+                {
+                    shouldEnable = false;
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"New Order: Default customer selected but no notes provided. Notes length: {currentNotes.Length}");
+                }
+
+                btnNewItem.Enabled = shouldEnable;
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"UpdateNewItemButtonStateWithRoleCheck: btnNewItem.Enabled = {shouldEnable} (New Order mode)");
+            }
+            else
+            {
+                // In existing order mode, check if we need to validate notes for sundry customer
+                string existingOrderCustomer = dvOrderHeaderGetCBoControlSelectedValue(CONST_ORDERHEADER_CONTACT_ID);
+                string existingNotes = GetOrderHeaderNotes()?.Trim() ?? string.Empty;
+
+                bool shouldEnable = true;
+                if (existingOrderCustomer == SystemConstants.CustomerConstants.SundryCustomerIDStr &&
+                    string.IsNullOrEmpty(existingNotes))
+                {
+                    shouldEnable = false;
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Updating an Order: Existing order with default customer but no notes");
+                }
+
+                btnNewItem.Enabled = shouldEnable;
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"UpdateNewItemButtonStateWithRoleCheck: btnNewItem.Enabled = {shouldEnable} (Existing Order mode)");
+            }
+
+            // Update the UpdatePanel to reflect the change
+            if (upnlNewOrderItem != null)
+            {
+                upnlNewOrderItem.Update();
+            }
+        }
+        /// <summary>
+        /// Shows the manual header mode for creating a new order
+        /// </summary>
+        private void ShowManualHeaderMode()
+        {
+            try
+            {
+                // Hide DetailsView
+                if (pnlOrderHeader != null)
+                    pnlOrderHeader.Visible = false;
+
+                // Show manual header panel
+                if (pnlManualHeader != null)
+                    pnlManualHeader.Visible = true;
+
+                // Initialize manual controls with calculated dates
+                var orderManager = new TrackerDotNet.Managers.OrderManager();
+                DateTime orderDate = TimeZoneUtils.Now().Date;
+                var (roastDate, deliveryDate) = orderManager.CalculateOrderDates(orderDate);
+
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Initial dates calculated - Order: {orderDate:yyyy-MM-dd}, Roast: {roastDate:yyyy-MM-dd}, Delivery: {deliveryDate:yyyy-MM-dd}");
+
+                // Set default values
+                tbxManualOrderDate.Text = orderDate.ToString("yyyy-MM-dd");
+                tbxManualRoastDate.Text = roastDate.ToString("yyyy-MM-dd");
+                tbxManualRequiredByDate.Text = deliveryDate.ToString("yyyy-MM-dd");
+
+                // Don't set default customer - let user select
+                if (cboManualContacts != null)
+                {
+                    cboManualContacts.SelectedIndex = -1; // No selection
+                   // AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Customer combo cleared");
+                }
+
+                // DISABLE CONTROLS UNTIL CUSTOMER IS SELECTED
+                SetControlsEnabledState(false);
+
+                // Hide Last Order button initially
+                if (btnLastOrder != null)
+                {
+                    btnLastOrder.Visible = false;
+                    //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "btnLastOrder initially hidden");
+                }
+
+                // Update page title
+                Page.Title = "New Order";
+                litPageTitle.Text = "New Order";
+
+                // Disable some buttons that only work with existing orders
+                btnConfirmOrder.Enabled = false;
+                btnOrderDelivered.Enabled = false;
+                btnUnDoDone.Enabled = false;
+
+                // Set initial status message
+                ltrlStatus.Text = "Please select a customer to begin creating an order.";
+
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "ShowManualHeaderMode completed");
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Error in ShowManualHeaderMode: {ex}");
+            }
+        }
+        /// <summary>
+        /// Enables or disables manual controls based on whether a customer is selected
+        /// </summary>
+        /// <summary>
+        /// Enables or disables manual controls based on whether a customer is selected
+        /// </summary>
+        private void SetControlsEnabledState(bool enabled)
+        {
+            try
+            {
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"SetControlsEnabledState called with enabled: {enabled}");
+
+                // Date controls - disable until customer selected
+                if (tbxManualOrderDate != null)
+                {
+                    tbxManualOrderDate.Enabled = enabled;
+                   // AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"tbxManualOrderDate.Enabled = {enabled}");
+                }
+
+                if (tbxManualRoastDate != null)
+                {
+                    tbxManualRoastDate.Enabled = enabled;
+                  //  AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"tbxManualRoastDate.Enabled = {enabled}");
+                }
+
+                if (tbxManualRequiredByDate != null)
+                {
+                    tbxManualRequiredByDate.Enabled = enabled;
+                   // AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"tbxManualRequiredByDate.Enabled = {enabled}");
+                }
+
+                // Other controls
+                if (ddlManualToBeDeliveredBy != null) ddlManualToBeDeliveredBy.Enabled = enabled;
+                if (tbxManualPurchaseOrder != null) tbxManualPurchaseOrder.Enabled = enabled;
+                if (cbxManualConfirmed != null) cbxManualConfirmed.Enabled = enabled;
+                if (cbxManualInvoiceDone != null) cbxManualInvoiceDone.Enabled = enabled;
+                if (cbxManualDone != null) cbxManualDone.Enabled = enabled;
+                if (tbxManualNotes != null) tbxManualNotes.Enabled = enabled;
+
+                // Enable/disable the New Item button too
+                UpdateNewItemButtonStateWithRoleCheck();
+
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "SetControlsEnabledState completed");
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Error in SetControlsEnabledState: {ex}");
+            }
+        }
+        // Property to access the correct notes control based on mode
+        private TextBox NotesControl
+        {
+            get
+            {
+                if (IsNewOrderMode)
+                    return tbxManualNotes;
+                else
+                    return dvOrderHeader.CurrentMode == DetailsViewMode.Edit ?
+                           (TextBox)dvOrderHeader.FindControl("tbxNotes") : null;
+            }
+        }
+
+        // Property to access the correct delivery control based on mode
+        private DropDownList DeliveryControl
+        {
+            get
+            {
+                return IsNewOrderMode ? ddlManualToBeDeliveredBy :
+                       (DropDownList)dvOrderHeader.FindControl("ddlToBeDeliveredBy");
+            }
+        }
+        // Property to access the correct contact control based on mode
+        private ComboBox ContactsControl
+        {
+            get
+            {
+                return IsNewOrderMode ? cboManualContacts : (ComboBox)dvOrderHeader.FindControl(CONST_ORDERHEADER_CONTACT_ID);
+            }
+        }
+        protected void SetContactByID(string pCoNameID)
+        {
+            //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"SetContactByID called with ID: {pCoNameID}");
+
+            var contactsControl = ContactsControl;
+
+            // Force databind to ensure ComboBox is populated
+            if (contactsControl != null && IsNewOrderMode)
+            {
+                // Force the ComboBox to databind if it hasn't already
+                var cboManualContacts = contactsControl as ComboBox;
+                if (cboManualContacts?.Items.Count == 0)
+                {
+                    cboManualContacts.DataBind();
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"SetContactByID: Force DataBind completed, Items.Count = {cboManualContacts.Items.Count}");
+                }
+            }
+
+            var notesControl = NotesControl ?? tbxManualNotes;
+            var deliveryControl = DeliveryControl;
+
+            if (contactsControl?.Items?.FindByValue(pCoNameID) != null)
+            {
+                contactsControl.SelectedValue = pCoNameID;
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"SetContactByID: Successfully set contact to {pCoNameID}");
+
+                // Enable controls when customer is selected via query string
+                if (IsNewOrderMode)
+                {
+                    SetControlsEnabledState(true);
+
+                    // Show Last Order button if we're in new order mode
+                    if (btnLastOrder != null)
+                    {
+                        btnLastOrder.Visible = true;
+                        //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "SetContactByID: Made btnLastOrder visible");
+                    }
+
+                    // Update dates for the selected customer
+                    UpdateDatesForSelectedCustomer(pCoNameID);
+                }
+
+                // Use OrderManager for customer preference logic
+                var orderManager = new TrackerDotNet.Managers.OrderManager();
+                var result = orderManager.SetCustomerPreferencesById(pCoNameID);
+
+                if (result.Success && result.CustomerFound)
+                {
+                    if (deliveryControl?.Items.FindByValue(result.PreferredDeliveryByID.ToString()) != null)
+                        deliveryControl.SelectedValue = result.PreferredDeliveryByID.ToString();
+                }
+
+                // Clear any previous error messages
+                if (notesControl != null && notesControl.Text.Contains($"ID not found: {pCoNameID}"))
+                {
+                    notesControl.Text = notesControl.Text.Replace($"ID not found: {pCoNameID}: ", "");
+                }
+            }
+            else
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"SetContactByID: Customer {pCoNameID} not found in ComboBox, using sundry customer");
+
+                if (contactsControl != null)
+                    contactsControl.SelectedValue = SystemConstants.CustomerConstants.SundryCustomerIDStr;
+
+                if (notesControl != null)
+                {
+                    notesControl.Text = $"{notesControl.Text}ID not found: {pCoNameID}: ";
+                }
+            }
+
+            UpdateSessionFromManualControls();
+        }
+        protected void SetContactValue(string pCoName, string pName, string pEmail)
+        {
+            var contactsControl = ContactsControl;
+            var notesControl = NotesControl ?? tbxManualNotes;
+            if (contactsControl == null) return;
+
+            // Use OrderManager for customer lookup logic
+            var orderManager = new TrackerDotNet.Managers.OrderManager();
+            var result = orderManager.SetCustomerPreferencesByContact(pCoName, pName, pEmail);
+
+            if (result.Success)
+            {
+                if (result.CustomerFound)
+                {
+                    // Customer found - set the control value
+                    string customerIdStr = result.CustomerID.ToString();
+                    if (contactsControl.Items.FindByValue(customerIdStr) != null)
+                    {
+                        contactsControl.SelectedValue = customerIdStr;
+                        var deliveryControl = DeliveryControl;
+                        if (deliveryControl?.Items.FindByValue(result.PreferredDeliveryByID.ToString()) != null)
+                            deliveryControl.SelectedValue = result.PreferredDeliveryByID.ToString();
+                    }
+                }
+                else if (result.UseSundryCustomer)
+                {
+                    // Use sundry customer with notes
+                    contactsControl.SelectedValue = SystemConstants.CustomerConstants.SundryCustomerIDStr;
+                    if (notesControl != null)
+                        notesControl.Text = $"{notesControl.Text}{result.NoteText}";
+                }
+            }
+            else
+            {
+                // Error occurred - log it and use sundry customer
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"SetContactValue error: {result.ErrorMessage}");
+                contactsControl.SelectedValue = SystemConstants.CustomerConstants.SundryCustomerIDStr;
+            }
+
+            UpdateSessionFromManualControls();
+        }
+
+        private void UpdateSessionFromManualControls()
+        {
+            if (!IsNewOrderMode) return;
+
+            // Update session variables from manual controls
+            if (cboManualContacts?.SelectedValue != null)
+            {
+                int customerId;
+                if (int.TryParse(cboManualContacts.SelectedValue, out customerId))
+                    this.Session[SystemConstants.SessionConstants.BoundCustomerID] = (long)customerId;
+            }
+
+            if (tbxManualRequiredByDate?.Text != null && DateTime.TryParse(tbxManualRequiredByDate.Text, out DateTime deliveryDate))
+                this.Session[SystemConstants.SessionConstants.BoundDeliveryDate] = deliveryDate.Date;
+
+            if (tbxManualNotes?.Text != null)
+                this.Session[SystemConstants.SessionConstants.BoundNotes] = tbxManualNotes.Text;
+        }
+
+        private void ShowDetailsViewMode()
+        {
+            // Show DetailsView
+            if (pnlOrderHeader != null)
+                pnlOrderHeader.Visible = true;
+
+            // Hide manual header panel
+            if (pnlManualHeader != null)
+                pnlManualHeader.Visible = false;
+
+            // Update page title
+            Page.Title = "Order Detail";
+            litPageTitle.Text = "Order Detail";
+
+            // Enable all buttons for existing orders
+            btnConfirmOrder.Enabled = true;
+            btnOrderDelivered.Enabled = true;
+            btnUnDoDone.Enabled = true;
+
+            // Update button panel
+            updtButtonPanel.Update();
+        }
+        // New order handling
+        // Add these event handlers for the manual controls
+        protected void cboManualContacts_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                // Remove the alert for now and add more specific debugging
+                // ScriptManager.RegisterStartupScript(this, GetType(), "test", $"alert('Contact changed to: {cboManualContacts.SelectedValue ?? "NULL"}');", true);
+
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"cboManualContacts_SelectedIndexChanged called. SelectedValue: {cboManualContacts.SelectedValue ?? "NULL"}");
+
+                // Store ORIGINAL date values BEFORE any updates
+                string originalOrderDate = tbxManualOrderDate.Text;
+                string originalRoastDate = tbxManualRoastDate.Text;
+                string originalRequiredDate = tbxManualRequiredByDate.Text;
+
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"ORIGINAL dates BEFORE updates - Order: {originalOrderDate}, Roast: {originalRoastDate}, Required: {originalRequiredDate}");
+
+                UpdateSessionFromManualControls();
+
+                // Set customer preferences when contact changes
+                if (cboManualContacts.SelectedValue != null && cboManualContacts.SelectedValue != "0" && cboManualContacts.SelectedValue != "")
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Customer selected, enabling controls and showing last order button");
+
+                    // ENABLE CONTROLS WHEN CUSTOMER IS SELECTED
+                    SetControlsEnabledState(true);
+
+                    SetContactByID(cboManualContacts.SelectedValue);
+                    UpdateDatesForSelectedCustomer(cboManualContacts.SelectedValue);
+
+                    // Log FINAL date values AFTER all updates
+                    string finalOrderDate = tbxManualOrderDate.Text;
+                    string finalRoastDate = tbxManualRoastDate.Text;
+                    string finalRequiredDate = tbxManualRequiredByDate.Text;
+
+                    //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"FINAL dates AFTER all updates - Order: {finalOrderDate}, Roast: {finalRoastDate}, Required: {finalRequiredDate}");
+
+                    // Show Last Order button using server-side control
+                    btnLastOrder.Visible = true;
+                    //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"btnLastOrder.Visible set to: {btnLastOrder.Visible}");
+
+                    // Show success message
+                    ltrlStatus.Text = $"Customer selected. Req dates: {finalRequiredDate}";
+                }
+                else
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "No customer selected, disabling controls and hiding last order button");
+
+                    // DISABLE CONTROLS WHEN NO CUSTOMER SELECTED
+                    SetControlsEnabledState(false);
+
+                    // Hide Last Order button when no customer selected
+                    ResetToDefaultDates();
+                    btnLastOrder.Visible = false;
+
+                    ltrlStatus.Text = "Please select a customer to continue.";
+                }
+
+                // Force UpdatePanel refresh
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Updating UpdatePanels");
+                upnlNewOrderSummary.Update();
+                if (upnlNewOrderItem != null)
+                    upnlNewOrderItem.Update();
+
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "cboManualContacts_SelectedIndexChanged completed");
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Error in cboManualContacts_SelectedIndexChanged: {ex}");
+                ltrlStatus.Text = $"Error: {ex.Message}";
+            }
+        }
+        /// <summary>
+        /// Updates preparation and delivery dates based on selected customer preferences
+        /// </summary>
+        private void UpdateDatesForSelectedCustomer(string customerId)
+        {
+            try
+            {
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"UpdateDatesForSelectedCustomer called for customer: {customerId}");
+
+                // Convert string to long for the TrackerTools method
+                if (!long.TryParse(customerId, out long customerIdLong))
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Invalid customer ID: {customerId}");
+                    return;
+                }
+
+                // Use TrackerTools to get customer-specific dates based on city
+                TrackerTools trackerTools = new TrackerTools();
+                DateTime deliveryDate = DateTime.MinValue; // This will be set by reference
+                DateTime roastDate = trackerTools.GetNextRoastDateByCustomerID(customerIdLong, ref deliveryDate);
+                DateTime orderDate = TimeZoneUtils.Now().Date;
+
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Customer-specific dates - Order: {orderDate:yyyy-MM-dd}, Roast: {roastDate:yyyy-MM-dd}, Delivery: {deliveryDate:yyyy-MM-dd}");
+
+                // Store old values for comparison
+                string oldOrderDate = tbxManualOrderDate.Text;
+                string oldRoastDate = tbxManualRoastDate.Text;
+                string oldDeliveryDate = tbxManualRequiredByDate.Text;
+
+                // Update the manual controls with customer-specific dates
+                tbxManualOrderDate.Text = orderDate.ToString("yyyy-MM-dd");
+                tbxManualRoastDate.Text = roastDate.ToString("yyyy-MM-dd");
+                tbxManualRequiredByDate.Text = deliveryDate.ToString("yyyy-MM-dd");
+
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Date textbox values updated - Old: {oldOrderDate}, {oldRoastDate}, {oldDeliveryDate} | New: {tbxManualOrderDate.Text}, {tbxManualRoastDate.Text}, {tbxManualRequiredByDate.Text}");
+
+                // Update session immediately
+                UpdateSessionFromManualControls();
+
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Session updated for customer {customerId}");
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"UpdateDatesForSelectedCustomer error: {ex}");
+                ltrlStatus.Text = $"Error updating dates: {ex.Message}";
+            }
+        }
+        /// <summary>
+        /// Resets to default calculated dates when no customer is selected
+        /// </summary>
+        private void ResetToDefaultDates()
+        {
+            var orderManager = new TrackerDotNet.Managers.OrderManager();
+            DateTime orderDate = TimeZoneUtils.Now().Date;
+            var (roastDate, deliveryDate) = orderManager.CalculateOrderDates(orderDate);
+
+            tbxManualOrderDate.Text = orderDate.ToString("yyyy-MM-dd");
+            tbxManualRoastDate.Text = roastDate.ToString("yyyy-MM-dd");
+            tbxManualRequiredByDate.Text = deliveryDate.ToString("yyyy-MM-dd");
+
+            // Clear delivery person selection
+            if (ddlManualToBeDeliveredBy != null)
+                ddlManualToBeDeliveredBy.SelectedValue = "0";
+        }
+
+        protected void tbxManualOrderDate_TextChanged(object sender, EventArgs e)
+        {
+            UpdateSessionFromManualControls();
+        }
+
+        protected void tbxManualRoastDate_TextChanged(object sender, EventArgs e)
+        {
+            UpdateSessionFromManualControls();
+        }
+
+        protected void tbxManualRequiredByDate_TextChanged(object sender, EventArgs e)
+        {
+            UpdateSessionFromManualControls();
+        }
+
+        protected void ddlManualToBeDeliveredBy_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateSessionFromManualControls();
+        }
+
+        protected void tbxManualPurchaseOrder_TextChanged(object sender, EventArgs e)
+        {
+            UpdateSessionFromManualControls();
+        }
+
+        protected void cbxManualConfirmed_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateSessionFromManualControls();
+        }
+
+        protected void cbxManualInvoiceDone_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateSessionFromManualControls();
+        }
+
+        protected void cbxManualDone_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateSessionFromManualControls();
+        }
+
+
+        protected void tbxManualNotes_TextChanged(object sender, EventArgs e)
+        {
+            UpdateSessionFromManualControls();
+            // Update New Item button state when notes change
+            UpdateNewItemButtonStateWithRoleCheck();
+        }
+        /// <summary>
+        /// Handle notes changed in DetailsView mode (when editing existing orders)
+        /// </summary>
+        protected void dvOrderHeader_tbxNotes_TextChanged(object sender, EventArgs e)
+        {
+            if (sender is TextBox notesTextBox)
+            {
+                HandleNotesChanged(notesTextBox.Text);
+            }
+        }
+        protected void btnUpdate_Click(object sender, EventArgs e)
+        {
+            // Handle the update button click for manual mode
+            UpdateSessionFromManualControls();
+
+            // Show success message
+            ltrlStatus.Text = "Order details updated";
+
+            // Hide the update button
+            ScriptManager.RegisterStartupScript(this, GetType(), "hideUpdate", "hideUpdateButton();", true);
+        }
+        private bool ProcessLastOrderRequest(bool pSetDates)
+        {
+            try
+            {
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "ProcessLastOrderRequest: Starting");
+
+                // Get customer ID from session with better error handling
+                long customerId = 0;
+                if (this.Session[SystemConstants.SessionConstants.BoundCustomerID] != null)
+                {
+                    var sessionValue = this.Session[SystemConstants.SessionConstants.BoundCustomerID];
+                    if (sessionValue is long)
+                    {
+                        customerId = (long)sessionValue;
+                    }
+                    else if (sessionValue is int)
+                    {
+                        customerId = (long)(int)sessionValue;
+                    }
+                    else if (long.TryParse(sessionValue.ToString(), out long parsedId))
+                    {
+                        customerId = parsedId;
+                    }
+                }
+
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"ProcessLastOrderRequest: Customer ID from session: {customerId}");
+
+                if (customerId <= 0)
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "ProcessLastOrderRequest: Invalid customer ID from session");
+                    return false;
+                }
+
+                var orderManager = new TrackerDotNet.Managers.OrderManager();
+
+                // Get the last order items
+                List<OrderManager.OrderLineData> lastOrderItems = orderManager.GetLastOrderItems(customerId, pSetDates);
+
+                if (lastOrderItems.Count > 0)
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"ProcessLastOrderRequest: Found {lastOrderItems.Count} last order items");
+
+                    // Add each item to the actual order
+                    bool anyItemsAdded = false;
+                    foreach (var orderLine in lastOrderItems)
+                    {
+                        // Create the order header data
+                        OrderHeaderData headerData = this.Get_dvOrderHeaderData(false);
+
+                        // Create the order data
+                        OrderTblData orderData = new OrderTblData
+                        {
+                            CustomerID = customerId,
+                            OrderDate = headerData.OrderDate,
+                            RoastDate = headerData.RoastDate,
+                            RequiredByDate = headerData.RequiredByDate,
+                            ToBeDeliveredBy = headerData.ToBeDeliveredBy,
+                            PurchaseOrder = headerData.PurchaseOrder,
+                            Confirmed = headerData.Confirmed,
+                            InvoiceDone = headerData.InvoiceDone,
+                            Done = headerData.Done,
+                            Notes = headerData.Notes,
+                            ItemTypeID = orderLine.ItemID,
+                            QuantityOrdered = orderLine.Qty,
+                            PackagingID = orderLine.PackagingID
+                        };
+
+                        // Add the order line
+                        string result = orderManager.AddOrderLine(headerData, orderData);
+                        if (string.IsNullOrEmpty(result))
+                        {
+                            anyItemsAdded = true;
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"ProcessLastOrderRequest: Successfully added item {orderLine.ItemName}");
+                        }
+                        else
+                        {
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"ProcessLastOrderRequest: Error adding item {orderLine.ItemName}: {result}");
+                        }
+                    }
+
+                    //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"ProcessLastOrderRequest: Added {lastOrderItems.Count} items, success: {anyItemsAdded}");
+                    return anyItemsAdded;
+                }
+                else
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "ProcessLastOrderRequest: No last order items found");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"ProcessLastOrderRequest error: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"ProcessLastOrderRequest stack trace: {ex.StackTrace}");
+                return false;
+            }
+        }
+        private void RedirectToExistingOrderMode()
+        {
+            // Build query string for existing order mode
+            var customerId = (long)this.Session[SystemConstants.SessionConstants.BoundCustomerID];
+            var deliveryDate = (DateTime)this.Session[SystemConstants.SessionConstants.BoundDeliveryDate];
+            var notes = (string)this.Session[SystemConstants.SessionConstants.BoundNotes];
+
+            string url = $"OrderDetail.aspx?{CONST_QRYSTR_CustomerID}={customerId}&{CONST_QRYSTR_DELIVERYDATE}={deliveryDate:yyyy-MM-dd}&{CONST_QRYSTR_NOTES}={HttpUtility.UrlEncode(notes)}";
+            Response.Redirect(url);
+        }
+
+        private void ProcessNewOrderQueryString()
+        {
+            // Handle CoID parameter - USING THE CONSTANT
+            if (this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID] != null)
+            {
+                SetContactByID(this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID]);
+            }
+            // Handle Name/CoName/Email parameters - USING THE CONSTANTS
+            else if (this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerName] != null)
+            {
+                SetContactValue(
+                    this.Request.QueryString[SystemConstants.UrlParameterConstants.CompanyName],
+                    this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerName],
+                    this.Request.QueryString[SystemConstants.UrlParameterConstants.Email]);
+            }
+        }
+
+        private void InitializeExistingOrderMode()
+        {
+            IsNewOrderMode = false;
+
+            // Original OrderDetail initialization logic - USING THE CONSTANTS
+            long num = 1;
+            DateTime date = TimeZoneUtils.Now().Date;
+            string empty = string.Empty;
+
+            if (this.Request.QueryString[CONST_QRYSTR_CustomerID] != null)
+                num = (long)Convert.ToInt32(this.Request.QueryString[CONST_QRYSTR_CustomerID].ToString());
+            if (this.Request.QueryString[CONST_QRYSTR_DELIVERYDATE] != null)
+                date = Convert.ToDateTime(this.Request.QueryString[CONST_QRYSTR_DELIVERYDATE]).Date;
+            if (this.Request.QueryString[CONST_QRYSTR_NOTES] != null)
+                empty = this.Request.QueryString[CONST_QRYSTR_NOTES].ToString();
+
+            this.Session[SystemConstants.SessionConstants.BoundCustomerID] = num;
+            this.Session[SystemConstants.SessionConstants.BoundDeliveryDate] = date.Date;
+            this.Session[SystemConstants.SessionConstants.BoundNotes] = empty;
+            this.Session[CONST_ORDERHEADERVALUES] = null;
+
+            // Show DetailsView, hide manual controls
+            ShowDetailsViewMode();
+        }
+        private void ProcessSKUParameters()
+        {
+            var orderManager = new TrackerDotNet.Managers.OrderManager();
+            var skuParams = new Dictionary<string, double>();
+
+            // Extract SKU parameters from query string
+            if (this.Request.QueryString[SystemConstants.UrlParameterConstants.SKU1] != null)
+            {
+                if (double.TryParse(this.Request.QueryString[SystemConstants.UrlParameterConstants.SKU1], out double qty))
+                    skuParams["SKU1"] = qty;
+            }
+
+            // Add more SKU parameters as needed...
+
+            if (skuParams.Any())
+            {
+                long customerId = (long)this.Session[SystemConstants.SessionConstants.BoundCustomerID];
+                DateTime deliveryDate = (DateTime)this.Session[SystemConstants.SessionConstants.BoundDeliveryDate];
+                string notes = (string)this.Session[SystemConstants.SessionConstants.BoundNotes];
+
+                string result = orderManager.ProcessSKUParameters(skuParams, customerId, deliveryDate, notes);
+
+                if (!string.IsNullOrEmpty(result))
+                {
+                    // Error occurred
+                    this.ltrlStatus.Text = $"SKU Processing Error: {result}";
+                }
+            }
+        }
+        private void HandleSpecialQueryStringActions()
+        {
+            // Handle Invoiced parameter
+            if (this.Request.QueryString[CONST_QRYSTR_INVOICED] != null &&
+                this.Request.QueryString[CONST_QRYSTR_INVOICED].Equals("Y"))
+            {
+                this.MarkItemAsInvoiced();
+                return;
+            }
+
+            // Handle Delivered parameter
+            if (this.Request.QueryString[CONST_QRYSTR_DELIVERED] != null &&
+                this.Request.QueryString[CONST_QRYSTR_DELIVERED].Equals("Y"))
+            {
+                this.btnOrderDelivered_Click(this, EventArgs.Empty);
+                return;
+            }
+
+            // Handle LastOrder parameter - COMPLETELY REWRITTEN
+            if (IsNewOrderMode && this.Request.QueryString[SystemConstants.UrlParameterConstants.LastOrder] != null &&
+                this.Request.QueryString[SystemConstants.UrlParameterConstants.LastOrder] == "Y")
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "HandleSpecialQueryStringActions: Processing LastOrder request");
+
+                // Get customer ID from query string
+                long customerId = 0;
+                if (this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID] != null)
+                {
+                    if (long.TryParse(this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID], out customerId) && customerId > 0)
+                    {
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"HandleSpecialQueryStringActions: Customer ID from query string: {customerId}");
+
+                        // Set customer in session FIRST
+                        this.Session[SystemConstants.SessionConstants.BoundCustomerID] = customerId;
+
+                        // Set customer in ComboBox if possible
+                        if (cboManualContacts != null && cboManualContacts.Items.FindByValue(customerId.ToString()) != null)
+                        {
+                            cboManualContacts.SelectedValue = customerId.ToString();
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"HandleSpecialQueryStringActions: Set ComboBox to customer {customerId}");
+
+                            // Enable controls and update dates
+                            SetControlsEnabledState(true);
+                            UpdateDatesForSelectedCustomer(customerId.ToString());
+                            UpdateSessionFromManualControls();
+                        }
+                        else
+                        {
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"HandleSpecialQueryStringActions: Customer {customerId} not found in ComboBox items");
+                        }
+
+                        // Now process the last order
+                        if (ProcessLastOrderRequest(true))
+                        {
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "HandleSpecialQueryStringActions: Last order items added, redirecting");
+                            RedirectToExistingOrderMode();
+                        }
+                        else
+                        {
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "HandleSpecialQueryStringActions: No last order items found");
+                            ltrlStatus.Text = "No previous order found for this customer.";
+                        }
+                    }
+                    else
+                    {
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"HandleSpecialQueryStringActions: Invalid customer ID: {this.Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID]}");
+                        ltrlStatus.Text = "Invalid customer ID provided.";
+                    }
+                }
+                else
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "HandleSpecialQueryStringActions: No customer ID provided in query string");
+                    ltrlStatus.Text = "No customer ID provided.";
+                }
+            }
+
+            // Handle SKU parameters
+            if (IsNewOrderMode && this.Request.QueryString[SystemConstants.UrlParameterConstants.SKU1] != null)
+            {
+                ProcessSKUParameters();
+            }
+        }
         private string GetOrderHeaderRequiredByDateStr()
         {
             string empty = string.Empty;
@@ -118,18 +1144,152 @@ namespace TrackerDotNet.Pages
 
         private string GetOrderHeaderNotes()
         {
-            string empty = string.Empty;
-            return this.dvOrderHeader.CurrentMode != DetailsViewMode.Edit ? this.dvOrderHeaderGetLabelValue("lblNotes") : this.dvOrderHeaderGetTextBoxValue("tbxNotes");
+            if (IsNewOrderMode)
+            {
+                return tbxManualNotes?.Text ?? string.Empty;
+            }
+            else
+            {
+                return this.dvOrderHeader.CurrentMode != DetailsViewMode.Edit ?
+                       this.dvOrderHeaderGetLabelValue("lblNotes") :
+                       this.dvOrderHeaderGetTextBoxValue("tbxNotes");
+            }
         }
+        /// <summary>
+        /// Handles the Last Order button click - loads items from customer's last order
+        /// </summary>
+        protected void btnLastOrder_Click(object sender, EventArgs e)
+        {
+            if (cboManualContacts?.SelectedValue == null || cboManualContacts.SelectedValue == "0")
+            {
+                ltrlStatus.Text = "Please select a customer first.";
+                return;
+            }
 
+            try
+            {
+                long customerId = Convert.ToInt64(cboManualContacts.SelectedValue);
+
+                // ENSURE session is updated BEFORE processing
+                UpdateSessionFromManualControls();
+                this.Session[SystemConstants.SessionConstants.BoundCustomerID] = customerId;
+
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"btnLastOrder_Click: Starting for customer {customerId}");
+
+                // GET the last order items (changed to false as requested)
+                var orderManager = new TrackerDotNet.Managers.OrderManager();
+                List<OrderManager.OrderLineData> lastOrderItems = orderManager.GetLastOrderItems(customerId, false);
+
+                if (lastOrderItems.Count > 0)
+                {
+                    // Add each item to the actual order
+                    int itemsAddedCount = 0;
+                    foreach (var orderLine in lastOrderItems)
+                    {
+                        // Create the order header data
+                        OrderHeaderData headerData = this.Get_dvOrderHeaderData(false);
+
+                        // Create the order data
+                        OrderTblData orderData = new OrderTblData
+                        {
+                            CustomerID = customerId,
+                            OrderDate = headerData.OrderDate,
+                            RoastDate = headerData.RoastDate,
+                            RequiredByDate = headerData.RequiredByDate,
+                            ToBeDeliveredBy = headerData.ToBeDeliveredBy,
+                            PurchaseOrder = headerData.PurchaseOrder,
+                            Confirmed = headerData.Confirmed,
+                            InvoiceDone = headerData.InvoiceDone,
+                            Done = headerData.Done,
+                            Notes = headerData.Notes,
+                            ItemTypeID = orderLine.ItemID,
+                            QuantityOrdered = orderLine.Qty,
+                            PackagingID = orderLine.PackagingID
+                        };
+
+                        // Add the order line
+                        string result = orderManager.AddOrderLine(headerData, orderData);
+                        if (string.IsNullOrEmpty(result))
+                        {
+                            itemsAddedCount++;
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Successfully added item: {orderLine.ItemName} (ID: {orderLine.ItemID})");
+                        }
+                        else
+                        {
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Error adding item {orderLine.ItemName}: {result}");
+                        }
+                    }
+
+                    if (itemsAddedCount > 0)
+                    {
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Added {itemsAddedCount} items to database, now redirecting");
+
+                        // Build redirect URL with CURRENT session values
+                        var currentCustomerId = (long)this.Session[SystemConstants.SessionConstants.BoundCustomerID];
+                        var currentDeliveryDate = (DateTime)this.Session[SystemConstants.SessionConstants.BoundDeliveryDate];
+                        var currentNotes = (string)this.Session[SystemConstants.SessionConstants.BoundNotes] ?? string.Empty;
+
+                        string redirectUrl = $"OrderDetail.aspx?{CONST_QRYSTR_CustomerID}={currentCustomerId}&{CONST_QRYSTR_DELIVERYDATE}={currentDeliveryDate:yyyy-MM-dd}&{CONST_QRYSTR_NOTES}={HttpUtility.UrlEncode(currentNotes)}";
+
+                        //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Redirecting to: {redirectUrl}");
+
+                        // Use Response.Redirect with explicit end
+                        Response.Redirect(redirectUrl, true); // Changed to true to end execution
+                    }
+                    else
+                    {
+                        ltrlStatus.Text = "Error adding last order items.";
+                        upnlNewOrderSummary.Update();
+                    }
+                }
+                else
+                {
+                    ltrlStatus.Text = "No previous order found for this customer.";
+                    upnlNewOrderSummary.Update();
+                }
+            }
+            catch (System.Threading.ThreadAbortException)
+            {
+                // ThreadAbortException is expected when using Response.Redirect with endResponse=true
+                // This is normal behavior and should not be logged as an error
+                return;
+            }
+            catch (Exception ex)
+            {
+                ltrlStatus.Text = $"Error loading last order: {ex.Message}";
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"btnLastOrder_Click error: {ex}");
+                upnlNewOrderSummary.Update();
+            }
+        }
+        /// <summary>
+        /// Builds the URL for redirecting to existing order mode
+        /// </summary>
+        private string BuildExistingOrderUrl()
+        {
+            var customerId = (long)this.Session[SystemConstants.SessionConstants.BoundCustomerID];
+            var deliveryDate = (DateTime)this.Session[SystemConstants.SessionConstants.BoundDeliveryDate];
+            var notes = (string)this.Session[SystemConstants.SessionConstants.BoundNotes] ?? string.Empty;
+
+            return $"OrderDetail.aspx?{CONST_QRYSTR_CustomerID}={customerId}&{CONST_QRYSTR_DELIVERYDATE}={deliveryDate:yyyy-MM-dd}&{CONST_QRYSTR_NOTES}={HttpUtility.UrlEncode(notes)}";
+        }
+        protected void btnNewOrder_Click(object sender, EventArgs e)
+        {
+            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "New Order button clicked - clearing session and redirecting");
+
+            // Clear all order session data
+            ClearOrderSession();
+
+            // Redirect to clean new order page
+            Response.Redirect("OrderDetail.aspx?NewOrder=true", true);
+        }
         private void BindRowQueryParameters()
         {
             string controlSelectedValue = this.dvOrderHeaderGetCBoControlSelectedValue(CONST_ORDERHEADER_CONTACT_ID);
-            this.Session["BoundCustomerID"] = (object)Convert.ToInt32(controlSelectedValue);
+            this.Session[SystemConstants.SessionConstants.BoundCustomerID] = (object)Convert.ToInt32(controlSelectedValue);
             DateTime date = Convert.ToDateTime(this.GetOrderHeaderRequiredByDateStr()).Date;
-            this.Session["BoundDeliveryDate"] = (object)date.Date;
+            this.Session[SystemConstants.SessionConstants.BoundDeliveryDate] = (object)date.Date;
             string orderHeaderNotes = this.GetOrderHeaderNotes();
-            this.Session["BoundNotes"] = (object)orderHeaderNotes;
+            this.Session[SystemConstants.SessionConstants.BoundNotes] = (object)orderHeaderNotes;
             UriBuilder uriBuilder = new UriBuilder(this.Request.Url);
             NameValueCollection queryString = HttpUtility.ParseQueryString(uriBuilder.Query);
             queryString.Set("CustomerID", controlSelectedValue);
@@ -189,99 +1349,230 @@ namespace TrackerDotNet.Pages
             CheckBox control = (CheckBox)this.dvOrderHeader.FindControl(pCheckBoxControlName);
             return control != null && control.Checked;
         }
+        /// <summary>
+        /// Centralized method to handle note changes and validate button states.
+        /// This ensures both manual and DetailsView note textboxes trigger the same validation.
+        /// </summary>
+        private void HandleNotesChanged(string notesText)
+        {
+            //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"HandleNotesChanged called with notes length: {notesText?.Length ?? 0}");
 
+            // Update session in New Order mode
+            if (IsNewOrderMode)
+            {
+                UpdateSessionFromManualControls();
+            }
+
+            // Validate button states - this is the key part that checks ZZName + empty notes
+            UpdateNewItemButtonStateWithRoleCheck();
+
+            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "HandleNotesChanged completed");
+        }
         private OrderHeaderData Get_dvOrderHeaderData(bool pInEditMode)
         {
             OrderHeaderData dvOrderHeaderData = new OrderHeaderData();
-            dvOrderHeaderData.CustomerID = Convert.ToInt32(this.dvOrderHeaderGetCBoControlSelectedValue(CONST_ORDERHEADER_CONTACT_ID));
-            dvOrderHeaderData.ToBeDeliveredBy = Convert.ToInt32(this.dvOrderHeaderGetDDLControlSelectedValue("ddlToBeDeliveredBy"));
-            dvOrderHeaderData.Confirmed = this.dvOrderHeaderGetCheckBoxValue("cbxConfirmed");
-            dvOrderHeaderData.Done = this.dvOrderHeaderGetCheckBoxValue("cbxDone");
-            string empty1 = string.Empty;
-            string empty2 = string.Empty;
-            string empty3 = string.Empty;
-            string str1;
-            string str2;
-            string str3;
-            if (pInEditMode)
+
+            if (IsNewOrderMode)
             {
-                str1 = this.dvOrderHeaderGetTextBoxValue("tbxOrderDate");
-                str2 = this.dvOrderHeaderGetTextBoxValue("tbxRoastDate");
-                str3 = this.dvOrderHeaderGetTextBoxValue("tbxRequiredByDate");
-                dvOrderHeaderData.Notes = this.dvOrderHeaderGetTextBoxValue("tbxNotes");
+                // SAFER CONVERSION: Get data from manual controls in New Order mode
+                string customerIdValue = cboManualContacts?.SelectedValue ?? "0";
+                if (string.IsNullOrEmpty(customerIdValue))
+                    customerIdValue = "0";
+                dvOrderHeaderData.CustomerID = int.TryParse(customerIdValue, out int custId) ? custId : 0;
+
+                string deliveryByValue = ddlManualToBeDeliveredBy?.SelectedValue ?? "0";
+                if (string.IsNullOrEmpty(deliveryByValue))
+                    deliveryByValue = "0";
+                dvOrderHeaderData.ToBeDeliveredBy = int.TryParse(deliveryByValue, out int delBy) ? delBy : 0;
+
+                dvOrderHeaderData.Confirmed = cbxManualConfirmed?.Checked ?? false;
+                dvOrderHeaderData.Done = cbxManualDone?.Checked ?? false;
+                dvOrderHeaderData.InvoiceDone = cbxManualInvoiceDone?.Checked ?? false;
+                dvOrderHeaderData.PurchaseOrder = tbxManualPurchaseOrder?.Text ?? string.Empty;
+                dvOrderHeaderData.Notes = tbxManualNotes?.Text ?? string.Empty;
+
+                // Parse date fields safely
+                if (DateTime.TryParse(tbxManualOrderDate?.Text, out DateTime orderDate))
+                    dvOrderHeaderData.OrderDate = orderDate.Date;
+                else
+                    dvOrderHeaderData.OrderDate = DateTime.MinValue;
+
+                if (DateTime.TryParse(tbxManualRoastDate?.Text, out DateTime roastDate))
+                    dvOrderHeaderData.RoastDate = roastDate.Date;
+                else
+                    dvOrderHeaderData.RoastDate = DateTime.MinValue;
+
+                if (DateTime.TryParse(tbxManualRequiredByDate?.Text, out DateTime requiredByDate))
+                    dvOrderHeaderData.RequiredByDate = requiredByDate.Date;
+                else
+                    dvOrderHeaderData.RequiredByDate = DateTime.MinValue;
+
+                // Log the values for debugging
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Get_dvOrderHeaderData: CustomerID={dvOrderHeaderData.CustomerID}, ToBeDeliveredBy={dvOrderHeaderData.ToBeDeliveredBy}");
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Get_dvOrderHeaderData: OrderDate={dvOrderHeaderData.OrderDate:yyyy-MM-dd}, RoastDate={dvOrderHeaderData.RoastDate:yyyy-MM-dd}, RequiredByDate={dvOrderHeaderData.RequiredByDate:yyyy-MM-dd}");
             }
             else
             {
-                str3 = this.dvOrderHeaderGetLabelValue("lblRequiredByDate");
-                str1 = this.dvOrderHeaderGetLabelValue("lblOrderDate");
-                str2 = this.dvOrderHeaderGetLabelValue("lblRoastDate");
-                dvOrderHeaderData.Notes = this.dvOrderHeaderGetLabelValue("lblNotes");
+                // Original DetailsView logic for existing orders
+                string customerIdValue = this.dvOrderHeaderGetCBoControlSelectedValue(CONST_ORDERHEADER_CONTACT_ID) ?? "0";
+                dvOrderHeaderData.CustomerID = int.TryParse(customerIdValue, out int custId) ? custId : 0;
+
+                string deliveryByValue = this.dvOrderHeaderGetDDLControlSelectedValue("ddlToBeDeliveredBy") ?? "0";
+                dvOrderHeaderData.ToBeDeliveredBy = int.TryParse(deliveryByValue, out int delBy) ? delBy : 0;
+
+                dvOrderHeaderData.Confirmed = this.dvOrderHeaderGetCheckBoxValue("cbxConfirmed");
+                dvOrderHeaderData.Done = this.dvOrderHeaderGetCheckBoxValue("cbxDone");
+                dvOrderHeaderData.InvoiceDone = this.dvOrderHeaderGetCheckBoxValue("cbxInvoiceDone");
+                dvOrderHeaderData.PurchaseOrder = string.Empty; // Not available in current structure
+
+                string str1, str2, str3;
+                if (pInEditMode)
+                {
+                    str1 = this.dvOrderHeaderGetTextBoxValue("tbxOrderDate");
+                    str2 = this.dvOrderHeaderGetTextBoxValue("tbxRoastDate");
+                    str3 = this.dvOrderHeaderGetTextBoxValue("tbxRequiredByDate");
+                    dvOrderHeaderData.Notes = this.dvOrderHeaderGetTextBoxValue("tbxNotes");
+                }
+                else
+                {
+                    str3 = this.dvOrderHeaderGetLabelValue("lblRequiredByDate");
+                    str1 = this.dvOrderHeaderGetLabelValue("lblOrderDate");
+                    str2 = this.dvOrderHeaderGetLabelValue("lblRoastDate");
+                    dvOrderHeaderData.Notes = this.dvOrderHeaderGetLabelValue("lblNotes");
+                }
+
+                dvOrderHeaderData.RequiredByDate = string.IsNullOrEmpty(str3) ? DateTime.MinValue : Convert.ToDateTime(str3).Date;
+                dvOrderHeaderData.OrderDate = string.IsNullOrEmpty(str1) ? DateTime.MinValue : Convert.ToDateTime(str1).Date;
+                dvOrderHeaderData.RoastDate = string.IsNullOrEmpty(str2) ? DateTime.MinValue : Convert.ToDateTime(str2).Date;
             }
-            dvOrderHeaderData.RequiredByDate = string.IsNullOrEmpty(str3) ? DateTime.MinValue : Convert.ToDateTime(str3).Date;
-            dvOrderHeaderData.OrderDate = string.IsNullOrEmpty(str1) ? DateTime.MinValue : Convert.ToDateTime(str1).Date;
-            dvOrderHeaderData.RoastDate = string.IsNullOrEmpty(str2) ? DateTime.MinValue : Convert.ToDateTime(str2).Date;
+
             return dvOrderHeaderData;
         }
         protected void btnAdd_Click(object sender, EventArgs e)
         {
-            OrderHeaderData headerData = this.Get_dvOrderHeaderData(false);
-            OrderTblData orderData = new OrderTblData
+            try
             {
-                CustomerID = headerData.CustomerID,
-                OrderDate = headerData.OrderDate,
-                RoastDate = headerData.RoastDate,
-                RequiredByDate = headerData.RequiredByDate,
-                ToBeDeliveredBy = Convert.ToInt32(headerData.ToBeDeliveredBy),
-                PurchaseOrder = headerData.PurchaseOrder,
-                Confirmed = headerData.Confirmed,
-                InvoiceDone = headerData.InvoiceDone,
-                Done = headerData.Done,
-                Notes = headerData.Notes,
-                ItemTypeID = Convert.ToInt32(this.ddlNewItemDesc.SelectedValue),
-                QuantityOrdered = Convert.ToDouble(this.tbxNewQuantityOrdered.Text),
-                PackagingID = Convert.ToInt32(this.ddlNewPackaging.SelectedValue)
-            };
+                // ENSURE session is updated BEFORE processing
+                UpdateSessionFromManualControls();
 
-            var manager = new TrackerDotNet.Managers.OrderManager();
-            string result = manager.AddOrderLine(headerData, orderData);
+                OrderHeaderData headerData = this.Get_dvOrderHeaderData(false);
 
-            this.ltrlStatus.Text = string.IsNullOrWhiteSpace(result) ? "Item Added" : "Error adding item: " + result;
+                // SAFE CONVERSION: Check for null/empty values before converting
+                if (string.IsNullOrEmpty(this.cboNewItemDesc?.SelectedValue))
+                {
+                    this.ltrlStatus.Text = "Please select an item.";
+                    upnlNewOrderItem.Update();
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(this.tbxNewQuantityOrdered?.Text))
+                {
+                    this.ltrlStatus.Text = "Please enter a quantity.";
+                    upnlNewOrderItem.Update();
+                    return;
+                }
+
+                OrderTblData orderData = new OrderTblData
+                {
+                    CustomerID = headerData.CustomerID,
+                    OrderDate = headerData.OrderDate,
+                    RoastDate = headerData.RoastDate,
+                    RequiredByDate = headerData.RequiredByDate,
+                    ToBeDeliveredBy = Convert.ToInt32(headerData.ToBeDeliveredBy),
+                    PurchaseOrder = headerData.PurchaseOrder,
+                    Confirmed = headerData.Confirmed,
+                    InvoiceDone = headerData.InvoiceDone,
+                    Done = headerData.Done,
+                    Notes = headerData.Notes,
+                    ItemTypeID = Convert.ToInt32(this.cboNewItemDesc.SelectedValue),
+                    QuantityOrdered = Convert.ToDouble(this.tbxNewQuantityOrdered.Text),
+                    PackagingID = string.IsNullOrEmpty(this.cboNewPackaging?.SelectedValue) ? 0 : Convert.ToInt32(this.cboNewPackaging.SelectedValue)
+                };
+
+                var manager = new TrackerDotNet.Managers.OrderManager();
+                string result = manager.AddOrderLine(headerData, orderData);
+
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Item added successfully, redirecting to existing order mode");
+
+                    // Build redirect URL with CURRENT session values  
+                    var currentCustomerId = (long)this.Session[SystemConstants.SessionConstants.BoundCustomerID];
+                    var currentDeliveryDate = (DateTime)this.Session[SystemConstants.SessionConstants.BoundDeliveryDate];
+                    var currentNotes = (string)this.Session[SystemConstants.SessionConstants.BoundNotes] ?? string.Empty;
+
+                    string redirectUrl = $"OrderDetail.aspx?{CONST_QRYSTR_CustomerID}={currentCustomerId}&{CONST_QRYSTR_DELIVERYDATE}={currentDeliveryDate:yyyy-MM-dd}&{CONST_QRYSTR_NOTES}={HttpUtility.UrlEncode(currentNotes)}";
+
+                    Response.Redirect(redirectUrl, true); // Use true to end execution
+                }
+                else
+                {
+                    this.ltrlStatus.Text = "Error adding item: " + result;
+                    upnlNewOrderItem.Update();
+                }
+            }
+            catch (System.Threading.ThreadAbortException)
+            {
+                // ThreadAbortException is expected when using Response.Redirect with endResponse=true
+                // This is normal behavior and should not be logged as an error
+                return;
+            }
+            catch (Exception ex)
+            {
+                this.ltrlStatus.Text = $"Error adding item: {ex.Message}";
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"btnAdd_Click error: {ex}");
+                upnlNewOrderItem.Update();
+            }
+
             this.HideNewOrderItemPanel();
-        }
-        /*
-        protected void btnAdd_Click(object sender, EventArgs e)
+        }        /// <summary>
+                 /// Switches from manual header mode to DetailsView mode after first item is added
+                 /// </summary>
+        private void SwitchToDetailsViewMode()
         {
-            OrderTbl orderTbl = new OrderTbl();
-            OrderHeaderData dvOrderHeaderData = this.Get_dvOrderHeaderData(false);
-            OrderTblData pOrderData = new OrderTblData()
-            {
-                CustomerID = dvOrderHeaderData.CustomerID,
-                OrderDate = dvOrderHeaderData.OrderDate,
-                RoastDate = dvOrderHeaderData.RoastDate,
-                RequiredByDate = dvOrderHeaderData.RequiredByDate,
-                ToBeDeliveredBy = Convert.ToInt32(dvOrderHeaderData.ToBeDeliveredBy),
-                PurchaseOrder = dvOrderHeaderData.PurchaseOrder,
-                Confirmed = dvOrderHeaderData.Confirmed,
-                InvoiceDone = dvOrderHeaderData.InvoiceDone,
-                Done = dvOrderHeaderData.Done
-            };
-            pOrderData.PurchaseOrder = dvOrderHeaderData.PurchaseOrder;
-            pOrderData.Notes = dvOrderHeaderData.Notes;
-            TrackerTools trackerTools = new TrackerTools();
-            pOrderData.ItemTypeID = Convert.ToInt32(this.ddlNewItemDesc.SelectedValue);
-            pOrderData.ItemTypeID = trackerTools.ChangeItemIfGroupToNextItemInGroup(pOrderData.CustomerID, pOrderData.ItemTypeID, pOrderData.RequiredByDate);
-            pOrderData.QuantityOrdered = Convert.ToDouble(this.tbxNewQuantityOrdered.Text);
-            pOrderData.PackagingID = Convert.ToInt32(this.ddlNewPackaging.SelectedValue);
-            string str = orderTbl.InsertNewOrderLine(pOrderData);
-            this.ltrlStatus.Text = string.IsNullOrWhiteSpace(str) ? "Item Added" : "Error adding item: " + str;
-            this.HideNewOrderItemPanel();
+            // Update session from manual controls one final time
+            UpdateSessionFromManualControls();
+
+            // Switch mode
+            IsNewOrderMode = false;
+
+            // Show DetailsView mode
+            ShowDetailsViewMode();
+
+            // Force refresh of DetailsView with current session data
+            dvOrderHeader.DataBind();
+            pnlOrderHeader.Update();
+
+            // Update the URL to reflect existing order mode
+            UpdateUrlToExistingOrderMode();
+
+            // Log the transition
+            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Switched from manual mode to DetailsView mode after adding first item");
         }
-        */
+        /// <summary>
+        /// Updates the browser URL to reflect existing order mode - only for AJAX scenarios
+        /// </summary>
+        private void UpdateUrlToExistingOrderMode()
+        {
+            // DON'T update URL during redirect - the redirect itself updates the URL
+            // This method should only be used for AJAX UpdatePanel scenarios
+
+            var customerId = (long)this.Session[SystemConstants.SessionConstants.BoundCustomerID];
+            var deliveryDate = (DateTime)this.Session[SystemConstants.SessionConstants.BoundDeliveryDate];
+            var notes = (string)this.Session[SystemConstants.SessionConstants.BoundNotes];
+
+            string newUrl = $"OrderDetail.aspx?{CONST_QRYSTR_CustomerID}={customerId}&{CONST_QRYSTR_DELIVERYDATE}={deliveryDate:yyyy-MM-dd}&{CONST_QRYSTR_NOTES}={HttpUtility.UrlEncode(notes)}";
+
+            // Only update URL via JavaScript if we're NOT redirecting
+            if (!Response.IsRequestBeingRedirected)
+            {
+                string script = $"ChangeUrl('Order Detail', '{newUrl}')";
+                ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), "SwitchMode", script, true);
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Updated browser URL via JavaScript: {newUrl}");
+            }
+        }
         protected void btnCancel_Click(object sender, EventArgs e) => this.HideNewOrderItemPanel();
 
-        protected void Page_Unload(object sender, EventArgs e)
-        {
-        }
         protected void gvOrderLines_OnItemDelete(object sender, EventArgs e)
         {
             string pDataValue = ((CommandEventArgs)e).CommandArgument.ToString();
@@ -289,41 +1580,27 @@ namespace TrackerDotNet.Pages
             string result = manager.DeleteOrderItem(Convert.ToInt32(pDataValue));
             this.ltrlStatus.Text = string.IsNullOrEmpty(result) ? "Item Deleted" : "Error deleting item: " + result;
         }
-        /*
-         
-        protected void gvOrderLines_OnItemDelete(object sender, EventArgs e)
-        {
-            string pDataValue = ((CommandEventArgs)e).CommandArgument.ToString();
-            string strSQL = "DELETE FROM OrdersTbl WHERE (OrderID = ?)";
-            TrackerDb trackerDb = new TrackerDb();
-            trackerDb.AddWhereParams((object)pDataValue, DbType.String, "@OrderID");
-            string str = trackerDb.ExecuteNonQuerySQL(strSQL);
-            trackerDb.Close();
-            this.ltrlStatus.Text = string.IsNullOrEmpty(str) ? "Item Deleted" : "Error deleting item: " + str;
-        }
-        */
+
         protected void gvOrderLines_RowUpdated(object sender, GridViewUpdatedEventArgs e)
         {
-            //string empty = string.Empty;
-            //LogTbl logTbl = new LogTbl();
-            //logTbl.AddToWhatsChanged("ItemTypeID", e.OldValues[(object)"ItemTypeID"].ToString(), e.NewValues[(object)"ItemTypeID"].ToString(), ref empty);
-            //logTbl.AddToWhatsChanged("Qty", e.OldValues[(object)"QuantityOrdered"].ToString(), e.NewValues[(object)"QuantityOrdered"].ToString(), ref empty);
-            //logTbl.AddToWhatsChanged("PackagingID", e.OldValues[(object)"PackagingID"].ToString(), e.NewValues[(object)"PackagingID"].ToString(), ref empty);
-            //logTbl.InsertLogItem(Membership.GetUser().UserName, 1, 2, Convert.ToInt32(this.dvOrderHeaderGetCBoControlSelectedValue("cboContacts")), empty, "Order Detail");
-            this.odsOrderDetail.DataBind();
-            this.gvOrderLines.DataBind();
-            this.upnlOrderLines.Update();
-        }
+            // Exit edit mode first
+            gvOrderLines.EditIndex = -1;
 
+            // Only update the UpdatePanel, don't force DataBind
+            upnlOrderLines.Update();
+
+            // Don't call DataBind() here - it will happen automatically
+            // The ObjectDataSource will refresh the GridView after the update
+        }
         protected virtual void dvOrderHeader_OnModeChanging(object sender, DetailsViewModeEventArgs e)
         {
             if (e.NewMode == DetailsViewMode.Edit)
             {
-                this.Session["OrderHeaderValues"] = (object)this.Get_dvOrderHeaderData(false);
+                this.Session[CONST_ORDERHEADERVALUES] = (object)this.Get_dvOrderHeaderData(false);
             }
             else
             {
-                if (e.NewMode != DetailsViewMode.ReadOnly || this.Session["OrderHeaderValues"] == null)
+                if (e.NewMode != DetailsViewMode.ReadOnly || this.Session[CONST_ORDERHEADERVALUES] == null)
                     return;
                 this.dvOrderHeader.DataBind();
             }
@@ -333,14 +1610,39 @@ namespace TrackerDotNet.Pages
         {
             this.upnlOrderLines.Update();
         }
+        /// <summary>
+        /// Gets an integer value from a control by name, supporting both ComboBox and HiddenField types.
+        /// </summary>
+        /// <param name="row">The GridViewRow to search in</param>
+        /// <param name="comboBoxControlName">The name/ID of the control to find</param>
+        /// <param name="fallbackControlName">Optional fallback control name to try if first control is not found</param>
+        /// <returns>The integer value from the control, or 0 if not found or invalid</returns>
+        private int GetControlSelectedValue(GridViewRow row, string comboBoxControlName, string hidddenControlName)
+        {
+            // Try to find as ComboBox first
+            var comboBox = row.FindControl(comboBoxControlName) as AjaxControlToolkit.ComboBox;
+            if (comboBox != null && !string.IsNullOrEmpty(comboBox.SelectedValue))
+            {
+                if (int.TryParse(comboBox.SelectedValue, out int comboValue))
+                    return comboValue;
+            }
 
+            // Try to find as HiddenField
+            var hiddenField = row.FindControl(hidddenControlName) as HiddenField;
+            if (hiddenField != null && !string.IsNullOrEmpty(hiddenField.Value))
+            {
+                if (int.TryParse(hiddenField.Value, out int hiddenValue))
+                    return hiddenValue;
+            }
+            return SystemConstants.DatabaseConstants.InvalidID; // Default value if control not found or invalid
+        }
         protected virtual void dvOrderHeader_OnDataBound(object sender, EventArgs e)
         {
             if (this.dvOrderHeader.CurrentMode == DetailsViewMode.ReadOnly)
             {
-                if (this.Session["OrderHeaderValues"] != null)
+                if (this.Session[CONST_ORDERHEADERVALUES] != null)
                 {
-                    OrderHeaderData orderHeaderData = (OrderHeaderData)this.Session["OrderHeaderValues"];
+                    OrderHeaderData orderHeaderData = (OrderHeaderData)this.Session[CONST_ORDERHEADERVALUES];
                     if (!this.GetOrderHeaderRequiredByDateStr().Equals(string.Empty))
                     {
                         DateTime date = Convert.ToDateTime(this.GetOrderHeaderRequiredByDateStr()).Date;
@@ -349,36 +1651,17 @@ namespace TrackerDotNet.Pages
                             UsedItemGroupTbl usedItemGroupTbl = new UsedItemGroupTbl();
                             foreach (GridViewRow row in this.gvOrderLines.Rows)
                             {
-                                var cbox = row.FindControl(CONST_ORDERLINE_ITEM_COMBOBOX_ID) as AjaxControlToolkit.ComboBox;
-                                if (cbox != null)
+                                int itemTypeId = GetControlSelectedValue(row, CONST_ORDERLINE_ITEM_COMBOBOX_ID, CONST_ORDERLINE_HIDDENFIELD_ITEM_ID);
+                                if (itemTypeId != 0)
                                 {
-                                    usedItemGroupTbl.UpdateIfGroupItem(orderHeaderData.CustomerID, Convert.ToInt32(cbox.SelectedValue), orderHeaderData.RequiredByDate, date);
+                                    usedItemGroupTbl.UpdateIfGroupItem(orderHeaderData.CustomerID, itemTypeId, orderHeaderData.RequiredByDate, date);
                                 }
-                                else
-                                {
-                                    // Display mode: get from DataItem
-                                    var hndItemId = row.FindControl("hdnItemTypeID") as HiddenField;
-                                    if (hndItemId != null)
-                                    {
-                                        // Use reflection or strongly-typed access depending on your data source
-                                        int itemTypeId = 0;
-                                        var prop = Convert.ToInt32(hndItemId.Value);
-                                        if (prop != 0)
-                                        {
-                                            usedItemGroupTbl.UpdateIfGroupItem(orderHeaderData.CustomerID, itemTypeId, orderHeaderData.RequiredByDate, date);
-                                        }
-                                        // if zero there is an issue
-                                    }
-                                }
-
-                                //var control = (ComboBox)row.FindControl(CONST_ORDERLINE_ITEM_COMBOBOX_ID);
-                                //usedItemGroupTbl.UpdateIfGroupItem(orderHeaderData.CustomerID, Convert.ToInt32(control.SelectedValue), orderHeaderData.RequiredByDate, date);
                             }
                         }
                     }
                 }
                 Label control1 = (Label)this.dvOrderHeader.FindControl("lblPurchaseOrder");
-                if (control1 != null && control1.Text.Equals("!!!PO required!!!"))
+                if (control1 != null && control1.Text.Equals(SystemConstants.UIConstants.PORequiredText))
                 {
                     control1.BackColor = Color.Red;
                     control1.ForeColor = Color.White;
@@ -393,40 +1676,43 @@ namespace TrackerDotNet.Pages
         public void DeleteOrderItem(string pOrderID)
         {
             string str = new OrderTbl().DeleteOrderById(Convert.ToInt32(pOrderID));
-            this.ltrlStatus.Text = str.Length == 0 ? "Item deleted" : str;
-        }
-
-        private string UnDoneOrderItem(string pOrderID)
-        {
-            return new OrderTbl().UpdateSetDoneByID(false, Convert.ToInt32(pOrderID));
+            var statusStr = str.Length == 0 ? "Item deleted" : str;
+            this.ltrlStatus.Text = statusStr;
+            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Ordered Item deleted status: {statusStr}");
         }
 
         protected void btnCancelled_Click(object sender, EventArgs e)
         {
-            if (!(Membership.GetUser().UserName.ToLower() == "warren"))
+            if (!(Membership.GetUser().UserName.ToLower() == SystemConstants.UserConstants.AdminUserName))
                 return;
             foreach (TableRow row in this.gvOrderLines.Rows)
-                this.DeleteOrderItem(((Label)row.Cells[4].FindControl("lblOrderID")).Text);
+                this.DeleteOrderItem(((HiddenField)row.Cells[4].FindControl(CONST_ORDERLINE_HIDDENFIELD_ORDER_ID)).Value);
             this.Response.Redirect("DeliverySheet.aspx");
         }
-
+        public string GetPackagingDesc(int pPackagingID)
+        {
+            return pPackagingID > 0 ? new PackagingTbl().GetPackagingDesc(pPackagingID) : string.Empty;
+        }
         private ContactEmailDetails GetEmailAddressFromNote()
         {
-            ContactEmailDetails emailAddressFromNote = (ContactEmailDetails)null;
+            var orderManager = new TrackerDotNet.Managers.OrderManager();
             string labelValue = this.dvOrderHeaderGetLabelValue("lblNotes");
-            int num = labelValue.IndexOf("[#");
-            if (num >= 0)
+            string emailAddress = orderManager.ExtractEmailFromNotes(labelValue);
+
+            if (!string.IsNullOrEmpty(emailAddress))
             {
-                emailAddressFromNote = new ContactEmailDetails();
-                emailAddressFromNote.EmailAddress = labelValue.Substring(num + 2, labelValue.IndexOf("#]") - num - 2);
+                return new ContactEmailDetails { EmailAddress = emailAddress };
             }
-            return emailAddressFromNote;
+
+            return null;
         }
 
         private ContactEmailDetails GetEmailDetails(string pContactsID)
         {
             ContactEmailDetails contactEmailDetails = new ContactEmailDetails();
-            return !pContactsID.Equals("9") ? contactEmailDetails.GetContactsEmailDetails(Convert.ToInt32(pContactsID)) : this.GetEmailAddressFromNote();
+            return !pContactsID.Equals(SystemConstants.CustomerConstants.SundryCustomerIDStr) ?
+                contactEmailDetails.GetContactsEmailDetails(Convert.ToInt32(pContactsID)) :
+                this.GetEmailAddressFromNote();
         }
 
         private string AddUnitsToQty(string pItemTypeID, string pQty)
@@ -454,10 +1740,10 @@ namespace TrackerDotNet.Pages
                 ? details.EmailAddress
                 : details.altEmailAddress;
         }
-        private static (string ItemId, string ItemName) GetItemIdAndNameFromRow(GridViewRow row)
+        private static (string controlId, string controlDesc) GetControlIdAndDescFromRow(GridViewRow row, string comboBoxName, string labelName, string hiddenFieldName)
         {
             // Try to get the ComboBox first (edit mode)
-            var itemControl = row.FindControl(CONST_ORDERLINE_ITEM_COMBOBOX_ID) as AjaxControlToolkit.ComboBox;
+            var itemControl = row.FindControl(comboBoxName) as AjaxControlToolkit.ComboBox;
             if (itemControl != null && itemControl.SelectedValue != null)
             {
                 string itemId = itemControl.SelectedValue;
@@ -466,8 +1752,8 @@ namespace TrackerDotNet.Pages
             }
 
             // Fallback: try to get the hidden field and label (display mode)
-            var hndItemId = row.FindControl("hdnItemTypeID") as HiddenField;
-            var lblItemDesc = row.FindControl("lblItemDesc") as Label;
+            var hndItemId = row.FindControl(hiddenFieldName) as HiddenField;
+            var lblItemDesc = row.FindControl(labelName) as Label;
             if (hndItemId != null && !string.IsNullOrEmpty(hndItemId.Value))
             {
                 string itemId = hndItemId.Value;
@@ -478,17 +1764,17 @@ namespace TrackerDotNet.Pages
             // Not found
             return (string.Empty, string.Empty);
         }
-        private void AppendOrderItemsToEmailBody(EmailMailKitCls email)
+        /*
+         private void AppendOrderItemsToEmailBody(EmailMailKitCls email)
         {
             email.AddToBody("<ul>");
 
             foreach (GridViewRow row in gvOrderLines.Rows)
             {
-                var (itemId, itemName) = GetItemIdAndNameFromRow(row);
+                var (itemId, itemDesc) = GetControlIdAndDescFromRow(row, CONST_ORDERLINE_ITEM_COMBOBOX_ID, CONST_ORDERLINE_HIDDENFIELD_ITEM_LABEL, CONST_ORDERLINE_HIDDENFIELD_ITEM_ID);
                 var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
-                var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
+                var (packagingId, packagingDesc) = GetControlIdAndDescFromRow(row, CONST_ORDERLINE_PACKAGING_COMBOBOX_ID, CONST_ORDERLINE_HIDDENFIELD_PACKAGING_LABEL, CONST_ORDERLINE_HIDDENFIELD_PACKAGING_ID); ;
 
-                //string itemId = itemControl.SelectedValue;
                 string qty = AddUnitsToQty(itemId, qtyLbl.Text);
 
                 if (GetItemSortOrderID(itemId) == 10)
@@ -498,96 +1784,61 @@ namespace TrackerDotNet.Pages
                 }
                 else
                 {
-                    if (packagingDDL.SelectedIndex == 0)
-                        email.AddFormatToBody(MessageProvider.Get("OrderItemFormatBasic"), qty, itemName);
+                    if (packagingId.Equals("0"))
+                        email.AddFormatToBody(MessageProvider.Get("OrderItemFormatBasic"), qty, itemDesc);
                     else
-                        email.AddFormatToBody(MessageProvider.Get("OrderItemFormatWithPrep"), qty, itemName, packagingDDL.SelectedItem.Text);
+                        email.AddFormatToBody(MessageProvider.Get("OrderItemFormatWithPrep"), qty, itemDesc, packagingDesc);
                 }
             }
 
             email.AddToBody("</ul>");
         }
-
-        private void AppendOrderDetails(EmailMailKitCls email)
-        {
-            string poRef = dvOrderHeaderGetLabelValue("lblPurchaseOrder");
-            if (!string.IsNullOrWhiteSpace(poRef))
-            {
-                string poMsg = poRef.EndsWith("!!!PO required!!!")
-                    ? MessageProvider.Get("OrderConfirmationPORequired")
-                    : MessageProvider.Format("OrderConfirmationPOReceived", poRef);
-                email.AddStrAndNewLineToBody(poMsg);
-            }
-
-            var deliveryDDL = (DropDownList)this.dvOrderHeader.FindControl("ddlToBeDeliveredBy");
-            string deliveryDate = dvOrderHeaderGetLabelValue("lblRequiredByDate");
-            string deliveryOption = deliveryDDL.SelectedItem.Text;
-
-            string deliveryMsg = "";
-
-            if (deliveryOption == "Cllct")
-                deliveryMsg = MessageProvider.Format("OrderCollectionNote", deliveryDate);
-            else if (deliveryOption == "Cour")
-                deliveryMsg = MessageProvider.Format("OrderCourierNote", deliveryDate);
-            else
-                deliveryMsg = MessageProvider.Format("OrderDeliveryNote", deliveryDate);
-
-            email.AddStrAndNewLineToBody(deliveryMsg);
-        }
-
-        private string GetSenderInfo()
-        {
-            MembershipUser user = Membership.GetUser();
-            return string.IsNullOrWhiteSpace(user?.UserName)
-                ? "The Quaffee Team"
-                : $"The Quaffee Team ({UpCaseFirstLetter(user.UserName)})";
-        }
+        */
         protected void btnConfirmOrder_Click(object sender, EventArgs e)
         {
-            // Gather data from UI
-            // Get ContactEmailDetails from the selected contact in the DetailsView
-            var contactID = dvOrderHeaderGetCBoControlSelectedValue(CONST_ORDERHEADER_CONTACT_ID);
-            ContactEmailDetails contact = GetEmailDetails(contactID);
+            // FIXED: Get ContactEmailDetails based on current mode
+            string contactID;
+            if (IsNewOrderMode)
+            {
+                contactID = cboManualContacts?.SelectedValue ?? "0";
+            }
+            else
+            {
+                contactID = dvOrderHeaderGetCBoControlSelectedValue(CONST_ORDERHEADER_CONTACT_ID);
+            }
 
-            // Get OrderHeaderData using your existing helper
+            ContactEmailDetails contact = GetEmailDetails(contactID);
             OrderHeaderData header = this.Get_dvOrderHeaderData(false);
 
-            // Build List<OrderLineData> from the GridView
+            // Rest of method stays the same...
             var orderLines = new List<TrackerDotNet.Managers.OrderLineData>();
             foreach (GridViewRow row in this.gvOrderLines.Rows)
             {
-                var (itemId, itemName) = GetItemIdAndNameFromRow(row);
+                var (itemId, itemDesc) = GetControlIdAndDescFromRow(row, CONST_ORDERLINE_ITEM_COMBOBOX_ID, CONST_ORDERLINE_HIDDENFIELD_ITEM_LABEL, CONST_ORDERLINE_HIDDENFIELD_ITEM_ID);
                 var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
-                var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
+                var (packagingIdStr, packagingDesc) = GetControlIdAndDescFromRow(row, CONST_ORDERLINE_PACKAGING_COMBOBOX_ID, CONST_ORDERLINE_HIDDENFIELD_PACKAGING_LABEL, CONST_ORDERLINE_HIDDENFIELD_PACKAGING_ID);
+                int packagingId = Convert.ToInt32(packagingIdStr);
 
                 var line = new TrackerDotNet.Managers.OrderLineData
                 {
                     ItemID = Convert.ToInt32(itemId),
-                    ItemName = itemName,
+                    ItemName = itemDesc,
                     Qty = Convert.ToDouble(qtyLbl.Text),
-                    PackagingID = packagingDDL.SelectedIndex > 0 ? Convert.ToInt32(packagingDDL.SelectedValue) : 0,
-                    PackagingName = packagingDDL.SelectedIndex > 0 ? packagingDDL.SelectedItem.Text : string.Empty
+                    PackagingID = packagingId > 0 ? packagingId : 0,
+                    PackagingName = packagingId > 0 ? packagingDesc : string.Empty
                 };
                 orderLines.Add(line);
             }
 
-            // Get notes from the order header
             string notes = this.GetOrderHeaderNotes();
-
             var emailManager = new TrackerDotNet.Managers.OrderDetailManager();
             string statusMsg;
             bool success = emailManager.SendOrderConfirmation(contact, header, orderLines, notes, out statusMsg);
-
+            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Order confirmation sent, status: {statusMsg}");
             ltrlStatus.Text = statusMsg;
-            // Show message box, update UI, etc.
             new showMessageBox(this.Page, "Order Confirmation", statusMsg);
             upnlNewOrderItem.Update();
         }
-
-        protected void OnDataBinding_ddlToBeDeliveredBy(object sender, EventArgs e)
-        {
-        }
-
         public string GetToBeDeliveredBy(object pToBeDeliveredBy)
         {
             return pToBeDeliveredBy != null ? pToBeDeliveredBy.ToString() : "0";
@@ -620,18 +1871,12 @@ namespace TrackerDotNet.Pages
         {
             var manager = new TrackerDotNet.Managers.OrderManager();
             manager.MarkItemAsInvoiced(
-                (long)this.Session["BoundCustomerID"],
-                ((DateTime)this.Session["BoundDeliveryDate"]).Date,
-                (string)this.Session["BoundNotes"]);
+                (long)this.Session[SystemConstants.SessionConstants.BoundCustomerID],
+                ((DateTime)this.Session[SystemConstants.SessionConstants.BoundDeliveryDate]).Date,
+                (string)this.Session[SystemConstants.SessionConstants.BoundNotes]);
             this.pnlOrderHeader.Update();
+            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Order for customer id: {this.Session[SystemConstants.SessionConstants.BoundCustomerID]}, marked as invoiced.");
         }
-        /*
-         protected void MarkItemAsInvoiced()
-        {
-            new OrderTbl().UpdateSetInvoiced(true, (long)this.Session["BoundCustomerID"], ((DateTime)this.Session["BoundDeliveryDate"]).Date, (string)this.Session["BoundNotes"]);
-            this.pnlOrderHeader.Update();
-        }
-        */
         protected void btnOrderDelivered_Click(object sender, EventArgs e)
         {
             OrderHeaderData headerData = this.Get_dvOrderHeaderData(false);
@@ -640,74 +1885,185 @@ namespace TrackerDotNet.Pages
 
             foreach (GridViewRow row in this.gvOrderLines.Rows)
             {
-                var (itemIdStr, itemName) = GetItemIdAndNameFromRow(row);
-                var itemId = Convert.ToInt32(itemIdStr);
+
+                var itemId = GetControlSelectedValue(row, CONST_ORDERLINE_ITEM_COMBOBOX_ID, CONST_ORDERLINE_HIDDENFIELD_ITEM_ID);
                 var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
-                var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
-                var orderIdLbl = (Label)row.FindControl("lblOrderID");
+                var packagingId = GetControlSelectedValue(row, CONST_ORDERLINE_PACKAGING_COMBOBOX_ID, CONST_ORDERLINE_HIDDENFIELD_PACKAGING_ID);
+                var orderIdLbl = (HiddenField)row.FindControl(CONST_ORDERLINE_HIDDENFIELD_ORDER_ID);
 
                 var line = new OrderManager.TempOrderLineData
                 {
                     ItemID = itemId,
                     Qty = Convert.ToDouble(qtyLbl.Text),
-                    PackagingID = Convert.ToInt32(packagingDDL.SelectedValue),
+                    PackagingID = Convert.ToInt32(packagingId),
                     ServiceTypeID = itemTypeTbl.GetServiceID(itemId),
-                    OriginalOrderID = Convert.ToInt32(orderIdLbl.Text)
+                    OriginalOrderID = Convert.ToInt32(orderIdLbl.Value)
                 };
                 orderLines.Add(line);
             }
 
             var manager = new TrackerDotNet.Managers.OrderManager();
             bool success = manager.CompleteOrderDelivery(headerData, orderLines);
-
+            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Order for customer id: {this.Session[SystemConstants.SessionConstants.BoundCustomerID]}, marked as deliverred.");
             if (!success)
                 this.ltrlStatus.Text = "Error deleting Temp Table";
             else
                 this.Response.Redirect("OrderDone.aspx");
         }
-        /*
-        protected void btnOrderDelivered_Click(object sender, EventArgs e)
+
+        protected void gvOrderLines_RowDataBound(object sender, GridViewRowEventArgs e)
         {
-            OrderHeaderData dvOrderHeaderData = this.Get_dvOrderHeaderData(false);
-            TempOrdersData pTempOrder = new TempOrdersData();
-            TempOrdersDAL tempOrdersDal = new TempOrdersDAL();
-            if (!tempOrdersDal.KillTempOrdersData())
-                this.ltrlStatus.Text = "Error deleting Temp Table";
-            pTempOrder.HeaderData.CustomerID = dvOrderHeaderData.CustomerID;
-            pTempOrder.HeaderData.OrderDate = dvOrderHeaderData.OrderDate;
-            pTempOrder.HeaderData.RoastDate = dvOrderHeaderData.RoastDate;
-            pTempOrder.HeaderData.RequiredByDate = dvOrderHeaderData.RequiredByDate;
-            pTempOrder.HeaderData.ToBeDeliveredByID = Convert.ToInt32(dvOrderHeaderData.ToBeDeliveredBy);
-            pTempOrder.HeaderData.Confirmed = dvOrderHeaderData.Confirmed;
-            pTempOrder.HeaderData.Done = dvOrderHeaderData.Done;
-            pTempOrder.HeaderData.Notes = dvOrderHeaderData.Notes;
-            ItemTypeTbl itemTypeTbl = new ItemTypeTbl();
-            foreach (GridViewRow row in this.gvOrderLines.Rows)
+            // Only process DataRow types in Edit mode
+            if (e.Row.RowType != DataControlRowType.DataRow)
             {
-                TempOrdersLinesTbl tempOrdersLinesTbl = new TempOrdersLinesTbl();
-                DropDownList control1 = (DropDownList)row.FindControl("ddlItemDesc");
-                Label control2 = (Label)row.FindControl("lblQuantityOrdered");
-                DropDownList control3 = (DropDownList)row.FindControl("ddlPackaging");
-                Label control4 = (Label)row.FindControl("lblOrderID");
-                tempOrdersLinesTbl.ItemID = Convert.ToInt32(control1.SelectedValue);
-                tempOrdersLinesTbl.Qty = Convert.ToDouble(control2.Text);
-                tempOrdersLinesTbl.PackagingID = Convert.ToInt32(control3.SelectedValue);
-                tempOrdersLinesTbl.ServiceTypeID = itemTypeTbl.GetServiceID(tempOrdersLinesTbl.ItemID);
-                tempOrdersLinesTbl.OriginalOrderID = Convert.ToInt32(control4.Text);
-                pTempOrder.OrdersLines.Add(tempOrdersLinesTbl);
+                return;
             }
-            tempOrdersDal.Insert(pTempOrder);
-            this.Response.Redirect("OrderDone.aspx");
+
+            // Handle EDIT MODE ONLY - get values from ViewState
+            if ((e.Row.RowState & DataControlRowState.Edit) == DataControlRowState.Edit)
+            {
+                int rowIndex = e.Row.RowIndex;
+
+                // Get stored values from ViewState
+                int packagingId = ViewState[$"PackagingID_{rowIndex}"] != null ? (int)ViewState[$"PackagingID_{rowIndex}"] : 0;
+                int itemTypeId = ViewState[$"ItemTypeID_{rowIndex}"] != null ? (int)ViewState[$"ItemTypeID_{rowIndex}"] : 0;
+                // Handle packaging ComboBox
+                var cboPackaging = e.Row.FindControl("cboPackaging") as AjaxControlToolkit.ComboBox;
+                if (cboPackaging != null)
+                {
+                    // DON'T CALL DataBind() - it causes the Bind() expression error
+                    // The ComboBox should already be populated by its DataSourceID
+
+                    // Ensure "n/a" option exists
+                    if (!cboPackaging.Items.Cast<ListItem>().Any(item => item.Value == "0"))
+                    {
+                        cboPackaging.Items.Insert(0, new ListItem("n/a", "0"));
+                    }
+
+                    // Set the selected value safely
+                    string packagingIdStr = packagingId.ToString();
+                    if (cboPackaging.Items.Cast<ListItem>().Any(item => item.Value == packagingIdStr))
+                    {
+                        cboPackaging.SelectedValue = packagingIdStr;
+                    }
+                    else if (packagingId > 0)
+                    {
+                        // Add missing packaging option for inactive items
+                        string description = GetPackagingDesc(packagingId);
+                        if (!string.IsNullOrEmpty(description))
+                        {
+                            cboPackaging.Items.Add(new ListItem($"{description} (Inactive)", packagingIdStr));
+                            cboPackaging.SelectedValue = packagingIdStr;
+                        }
+                        else
+                        {
+                            cboPackaging.SelectedValue = "0";
+                        }
+                    }
+                    else
+                    {
+                        cboPackaging.SelectedValue = "0";
+                    }
+                }
+
+                // Handle item ComboBox the same way
+                var cboItemDesc = e.Row.FindControl("cboItemDesc") as AjaxControlToolkit.ComboBox;
+                if (cboItemDesc != null)
+                {
+                    // DON'T CALL DataBind() - it causes the Bind() expression error
+                    // The ComboBox should already be populated by its DataSourceID
+
+                    if (!cboItemDesc.Items.Cast<ListItem>().Any(item => item.Value == "0"))
+                    {
+                        cboItemDesc.Items.Insert(0, new ListItem("--Invalid Item--", "0"));
+                    }
+
+                    string itemTypeIdStr = itemTypeId.ToString();
+                    if (cboItemDesc.Items.Cast<ListItem>().Any(item => item.Value == itemTypeIdStr))
+                    {
+                        cboItemDesc.SelectedValue = itemTypeIdStr;  
+                    }
+                    else
+                    {
+                        cboItemDesc.SelectedValue = "0";
+                    }
+                }
+                // Clear ViewState after use
+                ViewState.Remove($"PackagingID_{rowIndex}");
+                ViewState.Remove($"ItemTypeID_{rowIndex}");
+            }
         }
-        */
+        protected void gvOrderLines_RowCancelingEdit(object sender, GridViewCancelEditEventArgs e)
+        {
+            gvOrderLines.EditIndex = -1;
+            gvOrderLines.DataBind();
+            upnlOrderLines.Update();
+        }
+        protected void gvOrderLines_RowUpdating(object sender, GridViewUpdateEventArgs e)
+        {
+            GridViewRow row = gvOrderLines.Rows[e.RowIndex];
+
+            // Use helper method for cleaner code
+            e.NewValues["ItemTypeID"] = Convert.ToInt32(GetControlSelectedValue(row, CONST_ORDERLINE_ITEM_COMBOBOX_ID, CONST_ORDERLINE_HIDDENFIELD_ITEM_ID));
+            e.NewValues["PackagingID"] = Convert.ToInt32(GetControlSelectedValue(row, CONST_ORDERLINE_PACKAGING_COMBOBOX_ID, CONST_ORDERLINE_HIDDENFIELD_PACKAGING_ID));
+
+            // Get quantity from TextBox
+            var tbxQuantityOrdered = row.FindControl("tbxQuantityOrdered") as TextBox;
+            if (tbxQuantityOrdered != null)
+            {
+                e.NewValues["QuantityOrdered"] = Convert.ToDouble(tbxQuantityOrdered.Text);
+            }
+
+            // Get OrderID - this should be set as NewValues, not Keys
+            var hdnOrderID = row.FindControl(CONST_ORDERLINE_HIDDENFIELD_ORDER_ID) as HiddenField;
+            if (hdnOrderID != null)
+            {
+                e.NewValues["OrderID"] = Convert.ToInt64(hdnOrderID.Value);
+            }
+
+            // Debug output
+            System.Diagnostics.Debug.WriteLine($"RowUpdating: OrderID = {e.NewValues["OrderID"]}, PackagingID = {e.NewValues["PackagingID"]}, ItemTypeID = {e.NewValues["ItemTypeID"]}");
+        }
+        protected void gvOrderLines_RowEditing(object sender, GridViewEditEventArgs e)
+        {
+            // Get values from hidden fields in view mode BEFORE setting edit mode
+            GridViewRow row = gvOrderLines.Rows[e.NewEditIndex];
+
+            var hdnPackagingID = row.FindControl("hdnPackagingID") as HiddenField;
+            var hdnItemTypeID = row.FindControl("hdnItemTypeID") as HiddenField;
+
+            int packagingId = 0;
+            int itemTypeId = 0;
+
+            if (hdnPackagingID != null && !string.IsNullOrEmpty(hdnPackagingID.Value))
+            {
+                int.TryParse(hdnPackagingID.Value, out packagingId);
+            }
+
+            if (hdnItemTypeID != null && !string.IsNullOrEmpty(hdnItemTypeID.Value))
+            {
+                int.TryParse(hdnItemTypeID.Value, out itemTypeId);
+            }
+
+            ViewState[$"PackagingID_{e.NewEditIndex}"] = packagingId;
+            ViewState[$"ItemTypeID_{e.NewEditIndex}"] = itemTypeId;
+            // Set edit mode and let the ObjectDataSource handle the binding
+            gvOrderLines.EditIndex = e.NewEditIndex;
+
+            // REMOVE THESE LINES - they cause the infinite loop!
+            // odsOrderDetail.DataBind();
+            // gvOrderLines.DataBind();
+
+            upnlOrderLines.Update();
+        }
         protected void btnUnDoDone_Click(object sender, EventArgs e)
         {
             var manager = new TrackerDotNet.Managers.OrderManager();
             string empty = string.Empty;
             foreach (TableRow row in this.gvOrderLines.Rows)
             {
-                Label control = (Label)row.Cells[4].FindControl("lblOrderID");
-                empty += manager.UnDoOrderItem(Convert.ToInt32(control.Text));
+                var control = (HiddenField)row.Cells[4].FindControl(CONST_ORDERLINE_HIDDENFIELD_ORDER_ID);
+                empty += manager.UnDoOrderItem(Convert.ToInt32(control.Value));
             }
             this.ltrlStatus.Text = empty;
             this.dvOrderHeader.DataBind();
@@ -715,29 +2071,13 @@ namespace TrackerDotNet.Pages
             this.gvOrderLines.DataBind();
             this.upnlOrderLines.Update();
         }
-        /*
-        protected void btnUnDoDone_Click(object sender, EventArgs e)
-        {
-            string empty = string.Empty;
-            foreach (TableRow row in this.gvOrderLines.Rows)
-            {
-                Label control = (Label)row.Cells[4].FindControl("lblOrderID");
-                empty += this.UnDoneOrderItem(control.Text);
-            }
-            this.ltrlStatus.Text = empty;
-            this.dvOrderHeader.DataBind();
-            this.pnlOrderHeader.Update();
-            this.gvOrderLines.DataBind();
-            this.upnlOrderLines.Update();
-        }
-        */
         protected void gvOrderLines_RowCommand(object sender, GridViewCommandEventArgs e)
         {
             bool flag = false;
             if (e.CommandName == "MoveOneDayOn")
             {
                 flag = true;
-                Label control = (Label)this.gvOrderLines.Rows[Convert.ToInt32(e.CommandArgument)].FindControl("lblOrderID");
+                var control = (HiddenField)this.gvOrderLines.Rows[Convert.ToInt32(e.CommandArgument)].FindControl(CONST_ORDERLINE_HIDDENFIELD_ORDER_ID);
                 DateTime pNewDate = Convert.ToDateTime(this.dvOrderHeaderGetLabelValue("lblRequiredByDate")).Date;
                 if (pNewDate.DayOfWeek < DayOfWeek.Friday)
                 {
@@ -748,7 +2088,7 @@ namespace TrackerDotNet.Pages
                     int num = (int)(1 - pNewDate.DayOfWeek + 7) % 7;
                     pNewDate = pNewDate.AddDays((double)num);
                 }
-                new OrderTbl().UpdateOrderDeliveryDate(pNewDate, Convert.ToInt32(control.Text));
+                new OrderTbl().UpdateOrderDeliveryDate(pNewDate, Convert.ToInt32(control.Value));
             }
             else if (e.CommandName == "DeleteOrder")
             {
@@ -763,267 +2103,9 @@ namespace TrackerDotNet.Pages
             this.upnlOrderLines.Update();
         }
 
-        protected void ddlItemDesc_SelectedIndexChanged(object sender, EventArgs e)
+        protected void tbxManualNotes_TextChanged1(object sender, EventArgs e)
         {
+
         }
-
-        /*
-        protected void btnConfirmOrder_Click(object sender, EventArgs e)
-        {
-            var contactDDL = (DropDownList)this.dvOrderHeader.FindControl("ddlContacts");
-            ContactEmailDetails details = GetEmailDetails(contactDDL.SelectedValue);
-
-            string recipientEmail = ResolveRecipientEmail(details);
-
-            if (string.IsNullOrWhiteSpace(recipientEmail))
-            {
-                ltrlStatus.Text = "No email address found.";
-                new showMessageBox(this.Page, "Email FAILED", ltrlStatus.Text);
-                upnlNewOrderItem.Update();
-                AppLogger.WriteLog("email", ltrlStatus.Text);
-                return;
-            }
-
-            var emailSettings = new EmailSettings();
-            emailSettings.SetRecipient(recipientEmail);
-
-            var email = new EmailMailKitCls(emailSettings);
-            email.IsTestMode = true;
-            email.AddCCFromAddress();
-            email.SetEmailSubject(MessageProvider.Get("OrderConfirmationSubject"));
-
-            string contactName = EmailUtils.GetFriendlyContactName(details);
-            email.AddFormatToBody(MessageProvider.Get("OrderConfirmationIntro"), contactName);
-
-            if (contactDDL.SelectedValue.Equals("9"))
-                email.AddStrAndNewLineToBody(MessageProvider.Get("OrderConfirmationLineIntro"));
-
-            AppendOrderItemsToEmailBody(email);
-            AppendOrderDetails(email);
-
-            string senderInfo = GetSenderInfo();
-            email.AddFormatToBody(MessageProvider.Get("OrderEmailFooter"), senderInfo);
-            email.AddToBody(MessageProvider.Get("DefaultEmailSignature"));
-
-            bool success = email.SendEmail();
-
-            string statusMsg = success
-                ? $"Email sent to {contactName}"
-                : $"Error sending email: {email.myResults.sResult}";
-
-            ltrlStatus.Text = statusMsg;
-            new showMessageBox(this.Page, "Order Confirmation", statusMsg);
-            upnlNewOrderItem.Update();
-            AppLogger.WriteLog("email", statusMsg);
-        }
-
-        /*
-        protected void btnConfirmOrder_Click(object sender, EventArgs e)
-        {
-            var contactDDL = (DropDownList)this.dvOrderHeader.FindControl("ddlContacts");
-            ContactEmailDetails emailDetails = this.GetEmailDetails(contactDDL.SelectedItem.Value);
-            if (emailDetails == null)
-                return;
-
-            string recipientEmail = !string.IsNullOrEmpty(emailDetails.EmailAddress)
-                ? emailDetails.EmailAddress
-                : emailDetails.altEmailAddress;
-
-            if (string.IsNullOrEmpty(recipientEmail))
-            {
-                ltrlStatus.Text = "No email address found.";
-                new showMessageBox(this.Page, "Email FAILED", ltrlStatus.Text);
-                upnlNewOrderItem.Update();
-                return;
-            }
-
-            var emailSettings = new EmailSettings();
-            emailSettings.SetRecipient(recipientEmail);
-
-            var email = new EmailMailKitCls(emailSettings);
-            email.SetEmailSubject(MessageProvider.Get("OrderConfirmationSubject"));
-            email.IsTestMode = true;
-            email.AddCCFromAddress();
-
-            string contactName = EmailUtils.GetFriendlyContactName(emailDetails);
-            email.AddFormatToBody(MessageProvider.Get("OrderConfirmationIntro"), contactName);
-
-            if (contactDDL.SelectedValue.Equals("9"))
-                email.AddStrAndNewLineToBody("We confirm your order below:");
-
-            email.AddToBody("<ul>");
-
-            foreach (GridViewRow row in gvOrderLines.Rows)
-            {
-                var itemDDL = (DropDownList)row.FindControl("ddlItemDesc");
-                var qtyLbl = (Label)row.FindControl("lblQuantityOrdered");
-                var packagingDDL = (DropDownList)row.FindControl("ddlPackaging");
-
-                string itemId = itemDDL.SelectedValue;
-                string itemName = itemDDL.SelectedItem.Text;
-                string qty = AddUnitsToQty(itemId, qtyLbl.Text);
-
-                if (GetItemSortOrderID(itemId) == 10)
-                {
-                    string notes = EmailUtils.CleanNoteText(dvOrderHeaderGetLabelValue("lblNotes"));
-                    email.AddFormatToBody("<li>{0}</li>", notes);
-                }
-                else
-                {
-                    if (packagingDDL.SelectedIndex == 0)
-                        email.AddFormatToBody("<li>{0} of {1}</li>", qty, itemName);
-                    else
-                        email.AddFormatToBody("<li>{0} of {1} - Preparation note: {2}</li>", qty, itemName, packagingDDL.SelectedItem.Text);
-                }
-            }
-
-            email.AddToBody("</ul>");
-
-            string poRef = dvOrderHeaderGetLabelValue("lblPurchaseOrder");
-            if (!string.IsNullOrEmpty(poRef))
-            {
-                string poMsg = poRef.EndsWith("!!!PO required!!!")
-                    ? MessageProvider.Get("OrderConfirmationPORequired")
-                    : MessageProvider.Format("OrderConfirmationPOReceived", poRef);
-                email.AddStrAndNewLineToBody(poMsg);
-            }
-
-            var deliveryDDL = (DropDownList)this.dvOrderHeader.FindControl("ddlToBeDeliveredBy");
-            string deliveryDate = dvOrderHeaderGetLabelValue("lblRequiredByDate");
-            string deliveryOption = deliveryDDL.SelectedItem.Text;
-
-            string deliveryMsg = "";
-
-            if (deliveryOption == "Cllct")
-                deliveryMsg = MessageProvider.Format("OrderCollectionNote", deliveryDate);
-            else if (deliveryOption == "Cour")
-                deliveryMsg = MessageProvider.Format("OrderCourierNote", deliveryDate);
-            else
-                deliveryMsg = MessageProvider.Format("OrderDeliveryNote", deliveryDate);
-
-            email.AddStrAndNewLineToBody(deliveryMsg);
-
-            MembershipUser user = Membership.GetUser();
-            string senderInfo = string.IsNullOrEmpty(user?.UserName)
-                ? "The Quaffee Team"
-                : $"The Quaffee Team ({UpCaseFirstLetter(user.UserName)})";
-
-            email.AddFormatToBody(MessageProvider.Get("OrderEmailFooter"), senderInfo);
-
-            string statusMsg = email.SendEmail()
-                ? $"Email sent to {contactName}"
-                : $"Error sending email: {email.myResults.sResult}";
-
-            ltrlStatus.Text = statusMsg;
-            new showMessageBox(this.Page, "Order Confirmation", statusMsg);
-            upnlNewOrderItem.Update();
-        }
-        */
-
-
-        /*
-        protected void btnConfirmOrder_Click(object sender, EventArgs e)
-        {
-            DropDownList control1 = (DropDownList)this.dvOrderHeader.FindControl("ddlContacts");
-            ContactEmailDetails emailDetails = this.GetEmailDetails(control1.SelectedItem.Value);
-            if (emailDetails == null)
-                return;
-            EmailCls emailCls = new EmailCls();
-            DropDownList control2 = (DropDownList)this.dvOrderHeader.FindControl("ddlToBeDeliveredBy");
-            string labelValue1 = this.dvOrderHeaderGetLabelValue("lblRequiredByDate");
-            string labelValue2 = this.dvOrderHeaderGetLabelValue("lblPurchaseOrder");
-            string pObj1 = this.dvOrderHeaderGetLabelValue("lblNotes");
-            if (emailDetails.EmailAddress != "")
-            {
-                emailCls.SetLegacyEmailFromTo("orders@quaffee.co.za", emailDetails.EmailAddress);
-                if (emailDetails.altEmailAddress != "")
-                    emailCls.SetLegacyEmailCC(emailDetails.altEmailAddress);
-            }
-            else if (emailDetails.altEmailAddress != "")
-            {
-                emailCls.SetLegacyEmailFromTo("orders@quaffee.co.za", emailDetails.altEmailAddress);
-            }
-            else
-            {
-                this.ltrlStatus.Text = "no email address found";
-                showMessageBox showMessageBox = new showMessageBox(this.Page, "Email FAILED: ", this.ltrlStatus.Text);
-                this.upnlNewOrderItem.Update();
-                return;
-            }
-            emailCls.SetLegacyEmailBCC("orders@quaffee.co.za");
-            emailCls.SetLegacyEmailSubject("Order Confirmation");
-            string str1 = "Coffee Lover";
-            if (emailDetails.FirstName != "")
-            {
-                str1 = emailDetails.FirstName.Trim();
-                if (emailDetails.altFirstName != "")
-                    str1 = $"{str1} and {emailDetails.altFirstName.Trim()}";
-            }
-            else if (emailDetails.altFirstName != "")
-                str1 = emailDetails.altFirstName.Trim();
-            emailCls.AddStrAndNewLineToLegacyEmailBody($"Dear {str1},<br />");
-            if (control1.SelectedValue.Equals("9"))
-                emailCls.AddStrAndNewLineToLegacyEmailBody("We confirm you order below:");
-            else
-                emailCls.AddStrAndNewLineToLegacyEmailBody($"We confirm the following order for {control1.SelectedItem.Text}:");
-            emailCls.AddToLegacyEmailBody("<ul>");
-            foreach (GridViewRow row in this.gvOrderLines.Rows)
-            {
-                DropDownList control3 = (DropDownList)row.FindControl("ddlItemDesc");
-                Label control4 = (Label)row.FindControl("lblQuantityOrdered");
-                DropDownList control5 = (DropDownList)row.FindControl("ddlPackaging");
-                if (this.GetItemSortOrderID(control3.SelectedValue) == 10)
-                {
-                    if (pObj1.Contains(":"))
-                        pObj1 = pObj1.Substring(pObj1.IndexOf(":") + 1).Trim();
-                    int length = pObj1.IndexOf("[#");
-                    if (length >= 0)
-                    {
-                        int num = pObj1.IndexOf("#]");
-                        if (num >= 0)
-                            pObj1 = $"{pObj1.Substring(0, length)};{pObj1.Substring(num + 2)}";
-                    }
-                    emailCls.AddFormatToLegacyEmailBody("<li>{0}</li>", (object)pObj1);
-                }
-                else
-                {
-                    string qty = this.AddUnitsToQty(control3.SelectedValue, control4.Text);
-                    if (control5.SelectedIndex == 0)
-                        emailCls.AddFormatToLegacyEmailBody("<li>{0} of {1}</li>", (object)qty, (object)control3.SelectedItem.Text);
-                    else
-                        emailCls.AddFormatToLegacyEmailBody("<li>{0} of {1} - Preperation note: {2}</li>", (object)qty, (object)control3.SelectedItem.Text, (object)control5.SelectedItem.Text);
-                }
-            }
-            emailCls.AddStrAndNewLineToLegacyEmailBody("</ul>");
-            if (!string.IsNullOrEmpty(labelValue2))
-            {
-                if (labelValue2.EndsWith("!!!PO required!!!"))
-                    emailCls.AddStrAndNewLineToLegacyEmailBody("<b>NOTE</b>: We are still waiting for a Purchase Order number from you.<br />");
-                else
-                    emailCls.AddStrAndNewLineToLegacyEmailBody($"This order has purchase order: {labelValue2}, allocated to it.<br />");
-            }
-            if (control2.SelectedItem.Text == "Cllct")
-                emailCls.AddStrAndNewLineToLegacyEmailBody("The order will be ready for collection on: " + labelValue1);
-            else if (control2.SelectedItem.Text == "Cour")
-                emailCls.AddStrAndNewLineToLegacyEmailBody($"The order will be dispatched on: {labelValue1}.");
-            else
-                emailCls.AddStrAndNewLineToLegacyEmailBody($"The order will be delivered on: {labelValue1}.");
-            MembershipUser user = Membership.GetUser();
-            string str2 = string.IsNullOrEmpty(user.UserName) ? "the Quaffee Team" : $" from the Quaffee Team ({this.UpCaseFirstLetter(user.UserName)})";
-            emailCls.AddStrAndNewLineToLegacyEmailBody($"<br />Sent automatically by Quaffee's order and tracking System.<br /><br />Sincerely {str2} (orders@quaffee.co.za)");
-            if (emailCls.SendLegacyEmail())
-            {
-                this.ltrlStatus.Text = "Email Sent to: " + str1;
-            }
-            else
-            {
-                showMessageBox showMessageBox = new showMessageBox(this.Page, "error", "error sending email: " + (object)emailCls.myResults);
-                this.ltrlStatus.Text = "Email was not sent!";
-            }
-            showMessageBox showMessageBox1 = new showMessageBox(this.Page, "Email Confirmation", this.ltrlStatus.Text);
-            this.upnlNewOrderItem.Update();
-        }
-        */
-
     }
 }

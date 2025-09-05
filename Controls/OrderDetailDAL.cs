@@ -25,9 +25,9 @@ namespace TrackerDotNet.Controls
             TrackerDb trackerDb = new TrackerDb();
             string str = "SELECT [ItemTypeID], [QuantityOrdered], [PackagingID], [OrderID] FROM [OrdersTbl] WHERE ";
             string strSQL;
-            if (CustomerID == 9L)
+            if (CustomerID == SystemConstants.CustomerConstants.SundryCustomerID)
             {
-                strSQL = str + "([CustomerID] = 9) AND ([RequiredByDate] = ?) AND ([Notes] = ?)";
+                strSQL = str + $"([CustomerID] = {SystemConstants.CustomerConstants.SundryCustomerIDStr})  AND ([RequiredByDate] = ?) AND ([Notes] = ?)";
                 trackerDb.AddWhereParams((object)DeliveryDate, DbType.Date, "@RequiredByDate");
                 trackerDb.AddWhereParams((object)Notes, DbType.String, "@Notes");
             }
@@ -46,7 +46,7 @@ namespace TrackerDotNet.Controls
                         ItemTypeID = dataReader["ItemTypeID"] == DBNull.Value ? 0 : (int)dataReader["ItemTypeID"],
                         PackagingID = dataReader["PackagingID"] == DBNull.Value ? 0 : (int)dataReader["PackagingID"],
                         OrderID = dataReader["OrderId"] == DBNull.Value ? 0 : (int)dataReader["OrderId"],
-                        QuantityOrdered = dataReader["QuantityOrdered"] == DBNull.Value ? 1.0 : Math.Round(Convert.ToDouble(dataReader["QuantityOrdered"]), 2)
+                        QuantityOrdered = dataReader["QuantityOrdered"] == DBNull.Value ? 1.0 : Math.Round(Convert.ToDouble(dataReader["QuantityOrdered"]), SystemConstants.DatabaseConstants.NumDecimalPoints)
                     });
                 dataReader.Close();
             }
@@ -66,7 +66,7 @@ namespace TrackerDotNet.Controls
             TrackerDb trackerDb = new TrackerDb();
             ItemTypeID = new TrackerTools().ChangeItemIfGroupToNextItemInGroup(CustomerID, ItemTypeID, DeliveryDate);
             trackerDb.AddParams((object)ItemTypeID, DbType.Int32, "@ItemTypeID");
-            trackerDb.AddParams((object)Math.Round(QuantityOrdered, 2), DbType.Double, "@QuantityOrdered");
+            trackerDb.AddParams((object)Math.Round(QuantityOrdered, SystemConstants.DatabaseConstants.NumDecimalPoints), DbType.Double, "@QuantityOrdered");
             trackerDb.AddParams((object)PackagingID, DbType.Int32, "@PackagingID");
             trackerDb.AddWhereParams((object)OrderID, DbType.Int64, "@OrderID");
             bool flag = string.IsNullOrEmpty(trackerDb.ExecuteNonQuerySQL(strSQL));
@@ -99,7 +99,7 @@ namespace TrackerDotNet.Controls
             trackerDb.AddParams((object)Done, DbType.Boolean, "@Done");
             trackerDb.AddParams((object)Notes, DbType.String, "@Notes");
             trackerDb.AddParams((object)ItemTypeID, DbType.Int32, "@ItemTypeID");
-            trackerDb.AddParams((object)Math.Round(QuantityOrdered, 2), DbType.Double, "@QuantityOrdered");
+            trackerDb.AddParams((object)Math.Round(QuantityOrdered, SystemConstants.DatabaseConstants.NumDecimalPoints), DbType.Double, "@QuantityOrdered");
             trackerDb.AddParams((object)PackagingID, DbType.Int32, "@PackagingID");
             bool flag = string.IsNullOrEmpty(trackerDb.ExecuteNonQuerySQL(strSQL));
             trackerDb.Close();

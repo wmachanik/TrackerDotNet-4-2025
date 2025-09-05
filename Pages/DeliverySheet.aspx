@@ -49,7 +49,7 @@
                         <asp:Button ID="btnFind" Text="Find" runat="server" OnClick="btnFind_Click" />
                         <asp:Button ID="btnPrint" runat="server" CssClass="hideWhenPrinting" Text="Print" OnClick="btnPrint_Click" AccessKey="P" ToolTip="print sheet (AltShftP)" />
                         <asp:HyperLink ID="hlAddDeliveryItem" ImageUrl="~/images/imgButtons/AddItem.gif" ToolTip="New item(s) to deliver"
-                            NavigateUrl="~/Pages/NewOrderDetail.aspx" runat="server" />
+                            NavigateUrl="~/Pages/OrderDetail.aspx?NewOrder=true" runat="server" />
                     </div>
                 </div>
             </ContentTemplate>

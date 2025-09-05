@@ -51,7 +51,7 @@ namespace TrackerDotNet.Managers
                 return result;
             }
 
-            double pStock = string.IsNullOrEmpty(stockText) ? 0.0 : Math.Round(Convert.ToDouble(stockText), 2);
+            double pStock = string.IsNullOrEmpty(stockText) ? 0.0 : Math.Round(Convert.ToDouble(stockText), SystemConstants.DatabaseConstants.NumDecimalPoints);
             var generalTrackerDbTools = new GeneralTrackerDbTools();
             var latestUsageData = generalTrackerDbTools.GetLatestUsageData(customerId, 2);
 
@@ -88,6 +88,9 @@ namespace TrackerDotNet.Managers
                 sentStatus = SendOrderStatusEmail(customerId, statusKey);
             }
 
+            // set the date if the customer is a reoccruing order customer:
+            SyncReoccurringOrderLastDone(customerId, deliveryDate);
+            // now delete the relevant date from the temp orders table
             tempOrdersDal.KillTempOrdersData();
 
             result.Success = sentStatus == null;
@@ -145,7 +148,7 @@ namespace TrackerDotNet.Managers
 
         public static string SendOrderStatusEmail(long customerId, string statusKey)
         {
-            if (statusKey== null)
+            if (statusKey == null)
             {
                 return "❌ Status key is null.";
             }
@@ -174,18 +177,63 @@ namespace TrackerDotNet.Managers
             bool success = email.SendEmail();
             if (success)
             {
-                AppLogger.WriteLog("email", $"✅ Order done message sent to {recipient}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"✅ Order done message sent to {recipient}");
 
             }
-            else { 
+            else
+            {
                 // Log the error
-                AppLogger.WriteLog("email", $"❌ Failed to send email to {recipient}: {email.myResults.sResult}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"❌ Failed to send email to {recipient}: {email.myResults.sResult}");
             }
             string message = success
                 ? null
                 : $"❌ Failed to send email to {recipient}: {email.myResults.sResult}";
 
             return message;
+        }
+
+        private static void SyncReoccurringOrderLastDone(int customerId, DateTime deliveryDate)
+        {
+            var reoccurDal = new ReoccuringOrderDAL();
+            var reoccurOrders = reoccurDal.GetAll(ReoccuringOrderDAL.CONST_ENABLEDONLY,"",$"ReoccuringOrderTbl.CustomerID = {customerId}");
+
+            // Get the items just delivered (from temp order)
+            var deliveredItems = new ClientUsageFromTempOrder().GetAll(customerId);
+            AppLogger.WriteLog(SystemConstants.LogTypes.System, $"SyncReoccurringOrderLastDone: Querying reoccurring orders for customerId={customerId}, found {reoccurOrders.Count} records.");
+            foreach (var reoccurOrder in reoccurOrders)
+            {
+                foreach (var item in deliveredItems)
+                {
+                    if (OrderMatchesReoccuringOrder(item, reoccurOrder))
+                    {
+                        reoccurDal.SetReoccuringOrderDates(deliveryDate, reoccurOrder.ReoccuringOrderID, true);
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Reoccurring order {reoccurOrder.ReoccuringOrderID} for customer {customerId} updated: DateLastDone set to {deliveryDate:yyyy-MM-dd} (ItemID={item.ItemID}, Qty={item.Qty}, PackagingID={item.PackagingID})");
+                    }
+                }
+            }
+        }
+
+        // Helper method to compare delivered item and reoccurring order
+        private static bool OrderMatchesReoccuringOrder(ClientUsageFromTempOrder deliveredItem, ReoccuringOrderExtData reoccurOrder)
+        {
+            // If the reoccurring order is for a group item, match any item in the group
+            if (IsGroupItem(reoccurOrder.ItemRequiredID))
+            {
+                var groupItemIds = TrackerDotNet.Controls.ItemGroupTbl.GetItemIdsForGroup(reoccurOrder.ItemRequiredID);
+                return groupItemIds.Contains(deliveredItem.ItemID);
+            }
+            // For non-group items, match by service type only
+            int deliveredServiceTypeSingle = TrackerDotNet.Controls.ItemTypeTbl.GetServiceTypeForItem(deliveredItem.ItemID);
+            int requiredServiceTypeSingle = TrackerDotNet.Controls.ItemTypeTbl.GetServiceTypeForItem(reoccurOrder.ItemRequiredID);
+            return deliveredServiceTypeSingle == requiredServiceTypeSingle;
+        }
+
+        // Helper to check if an item is a group item
+        private static bool IsGroupItem(int itemTypeId)
+        {
+            // This assumes group items are flagged by ServiceTypeConstants.GroupItem
+            // Adjust if your schema uses a different approach
+            return TrackerDotNet.Controls.ItemTypeTbl.GetServiceTypeForItem(itemTypeId) == SystemConstants.ServiceTypeConstants.GroupItem;
         }
     }
 }

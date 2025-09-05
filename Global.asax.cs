@@ -1,19 +1,11 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: TrackerDotNet.Global
-// Assembly: TrackerDotNet, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 2B5ACBFB-45EE-46B9-81D2-DBD1194F39CE
-// Assembly location: C:\SRC\Apps\qtracker\bin\TrackerDotNet.dll
-
-using System;
+﻿using System;
 using System.IO;
 using System.Web;
 using System.Web.UI;
 using TrackerDotNet.Classes;
 
-//- only form later versions #nullable disable
 namespace TrackerDotNet
 {
-
     public class Global : HttpApplication
     {
         private void Application_Start(object sender, EventArgs e)
@@ -34,25 +26,116 @@ namespace TrackerDotNet
             {
                 return; // No error to log
             }
-            // Log the error
-            string logPath = Server.MapPath("~/App_Data/ErrorLog.txt");
-            Exception root = lastError.InnerException ?? lastError;
-            string logEntry = $"[{TimeZoneUtils.Now()}]\n{root.GetType()}: {root.Message}\n{root.StackTrace}\n----------------------\n";
 
-
-            using (var stream = new FileStream(logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
-            using (var writer = new StreamWriter(stream))
+            try
             {
-                writer.WriteLine(logEntry);
+                // Prevent infinite loops - don't redirect if we're already on the error page
+                string currentUrl = Request.Url?.AbsolutePath?.ToLower() ?? "";
+                if (currentUrl.Contains("httperrorpage.aspx"))
+                {
+                    Server.ClearError();
+                    return;
+                }
+
+                // Log the error with better error handling
+                LogError(lastError);
+
+                // Get clean error message
+                Exception root = lastError.InnerException ?? lastError;
+                string cleanMessage = System.Text.RegularExpressions.Regex.Replace(root.Message, "<.*?>", "");
+
+                // Limit message length to prevent URL issues
+                if (cleanMessage.Length > 200)
+                {
+                    cleanMessage = cleanMessage.Substring(0, 197) + "...";
+                }
+
+                // Safer redirect with error handling
+                string redirectUrl = "~/HttpErrorPage.aspx?msg=" + HttpUtility.UrlEncode(cleanMessage);
+                Response.Redirect(redirectUrl, false);
+                HttpContext.Current.ApplicationInstance.CompleteRequest();
+                Server.ClearError();
             }
+            catch (Exception ex)
+            {
+                // Fallback: if error handling fails, just clear and continue
+                try
+                {
+                    // Try to log the error handling failure
+                    System.Diagnostics.EventLog.WriteEntry("TrackerDotNet",
+                        $"Error handling failed: {ex.Message}",
+                        System.Diagnostics.EventLogEntryType.Error);
+                }
+                catch
+                {
+                    // Ultimate fallback - do nothing
+                }
 
+                Server.ClearError();
+                Response.Redirect("~/HttpErrorPage.aspx", false);
+                HttpContext.Current.ApplicationInstance.CompleteRequest();
+            }
+        }
 
-            // Redirect to a friendly error page
-            string cleanMessage = System.Text.RegularExpressions.Regex.Replace(root.Message, "<.*?>", "");
-            Response.Redirect("~/HttpErrorPage.aspx?msg=" + HttpUtility.UrlEncode(cleanMessage), false);
-            HttpContext.Current.ApplicationInstance.CompleteRequest();
-            Server.ClearError();
+        private void LogError(Exception error)
+        {
+            try
+            {
+                // Try multiple logging approaches
+                Exception root = error.InnerException ?? error;
+                string logEntry = $"[{TimeZoneUtils.Now()}]\n{root.GetType()}: {root.Message}\n{root.StackTrace}\n----------------------\n";
 
+                // Method 1: Try App_Data folder
+                try
+                {
+                    string appDataPath = Server.MapPath("~/App_Data/");
+                    if (!Directory.Exists(appDataPath))
+                    {
+                        Directory.CreateDirectory(appDataPath);
+                    }
+
+                    string logPath = Path.Combine(appDataPath, "ErrorLog.txt");
+                    using (var stream = new FileStream(logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+                    using (var writer = new StreamWriter(stream))
+                    {
+                        writer.WriteLine(logEntry);
+                    }
+                    return; // Success
+                }
+                catch
+                {
+                    // Fall through to next method
+                }
+
+                // Method 2: Try Temp folder
+                try
+                {
+                    string tempPath = Path.GetTempPath();
+                    string logPath = Path.Combine(tempPath, "TrackerDotNet_ErrorLog.txt");
+                    File.AppendAllText(logPath, logEntry);
+                    return; // Success
+                }
+                catch
+                {
+                    // Fall through to next method
+                }
+
+                // Method 3: Try Event Log
+                try
+                {
+                    System.Diagnostics.EventLog.WriteEntry("TrackerDotNet",
+                        $"{root.GetType()}: {root.Message}",
+                        System.Diagnostics.EventLogEntryType.Error);
+                }
+                catch
+                {
+                    // Ultimate fallback - do nothing
+                }
+            }
+            catch
+            {
+                // Silently fail - don't let logging errors break the app
+            }
         }
 
         private void Session_Start(object sender, EventArgs e)

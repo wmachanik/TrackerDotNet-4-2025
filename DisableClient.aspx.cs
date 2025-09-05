@@ -38,7 +38,7 @@ namespace TrackerDotNet
                 if (string.IsNullOrEmpty(systemEmail))
                 {
                     systemEmail = "info@quaffee.co.za";
-                    AppLogger.WriteLog("email", "DisableClient: SysFromEmail not configured, using fallback");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, "DisableClient: SysFromEmail not configured, using fallback");
                 }
                 
                 string emailLink = $"<a href='mailto:{systemEmail}'>{systemEmail}</a>";
@@ -48,11 +48,11 @@ namespace TrackerDotNet
                 if (ltrlContactEmailSuccess != null)
                     ltrlContactEmailSuccess.Text = emailLink;
                     
-                AppLogger.WriteLog("email", $"DisableClient: Using contact email {systemEmail}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Using contact email {systemEmail}");
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"DisableClient: Error loading contact email: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Error loading contact email: {ex.Message}");
                 string fallbackLink = "<a href='mailto:info@quaffee.co.za'>info@quaffee.co.za</a>";
                 if (ltrlContactEmail != null)
                     ltrlContactEmail.Text = fallbackLink;
@@ -65,7 +65,7 @@ namespace TrackerDotNet
         {
             try
             {
-                string customerIdStr = Request.QueryString["CoID"];
+                string customerIdStr = Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID];
                 string token = Request.QueryString["token"];
 
                 if (string.IsNullOrEmpty(customerIdStr) || string.IsNullOrEmpty(token))
@@ -101,11 +101,11 @@ namespace TrackerDotNet
                 confirmationSection.Visible = true;
                 successSection.Visible = false;
 
-                AppLogger.WriteLog("email", $"DisableClient: Loaded disable page for customer {customerId} ({companyName})");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Loaded disable page for customer {customerId} ({companyName})");
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"DisableClient: Error loading customer info: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Error loading customer info: {ex.Message}");
                 ShowError(MessageProvider.Get(MessageKeys.DisableClient.ErrorGeneral));
             }
         }
@@ -114,7 +114,7 @@ namespace TrackerDotNet
         {
             try
             {
-                string customerIdStr = Request.QueryString["CoID"];
+                string customerIdStr = Request.QueryString[SystemConstants.UrlParameterConstants.CustomerID];
                 string token = Request.QueryString["token"];
 
                 if (!int.TryParse(customerIdStr, out int customerId))
@@ -139,7 +139,7 @@ namespace TrackerDotNet
 
                 if (disableResult)
                 {
-                    AppLogger.WriteLog("email", $"DisableClient: Customer {customerId} ({companyName}) successfully disabled via email link");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Customer {customerId} ({companyName}) successfully disabled via email link");
 
                     NotifyAdministrator(customerId, companyName, recurringOrdersInfo);
                     SendCustomerGoodbyeEmail(customerId, companyName);
@@ -154,7 +154,7 @@ namespace TrackerDotNet
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"DisableClient: Error disabling customer: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Error disabling customer: {ex.Message}");
                 ShowError(MessageProvider.Get(MessageKeys.DisableClient.ErrorGeneral));
             }
         }
@@ -175,7 +175,7 @@ namespace TrackerDotNet
                 
                 if (recurringInfo.TotalRecurringOrders > 0)
                 {
-                    AppLogger.WriteLog("email", $"DisableClient: Found {recurringInfo.TotalRecurringOrders} recurring orders for customer {customerId}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Found {recurringInfo.TotalRecurringOrders} recurring orders for customer {customerId}");
                     
                     foreach (var recurringOrder in customerRecurringOrders)
                     {
@@ -185,11 +185,11 @@ namespace TrackerDotNet
                             string itemDesc = ItemTypeTbl.GetItemTypeDescById(recurringOrder.ItemRequiredID);
                             recurringInfo.RecurringOrderDetails.Add($"- {itemDesc} (Qty: {recurringOrder.QtyRequired}) - ID: {recurringOrder.ReoccuringOrderID}");
                             
-                            AppLogger.WriteLog("email", $"DisableClient: Found recurring order {recurringOrder.ReoccuringOrderID} for customer {customerId} - MANUAL DISABLE REQUIRED");
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Found recurring order {recurringOrder.ReoccuringOrderID} for customer {customerId} - MANUAL DISABLE REQUIRED");
                         }
                         catch (Exception ex)
                         {
-                            AppLogger.WriteLog("email", $"DisableClient: Error processing recurring order {recurringOrder.ReoccuringOrderID}: {ex.Message}");
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Error processing recurring order {recurringOrder.ReoccuringOrderID}: {ex.Message}");
                         }
                     }
                     
@@ -198,12 +198,12 @@ namespace TrackerDotNet
                 }
                 else
                 {
-                    AppLogger.WriteLog("email", $"DisableClient: No recurring orders found for customer {customerId}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: No recurring orders found for customer {customerId}");
                 }
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"DisableClient: Error checking recurring orders for customer {customerId}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Error checking recurring orders for customer {customerId}: {ex.Message}");
             }
             
             return recurringInfo;
@@ -220,7 +220,7 @@ namespace TrackerDotNet
                 
                 if (customerData == null)
                 {
-                    AppLogger.WriteLog("email", $"DisableClient: Could not find customer data for goodbye email - Customer {customerId}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Could not find customer data for goodbye email - Customer {customerId}");
                     return;
                 }
                 
@@ -230,7 +230,7 @@ namespace TrackerDotNet
                 
                 if (string.IsNullOrEmpty(customerEmail))
                 {
-                    AppLogger.WriteLog("email", $"DisableClient: No email address found for customer {customerId} - skipping goodbye email");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: No email address found for customer {customerId} - skipping goodbye email");
                     return;
                 }
                 
@@ -254,16 +254,16 @@ namespace TrackerDotNet
                 
                 if (emailSent)
                 {
-                    AppLogger.WriteLog("email", $"DisableClient: Goodbye email sent successfully to {customerEmail} for customer {customerId}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Goodbye email sent successfully to {customerEmail} for customer {customerId}");
                 }
                 else
                 {
-                    AppLogger.WriteLog("email", $"DisableClient: Failed to send goodbye email to {customerEmail} for customer {customerId}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Failed to send goodbye email to {customerEmail} for customer {customerId}");
                 }
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"DisableClient: Error sending goodbye email to customer {customerId}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Error sending goodbye email to customer {customerId}: {ex.Message}");
             }
         }
 
@@ -307,16 +307,16 @@ namespace TrackerDotNet
                 
                 if (notificationSent)
                 {
-                    AppLogger.WriteLog("email", $"DisableClient: Admin notification sent for customer {customerId}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Admin notification sent for customer {customerId}");
                 }
                 else
                 {
-                    AppLogger.WriteLog("email", $"DisableClient: Failed to send admin notification for customer {customerId}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Failed to send admin notification for customer {customerId}");
                 }
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("email", $"DisableClient: Failed to send admin notification: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Failed to send admin notification: {ex.Message}");
             }
         }
 
@@ -333,7 +333,7 @@ namespace TrackerDotNet
 
             frmDisable.Controls.Add(errorDiv);
 
-            AppLogger.WriteLog("email", $"DisableClient: Error displayed - {errorMessage}");
+            AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"DisableClient: Error displayed - {errorMessage}");
         }
     }
 
