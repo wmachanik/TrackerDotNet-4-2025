@@ -126,7 +126,7 @@
                             </tbody>
                         </table>
                         <br />
-                        <asp:Literal ID="ltrlStatus" Text="" runat="server" />
+                        <div class="status-message"><asp:Literal ID="ltrlStatus" Text="" runat="server" /></div>
                     </div>
                     <div class="layout-footer-panel button-toolbar-rounded ">
                         <asp:Button ID="btnDone" Text="Done" runat="server" AccessKey="D" OnClick="btnDone_Click" /><br

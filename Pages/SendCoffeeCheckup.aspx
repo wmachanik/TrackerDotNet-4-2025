@@ -41,7 +41,7 @@
         </ProgressTemplate>
     </asp:UpdateProgress>
     <div class="filter-toolbar" style="padding: 10px">
-        <asp:UpdatePanel ID="upnlSendEmail" runat="server" ChildrenAsTriggers="true" UpdateMode="Conditional">
+        <asp:UpdatePanel ID="upnlSendEmail" runat="server" ChildrenAsTriggers="true" UpdateMode="Conditional" style="width:100%">
             <ContentTemplate>
                 <div class="filter-block">
                     <div>
@@ -51,7 +51,7 @@
                             <asp:Literal ID="ltrlEmailTextID" runat="server" Text="" /></span>
                         <br />
                         <br />
-                        <ajaxToolkit:TabContainer ID="tabEmailBody" runat="server" Height="200px">
+                        <ajaxToolkit:TabContainer ID="tabEmailBody" runat="server" Height="200px" Width="100%">
                             <ajaxToolkit:TabPanel ID="tpnlEmailIntro" TabIndex="0" HeaderText="Checkup Intro" runat="server">
                                 <ContentTemplate>
                                     <asp:TextBox ID="tbxEmailIntro" runat="server" TextMode="MultiLine" Height="100%" Width="99%" Rows="10"

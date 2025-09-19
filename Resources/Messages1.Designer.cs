@@ -61,6 +61,51 @@ namespace TrackerDotNet.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your away period from {0} to {1} has been recorded.&lt;br /&gt;&lt;br /&gt;.
+        /// </summary>
+        public static string AwayPeriod_ConfirmationBody {
+            get {
+                return ResourceManager.GetString("AwayPeriod.ConfirmationBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to During this time, please be aware that our system will not send out any reminders. However, coffee will be available for manual ordering, ensuring you can enjoy your favourites whenever you choose..
+        /// </summary>
+        public static string AwayPeriod_ConfirmationInfo {
+            get {
+                return ResourceManager.GetString("AwayPeriod.ConfirmationInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Away Period Confirmation for {0}.
+        /// </summary>
+        public static string AwayPeriod_ConfirmationSubject {
+            get {
+                return ResourceManager.GetString("AwayPeriod.ConfirmationSubject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0},&lt;br /&gt;&lt;br /&gt;.
+        /// </summary>
+        public static string AwayPeriod_Greeting {
+            get {
+                return ResourceManager.GetString("AwayPeriod.Greeting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjusted Dates: Prep {0}, Delivery {1}.
+        /// </summary>
+        public static string CoffeeCheckup_AdjustedDatesLabel {
+            get {
+                return ResourceManager.GetString("CoffeeCheckup.AdjustedDatesLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;div style=&apos;color: red; font-weight: bold;&apos;&gt;⚠️ FINAL REMINDER: This is the last automated reminder we&apos;ll send. If you no longer need coffee reminders, please let us know.&lt;/div&gt;&lt;br/&gt;.
         /// </summary>
         public static string CoffeeCheckup_BodyFinalWarning {
@@ -84,6 +129,15 @@ namespace TrackerDotNet.Resources {
         public static string CoffeeCheckup_BodyReminderOnly {
             get {
                 return ResourceManager.GetString("CoffeeCheckup.BodyReminderOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjusted for closure date: {0}.
+        /// </summary>
+        public static string CoffeeCheckup_ClosureAdjustmentPrefix {
+            get {
+                return ResourceManager.GetString("CoffeeCheckup.ClosureAdjustmentPrefix", resourceCulture);
             }
         }
         
@@ -210,6 +264,15 @@ namespace TrackerDotNet.Resources {
         public static string CoffeeCheckup_GreetingWithName {
             get {
                 return ResourceManager.GetString("CoffeeCheckup.GreetingWithName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;i&gt;Heads-up:&lt;/i&gt; Upcoming holidays or scheduled closures may affect delivery dates..
+        /// </summary>
+        public static string CoffeeCheckup_HolidayClosureEmailNote {
+            get {
+                return ResourceManager.GetString("CoffeeCheckup.HolidayClosureEmailNote", resourceCulture);
             }
         }
         
@@ -426,6 +489,15 @@ namespace TrackerDotNet.Resources {
         public static string CoffeeCheckup_TableType {
             get {
                 return ResourceManager.GetString("CoffeeCheckup.TableType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upcoming closure date(s): {0}.
+        /// </summary>
+        public static string CoffeeCheckup_UpcomingClosures {
+            get {
+                return ResourceManager.GetString("CoffeeCheckup.UpcomingClosures", resourceCulture);
             }
         }
         

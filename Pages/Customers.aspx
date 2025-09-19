@@ -47,10 +47,11 @@
                     </div>
 
                     <div class="filter-section action-buttons">
-                        <%--<span style="float: right; padding-top:4px; padding-right: 18px">--%>
+                        <asp:HyperLink ImageUrl="~/images/imgButtons/CalendarClock.gif" ToolTip="Customers Away Times" 
+                            NavigateUrl="~/Pages/CustomersAway.aspx" runat="server"  />
                         <asp:HyperLink ImageUrl="~/images/imgButtons/AddItem.gif" ToolTip="New Contact"
                             NavigateUrl="~/Pages/CustomerDetails.aspx" runat="server" />
-                        <%--</span>--%>
+                        
                     </div>
                 </div>
             </div>

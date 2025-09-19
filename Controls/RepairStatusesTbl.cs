@@ -123,5 +123,137 @@ namespace TrackerDotNet.Controls
             trackerDb.Close();
             return string.IsNullOrWhiteSpace(statusNote) ? GetRepairStatusDesc(repairStatusID) : statusNote;
         }
+        [DataObjectMethod(DataObjectMethodType.Insert, true)]
+        public void Insert(RepairStatusesTbl pRepairStatusesTbl)
+        {
+            if (pRepairStatusesTbl == null)
+                return;
+
+            try
+            {
+                if (pRepairStatusesTbl.SortOrder <= 0)
+                {
+                    using (var dbGet = new TrackerDb())
+                    {
+                        var rdr = dbGet.ExecuteSQLGetDataReader("SELECT MAX(SortOrder) AS MaxSort FROM RepairStatusesTbl");
+                        if (rdr != null)
+                        {
+                            if (rdr.Read())
+                            {
+                                int max = rdr["MaxSort"] == DBNull.Value ? 0 : Convert.ToInt32(rdr["MaxSort"]);
+                                pRepairStatusesTbl.SortOrder = max + 1;
+                            }
+                            rdr.Close();
+                        }
+                        dbGet.Close();
+                    }
+                }
+
+                using (var db = new TrackerDb())
+                {
+                    db.AddParams(pRepairStatusesTbl.RepairStatusDesc ?? string.Empty, DbType.String);
+                    db.AddParams(pRepairStatusesTbl.EmailClient, DbType.Boolean);
+                    db.AddParams(pRepairStatusesTbl.SortOrder, DbType.Int32);
+                    db.AddParams(string.IsNullOrWhiteSpace(pRepairStatusesTbl.StatusNote) ? (object)DBNull.Value : pRepairStatusesTbl.StatusNote, DbType.String);
+                    db.AddParams(string.IsNullOrWhiteSpace(pRepairStatusesTbl.Notes) ? (object)DBNull.Value : pRepairStatusesTbl.Notes, DbType.String);
+
+                    string err = db.ExecuteNonQuerySQLWithParams(
+                        "INSERT INTO RepairStatusesTbl (RepairStatusDesc, EmailClient, SortOrder, StatusNote, Notes) VALUES (?,?,?,?,?)",
+                        db.Params);
+
+                    if (string.IsNullOrWhiteSpace(err))
+                    {
+                        var rdr = db.ExecuteSQLGetDataReader("SELECT @@IDENTITY");
+                        if (rdr != null)
+                        {
+                            if (rdr.Read())
+                                pRepairStatusesTbl.RepairStatusID = Convert.ToInt32(rdr[0]);
+                            rdr.Close();
+                        }
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Repairs,
+                            $"Repair Status INSERT OK (ID={pRepairStatusesTbl.RepairStatusID}, Desc='{pRepairStatusesTbl.RepairStatusDesc}')");
+                    }
+                    else
+                    {
+                        AppLogger.WriteLog(SystemConstants.LogTypes.System,
+                            $"Repair Status INSERT FAILED (Desc='{pRepairStatusesTbl.RepairStatusDesc}'). Error: {err}");
+                    }
+
+                    db.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.System,
+                    $"Repair Status INSERT EXCEPTION (Desc='{pRepairStatusesTbl?.RepairStatusDesc}'): {ex.Message}");
+                throw;
+            }
+        }
+
+        [DataObjectMethod(DataObjectMethodType.Update, true)]
+        public void Update(RepairStatusesTbl entity)
+        {
+            if (entity == null || entity.RepairStatusID <= 0) return;
+            try
+            {
+                using (var db = new TrackerDb())
+                {
+                    db.AddParams(entity.RepairStatusDesc ?? string.Empty, DbType.String);
+                    db.AddParams(entity.EmailClient, DbType.Boolean);
+                    db.AddParams(entity.SortOrder, DbType.Int32);
+                    db.AddParams(string.IsNullOrWhiteSpace(entity.StatusNote) ? (object)DBNull.Value : entity.StatusNote, DbType.String);
+                    db.AddParams(string.IsNullOrWhiteSpace(entity.Notes) ? (object)DBNull.Value : entity.Notes, DbType.String);
+                    db.AddWhereParams(entity.RepairStatusID, DbType.Int32);
+                    string err = db.ExecuteNonQuerySQLWithParams(
+                        "UPDATE RepairStatusesTbl SET RepairStatusDesc=?, EmailClient=?, SortOrder=?, StatusNote=?, Notes=? WHERE RepairStatusID=?",
+                        db.Params,
+                        db.WhereParams);
+                    if (string.IsNullOrWhiteSpace(err))
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Repairs, $"Repair Status UPDATE OK (ID={entity.RepairStatusID})");
+                    else
+                        AppLogger.WriteLog(SystemConstants.LogTypes.System, $"Repair Status UPDATE FAILED (ID={entity.RepairStatusID}) {err}");
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.System, $"Repair Status UPDATE EXCEPTION (ID={entity.RepairStatusID}) {ex.Message}");
+                throw;
+            }
+        }
+
+        [DataObjectMethod(DataObjectMethodType.Delete, true)]
+        public void Delete(int pRepairStatusID)
+        {
+            try
+            {
+                using (var db = new TrackerDb())
+                {
+                    db.AddWhereParams(pRepairStatusID, DbType.Int32);
+                    string err = db.ExecuteNonQuerySQLWithParams(
+                        "DELETE FROM RepairStatusesTbl WHERE RepairStatusID=?",
+                        null,
+                        db.WhereParams);
+
+                    if (string.IsNullOrWhiteSpace(err))
+                    {
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Repairs,
+                            $"Repair Status DELETE OK (ID={pRepairStatusID})");
+                    }
+                    else
+                    {
+                        AppLogger.WriteLog(SystemConstants.LogTypes.System,
+                            $"Repair Status DELETE FAILED (ID={pRepairStatusID}). Error: {err}");
+                    }
+
+                    db.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.System,
+                    $"Repair Status DELETE EXCEPTION (ID={pRepairStatusID}): {ex.Message}");
+                throw;
+            }
+        }
     }
 }

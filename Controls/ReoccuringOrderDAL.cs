@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using TrackerDotNet.Classes;
+using static TrackerDotNet.Classes.DateCalculator;
 using static TrackerDotNet.Classes.MessageKeys;
 
 //- only form later versions #nullable disable
@@ -151,98 +152,97 @@ namespace TrackerDotNet.Controls
         //            return dateLastDone;
         //    }
         //}
-        public DateTime CalculateNextDateRequired(ReoccuringOrderTbl reoccuranceOrder)
+        public DateTime CalculateNextDeliveryDateRequired(ReoccuringOrderTbl reoccuranceOrder)
+        {
+            DateTime nextDateRequired = CalculateNextDatesRequired(reoccuranceOrder).DeliveryDate;
+            return nextDateRequired;
+        }
+        public PrepDeliveryPair CalculateNextDatesRequired(ReoccuringOrderTbl reoccuranceOrder)
         {
             DateCalculator deliveryDateCalculator = new DateCalculator();
-            var recurrenceType = reoccuranceOrder.ReoccuranceTypeID;
-            var today = TimeZoneUtils.Now().Date;
+            int recurrenceType = reoccuranceOrder.ReoccuranceTypeID;
+            DateTime today = TimeZoneUtils.Now().Date;
 
-            DateTime calculatedNextDate = today;
+            bool isFirstTime = reoccuranceOrder.DateLastDone <= SystemConstants.DatabaseConstants.SystemMinDate;
 
             switch (recurrenceType)
             {
                 case ReoccuranceTypeTbl.CONST_WEEKTYPEID:
                     {
-                        // Calculate the interval in days (e.g., 4 weeks = 28 days)
-                        int intervalDays = reoccuranceOrder.ReoccuranceValue * 7;
-                        DateTime lastDone = reoccuranceOrder.DateLastDone;
+                        int weeks = reoccuranceOrder.ReoccuranceValue > 0 ? reoccuranceOrder.ReoccuranceValue : 1;
+                        int intervalDays = weeks * 7;
+                        DateTime anchor;
 
-                        if (lastDone <= SystemConstants.DatabaseConstants.SystemMinDate)
+                        if (isFirstTime)
                         {
-                            // If no previous order, schedule for today
-                            calculatedNextDate = today;
+                            // First-time: schedule from today (not today + full interval)
+                            anchor = today;
                         }
                         else
                         {
-                            // Calculate how many full intervals have passed since last done
-                            int daysSinceLastDone = (int)(today - lastDone).TotalDays;
-                            int intervalsPassed = daysSinceLastDone / intervalDays;
-
-                            // If at least one interval has passed, schedule for today (catch up immediately)
-                            // Otherwise, schedule for the next recurrence after last done
-                            if (intervalsPassed > 0)
-                            {
-                                calculatedNextDate = today;
-                            }
-                            else
-                            {
-                                calculatedNextDate = lastDone.AddDays(intervalDays);
-                            }
+                            anchor = reoccuranceOrder.DateLastDone.AddDays(intervalDays);
+                            while (anchor < today)
+                                anchor = anchor.AddDays(intervalDays);
                         }
+
+                        return deliveryDateCalculator.CalculateOptimalWeeklyDeliveryDates(
+                            reoccuranceOrder.CustomerID,
+                            anchor);
                     }
-                    break;
 
                 case ReoccuranceTypeTbl.CONST_DAYOFMONTHID:
                     {
                         int targetDay = reoccuranceOrder.ReoccuranceValue;
-                        DateTime lastDone = reoccuranceOrder.DateLastDone;
+                        if (targetDay <= 0) targetDay = 1;
 
-                        if (lastDone <= SystemConstants.DatabaseConstants.SystemMinDate)
+                        DateTime lastDone = reoccuranceOrder.DateLastDone;
+                        DateTime baseForCalc;
+
+                        if (isFirstTime)
                         {
-                            // If no previous order, and today is after the target day, schedule for today
-                            if (today.Day >= targetDay)
+                            // For first-time monthly: aim for this month’s target if still upcoming, else next month.
+                            int daysInThisMonth = DateTime.DaysInMonth(today.Year, today.Month);
+                            int thisMonthTargetDay = Math.Min(targetDay, daysInThisMonth);
+                            DateTime candidate = new DateTime(today.Year, today.Month, thisMonthTargetDay);
+
+                            if (candidate < today)
                             {
-                                calculatedNextDate = today;
+                                DateTime nextMonth = today.AddMonths(1);
+                                int daysInNextMonth = DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month);
+                                int nextMonthTargetDay = Math.Min(targetDay, daysInNextMonth);
+                                candidate = new DateTime(nextMonth.Year, nextMonth.Month, nextMonthTargetDay);
                             }
-                            else
-                            {
-                                // Otherwise, schedule for the target day in the current month
-                                int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
-                                int validDay = Math.Min(targetDay, daysInMonth);
-                                calculatedNextDate = new DateTime(today.Year, today.Month, validDay);
-                            }
+
+                            // Trick: pass a synthetic lastDone = candidate.AddMonths(-1) so the monthly calculator targets 'candidate'
+                            baseForCalc = candidate.AddMonths(-1);
                         }
                         else
                         {
-                            // Schedule for the target day in the next month after last done
-                            DateTime nextMonth = lastDone.AddMonths(1);
-                            int daysInNextMonth = DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month);
-                            int validDay = Math.Min(targetDay, daysInNextMonth);
-                            DateTime candidateDate = new DateTime(nextMonth.Year, nextMonth.Month, validDay);
-
-                            // If candidate date is before today, schedule for today (catch up)
-                            calculatedNextDate = candidateDate < today ? today : candidateDate;
+                            baseForCalc = lastDone;
                         }
+
+                        return deliveryDateCalculator.CalculateOptimalMonthlyDeliveryDates(
+                            reoccuranceOrder.CustomerID,
+                            targetDay,
+                            baseForCalc);
                     }
-                    break;
 
                 default:
-                    // Fallback: schedule for today
-                    calculatedNextDate = today;
-                    break;
+                    {
+                        // Fallback treat as weekly “immediate”
+                        DateTime anchor = isFirstTime ? today : reoccuranceOrder.DateLastDone.AddDays(7);
+                        if (anchor < today) anchor = today;
+                        return deliveryDateCalculator.CalculateOptimalWeeklyDeliveryDates(
+                            reoccuranceOrder.CustomerID,
+                            anchor);
+                    }
             }
-
-            // Optimize delivery date based on city schedule
-            return deliveryDateCalculator.CalculateOptimalWeeklyDeliveryDate(
-                reoccuranceOrder.CustomerID,
-                DateCalculator.WEEKLY_INTERVAL,
-                calculatedNextDate);
         }
         public string UpdateReoccuringOrder(ReoccuringOrderTbl reoccuranceOrder, int origReoccuringIDToUpdate, bool recalcNextDateRequired = true)
         {
             // since we are updating the record, also update next date required based on last done, type and value
             if (recalcNextDateRequired)
-                reoccuranceOrder.NextDateRequired = CalculateNextDateRequired(reoccuranceOrder);
+                reoccuranceOrder.NextDateRequired = CalculateNextDeliveryDateRequired(reoccuranceOrder);
             // no update the data
             TrackerDb trackerDb = new TrackerDb();
             trackerDb.AddParams((object)reoccuranceOrder.CustomerID, DbType.Int64, "@CustomerID");
@@ -262,23 +262,97 @@ namespace TrackerDotNet.Controls
             return str;
         }
 
-        public string InsertReoccuringOrder(ReoccuringOrderTbl pReoccuranceTypeTbl)
+        // Centralized initialization / normalization logic for a new recurring order.
+        // Keeps InsertReoccuringOrder lean and makes it easier to adjust defaulting rules.
+        private ReoccuringOrderTbl InitializeNewOrderDefaults(ReoccuringOrderTbl newOrder, bool recalcNextDateRequired)
         {
+            if (newOrder == null) throw new ArgumentNullException(nameof(newOrder));
+            var today = TimeZoneUtils.Now().Date;
+
+            // Normalize first-time MONTHLY recurrence so that the first NextDateRequired points to
+            // THIS month (not automatically a month ahead) when DateLastDone has never been set.
+            bool isFirstTime = newOrder.DateLastDone <= SystemConstants.DatabaseConstants.SystemMinDate;
+            bool isMonthly = newOrder.ReoccuranceTypeID == ReoccuranceTypeTbl.CONST_DAYOFMONTHID;
+            if (isFirstTime && isMonthly)
+            {
+                int targetDay = newOrder.ReoccuranceValue <= 0 ? 1 : newOrder.ReoccuranceValue;
+                int daysInThisMonth = DateTime.DaysInMonth(today.Year, today.Month);
+                int actualDay = Math.Min(targetDay, daysInThisMonth);
+                DateTime thisMonthTarget = new DateTime(today.Year, today.Month, actualDay);
+
+                // Only adjust if the target day is still today or in the future this month.
+                // (If already past, we leave DateLastDone as min so existing logic will advance correctly.)
+                if (thisMonthTarget >= today)
+                {
+                    // Set synthetic last-done to previous month’s target so downstream
+                    // logic that does AddMonths(1) yields thisMonthTarget.
+                    DateTime prevMonth = thisMonthTarget.AddMonths(-1);
+                    newOrder.DateLastDone = prevMonth;
+                }
+            }
+
+            if (newOrder.ReoccuranceTypeID == ReoccuranceTypeTbl.CONST_WEEKTYPEID &&
+                newOrder.DateLastDone > SystemConstants.DatabaseConstants.SystemMinDate)
+            {
+                newOrder.DateLastDone = GetMonday(newOrder.DateLastDone);
+            }
+
+            if (newOrder.RequireUntilDate == DateTime.MinValue)
+                newOrder.RequireUntilDate = SystemConstants.DatabaseConstants.SystemMinDate;
+
+            if (recalcNextDateRequired)
+            {
+                try
+                {
+                    newOrder.NextDateRequired = CalculateNextDeliveryDateRequired(newOrder);
+
+                    // For monthly first-time we intentionally allow "today" if it is the target;
+                    // only bump if it somehow calculated into the past.
+                    if (newOrder.NextDateRequired < today)
+                        newOrder.NextDateRequired = today.AddDays(1);
+                }
+                catch (Exception ex)
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
+                        $"ReoccuringOrderDAL: Insert recalc failed (Cust={newOrder.CustomerID}): {ex.Message}");
+                    newOrder.NextDateRequired = today.AddDays(1);
+                }
+            }
+            else if (newOrder.NextDateRequired <= SystemConstants.DatabaseConstants.SystemMinDate)
+            {
+                newOrder.NextDateRequired = today.AddDays(1);
+            }
+            return newOrder;
+        }
+
+        public string InsertReoccuringOrder(ReoccuringOrderTbl newOrder, bool recalcNextDateRequired = true)
+        {
+            if (newOrder == null) throw new ArgumentNullException(nameof(newOrder));
+
+            // All default / normalization logic moved here.
+            newOrder = InitializeNewOrderDefaults(newOrder, recalcNextDateRequired);
+
             TrackerDb trackerDb = new TrackerDb();
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.CustomerID, DbType.Int64, "@CustomerID");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.ReoccuranceTypeID, DbType.Int32, "@ReoccuranceTypeID");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.ReoccuranceValue, DbType.Int32, "@ReoccuranceValue");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.ItemRequiredID, DbType.Int32, "@ItemRequiredID");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.QtyRequired, DbType.Double, "@QtyRequired");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.DateLastDone, DbType.DateTime, "@DateLastDone");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.NextDateRequired, DbType.DateTime, "@NextDateRequired");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.RequireUntilDate, DbType.DateTime, "@RequireUntilDate");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.PackagingID, DbType.Int32, "@PackagingID");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.Enabled, DbType.Boolean, "@Enabled");
-            trackerDb.AddParams((object)pReoccuranceTypeTbl.Notes, DbType.String, "@Notes");
-            string str = trackerDb.ExecuteNonQuerySQL("INSERT INTO ReoccuringOrderTbl (CustomerID, ReoccuranceType, [Value], ItemRequiredID, QtyRequired,  DateLastDone, NextDateRequired, RequireUntilDate, PackagingID, Enabled, Notes)  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            trackerDb.AddParams(newOrder.CustomerID, DbType.Int64, "@CustomerID");
+            trackerDb.AddParams(newOrder.ReoccuranceTypeID, DbType.Int32, "@ReoccuranceTypeID");
+            trackerDb.AddParams(newOrder.ReoccuranceValue, DbType.Int32, "@ReoccuranceValue");
+            trackerDb.AddParams(newOrder.ItemRequiredID, DbType.Int32, "@ItemRequiredID");
+            trackerDb.AddParams(newOrder.QtyRequired, DbType.Double, "@QtyRequired");
+            trackerDb.AddParams(newOrder.DateLastDone, DbType.DateTime, "@DateLastDone");
+            trackerDb.AddParams(newOrder.NextDateRequired, DbType.DateTime, "@NextDateRequired");
+            trackerDb.AddParams(newOrder.RequireUntilDate, DbType.DateTime, "@RequireUntilDate");
+            trackerDb.AddParams(newOrder.PackagingID, DbType.Int32, "@PackagingID");
+            trackerDb.AddParams(newOrder.Enabled, DbType.Boolean, "@Enabled");
+            trackerDb.AddParams(newOrder.Notes ?? string.Empty, DbType.String, "@Notes");
+
+            string result = trackerDb.ExecuteNonQuerySQL(
+                "INSERT INTO ReoccuringOrderTbl (CustomerID, ReoccuranceType, [Value], ItemRequiredID, QtyRequired, DateLastDone, NextDateRequired, RequireUntilDate, PackagingID, Enabled, Notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             trackerDb.Close();
-            return str;
+
+            AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
+                $"ReoccuringOrderDAL: Inserted recurring order (Cust={newOrder.CustomerID}) FirstNextDate={newOrder.NextDateRequired:yyyy-MM-dd}");
+
+            return result;
         }
 
         public string DeleteReoccuringOrder(long pReoccuringIDToDelete)
@@ -374,7 +448,7 @@ namespace TrackerDotNet.Controls
                 // Always update DateLastDone in memory for correct calculation
                 var recurrenceType = ReoccuranceTypeTbl.GetRecurrenceType(recurringOrder.ReoccuranceTypeID);
                 recurringOrder.DateLastDone = CalculateRecurringLastDate(orderDate, recurrenceType, recurringOrder.ReoccuranceValue);
-                recurringOrder.NextDateRequired = CalculateNextDateRequired(recurringOrder);
+                recurringOrder.NextDateRequired = CalculateNextDeliveryDateRequired(recurringOrder);
 
                 // Build SQL and parameters
                 string sql;

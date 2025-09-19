@@ -175,7 +175,7 @@
                     </tr>
                 </table>
             </asp:Panel>
-            <asp:Literal ID="ltrlStatus" runat="server" />
+            <div class="status-message"><asp:Literal ID="ltrlStatus" runat="server" /></div>
         </ContentTemplate>
     </asp:UpdatePanel>
 

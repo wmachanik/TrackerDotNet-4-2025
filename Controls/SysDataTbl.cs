@@ -156,7 +156,7 @@ namespace TrackerDotNet.Controls
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("database", $"Error getting internal customer IDs: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Error getting internal customer IDs: {ex.Message}");
             }
 
             return customerIds;

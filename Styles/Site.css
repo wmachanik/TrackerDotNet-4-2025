@@ -1057,7 +1057,7 @@ div.simpleLightBrownForm {
 }
 
 .dashboard-link {
-    flex: 1 1 300px;
+    /*flex: 1 1 300px;*/
     min-width: 280px;
     text-decoration: none !important;
     transition: all 0.2s ease;
@@ -1115,7 +1115,75 @@ div.simpleLightBrownForm {
     .dashboard-link.btn-add:hover .dashboard-card p {
         color: #fff;
     }
+/* SystemTools: compact cards/buttons via a single wrapper */
+.dashboard-links.tools-dashboard {
+    gap: 8px; /* tighter spacing than default if needed */
+}
 
+    /* Let cards size to content (default had fixed heights) */
+    .dashboard-links.tools-dashboard .dashboard-card {
+        height: auto;
+        padding: 8px 10px;
+    }
+
+        /* Slightly smaller titles and no extra paragraph margins */
+        .dashboard-links.tools-dashboard .dashboard-card h4 {
+            margin: 0 0 4px 0;
+            font-size: 1em;
+        }
+
+        .dashboard-links.tools-dashboard .dashboard-card p {
+            margin: 0 0 6px 0;
+            font-size: 0.9em;
+            line-height: 1.25;
+        }
+
+    /* Compact buttons inside cards */
+    .dashboard-links.tools-dashboard input[type="submit"],
+    .dashboard-links.tools-dashboard button {
+        height: 28px !important;
+        padding: 3px 10px !important;
+        font-size: 0.9em !important;
+        min-width: 100px !important;
+    }
+
+/* Mobile: even tighter */
+@media (max-width: 768px) {
+    .dashboard-links.tools-dashboard {
+        gap: 6px;
+        margin-top: 6px;
+    }
+
+        .dashboard-links.tools-dashboard .dashboard-card {
+            padding: 6px 8px;
+        }
+
+        .dashboard-links.tools-dashboard input[type="submit"],
+        .dashboard-links.tools-dashboard button {
+            height: 26px !important;
+            padding: 2px 8px !important;
+            min-width: 90px !important;
+            font-size: 0.85em !important;
+        }
+}
+
+@media (max-width: 480px) {
+    .dashboard-links.tools-dashboard {
+        gap: 5px;
+    }
+
+        .dashboard-links.tools-dashboard .dashboard-card {
+            padding: 4px 6px;
+        }
+
+        .dashboard-links.tools-dashboard input[type="submit"],
+        .dashboard-links.tools-dashboard button {
+            height: 24px !important;
+            padding: 2px 6px !important;
+            min-width: 80px !important;
+            font-size: 0.8em !important;
+        }
+}
 /* Mobile responsiveness */
 @media (max-width: 768px) {
     .dashboard-links {
@@ -1492,16 +1560,17 @@ button,
         color: #666;
         margin-right: 4px;
         white-space: nowrap;
+        font-size: smaller;
     }
 
     .filter-control select,
     .filter-control input[type="text"] {
-        min-width: 100px;
+        min-width: 20px;
         padding: 4px 6px;
         border: 1px solid #ccc;
         border-radius: 3px;
-        font-size: 0.9em;
-        width: auto !important; /* Allow auto-width */
+        font-size: 0.85em;
+        /*width: auto !important; /* Allow auto-width */
         flex: 1 !important; /* Allow to grow */
     }
 
@@ -1517,7 +1586,7 @@ button,
     font-family: Tahoma, sans-serif, Helvetica, sans-serif !important;
     font-size: 0.9em !important;
     min-width: 40px !important;
-    /*max-width: 100px !important;*/
+    max-width: 160px !important;
     height: 30px !important;
     box-sizing: border-box !important;
     white-space: nowrap !important;
@@ -1643,7 +1712,7 @@ button,
     gap: 8px;
     flex-wrap: wrap;
     flex: 1;
-    min-width: 300px;
+    min-width: 200px;
 }
 
 /* Date input groups - wraps label and input */
@@ -1807,7 +1876,7 @@ button,
 .results-container {
     background: var(--light-green);
     border-radius: 15px;
-    padding: 8px;
+    padding: 10px;
     margin-bottom: 15px;
     width: 100%;
     box-sizing: border-box;
@@ -2030,7 +2099,42 @@ table.results-table {
         border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
     }
+        /* Opt-in wrapping (override the global nowrap on .results-table cells) */
+        .results-table td.wrap,
+        .results-table th.wrap,
+        table.results-table td.wrap,
+        table.results-table th.wrap {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+        }
 
+    /* Multi-line clamp utilities (apply to an inner wrapper) */
+    .results-table .clamp-1,
+    .results-table .clamp-2,
+    .results-table .clamp-3,
+    table.results-table .clamp-1,
+    table.results-table .clamp-2,
+    table.results-table .clamp-3 {
+        display: -webkit-box !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        white-space: normal !important; /* ensure wrapping before clamping */
+    }
+
+    .results-table .clamp-1 {
+        -webkit-line-clamp: 1 !important;
+    }
+
+    .results-table .clamp-2 {
+        -webkit-line-clamp: 2 !important;
+    }
+
+    .results-table .clamp-3 {
+        -webkit-line-clamp: 3 !important;
+    }
 /* Specific fix for gvReoccuringOrders on mobile */
 @media (max-width: 768px) {
     #gvReoccuringOrders,
@@ -2842,8 +2946,8 @@ table.InputFrm {
         }
 
         .TblFlex img {
-            max-height: 14px;
-            max-width: 14px;
+            max-height: 16px;
+            max-width: 16px;
         }
 
         /* Hide less important columns on mobile */
@@ -2900,8 +3004,8 @@ table.InputFrm {
         }
 
         .TblFlex img {
-            max-height: 12px;
-            max-width: 12px;
+            max-height: 16px;
+            max-width: 16px;
         }
 
         /* Hide additional columns on small mobile */
@@ -3468,6 +3572,45 @@ table.InputFrm {
         font-size: 14px !important; /* Prevent iOS zoom */
     }
 
+/* DeliverySheet Totals table rounding fix */
+.TblWrapper {
+    border: none; /* wrapper becomes neutral */
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+}
+
+    .TblWrapper .TblCoffee {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        margin: 0 !important; /* remove side gap that made corners look clipped */
+        border: 1px solid #523A0B; /* keep your original border tone */
+        border-radius: 10px !important;
+        overflow: hidden; /* clip cell backgrounds inside radius */
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.10);
+    }
+
+        .TblWrapper .TblCoffee thead th:first-child {
+            border-top-left-radius: 10px;
+        }
+
+        .TblWrapper .TblCoffee thead th:last-child {
+            border-top-right-radius: 10px;
+        }
+
+        .TblWrapper .TblCoffee tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 10px;
+        }
+
+        .TblWrapper .TblCoffee tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 10px;
+        }
+        .TblWrapper .TblCoffee td,
+        .TblWrapper .TblCoffee th {
+            border: 1px solid #ddd !important;
+            padding: 2px 4px !important;
+        }
 /* UNIVERSAL MOBILE RESPONSIVE BEHAVIOR */
 @media (max-width: 768px) {
 
@@ -3845,4 +3988,58 @@ td.wordwrap {
 
     .results-table tr.aspNetPager input[type="image"]:last-child {
         margin-right: 0 !important;
+    }
+
+/* Status message styles */
+.status-message {
+    margin-top: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #d9e2ec;
+    background: #f5f7fa;
+    color: #2f3b48;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    width: auto;
+    max-width: 100%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: background-color .25s, border-color .25s;
+    word-break: break-word;
+}
+    .status-message:empty {
+        display: none;
+    }
+
+    .status-message.status-info {
+        background: #eef6ff;
+        border-color: #c3ddfd;
+        color: #1e4976;
+    }
+
+    .status-message.status-success {
+        background: #ecfdf5;
+        border-color: #a7f3d0;
+        color: #05603a;
+    }
+
+    .status-message.status-warn {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #92400e;
+    }
+
+    .status-message.status-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    .status-message a {
+        color: inherit;
+        text-decoration: underline;
+        font-weight: 500;
+    }
+
+    .status-message strong {
+        font-weight: 600;
     }

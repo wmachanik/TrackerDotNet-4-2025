@@ -12,7 +12,7 @@
           document.getElementById('<%= FileNameTextBox.ClientID %>').value = filePath;
       }
   </script>
-  <style>
+  <style type="text/css">
     .file-browser {
       border: 1px solid #ccc;
       padding: 10px;

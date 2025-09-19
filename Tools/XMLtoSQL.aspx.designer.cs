@@ -13,33 +13,5 @@ namespace TrackerDotNet.test
 
     public partial class XMLtoSQL
     {
-        /*
-        /// <summary>
-        /// RefreshFilesButton control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button RefreshFilesButton;
-
-        /// <summary>
-        /// pnlFileBrowser control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlFileBrowser;
-
-        /// <summary>
-        /// ltrlFileList control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal ltrlFileList;
-        */
     }
 }

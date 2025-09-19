@@ -93,7 +93,7 @@ namespace TrackerDotNet.Classes
                         var dateVal = Convert.ToDateTime(value).Date;
                         if (dateVal < new DateTime(1900, 1, 1) || dateVal > new DateTime(2079, 12, 31))
                         {
-                            AppLogger.WriteLog("database", $"Date value {dateVal} is outside Access supported range, using minimum date");
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Date value {dateVal} is outside Access supported range, using minimum date");
                             return new DateTime(1900, 1, 1);
                         }
                         return dateVal;
@@ -102,7 +102,7 @@ namespace TrackerDotNet.Classes
                         DateTime dtVal = value is DateTime dt ? dt : Convert.ToDateTime(value);
                         if (dtVal < new DateTime(1900, 1, 1) || dtVal > new DateTime(2079, 12, 31))
                         {
-                            AppLogger.WriteLog("database", $"DateTime value {dtVal} is outside Access supported range, using minimum date");
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"DateTime value {dtVal} is outside Access supported range, using minimum date");
                             dtVal = new DateTime(1900, 1, 1);
                         }
                         // FIX: Return DateTime object instead of string to match DbType.Date behavior
@@ -125,7 +125,7 @@ namespace TrackerDotNet.Classes
                         // Only log if this is actually problematic (which it shouldn't be for normal customer IDs)
                         if (EnableDetailedLogging)
                         {
-                            AppLogger.WriteLog("database", $"Long value {longVal} exceeds int range, keeping as long");
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Long value {longVal} exceeds int range, keeping as long");
                         }
                         return longVal;
 
@@ -141,7 +141,7 @@ namespace TrackerDotNet.Classes
                         // Access has a 255 character limit for many string fields
                         if (strVal.Length > 255)
                         {
-                            AppLogger.WriteLog("database", $"String value truncated from {strVal.Length} to 255 characters");
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"String value truncated from {strVal.Length} to 255 characters");
                             strVal = strVal.Substring(0, 255);
                         }
                         return strVal;
@@ -167,7 +167,7 @@ namespace TrackerDotNet.Classes
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("database", $"Parameter conversion failed for DbType {dbType}, value '{value}' (Type: {value?.GetType().Name}): {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Parameter conversion failed for DbType {dbType}, value '{value}' (Type: {value?.GetType().Name}): {ex.Message}");
                 return DBNull.Value;
             }
         }
@@ -360,7 +360,7 @@ namespace TrackerDotNet.Classes
                     // Only log if detailed logging is enabled
                     if (EnableDetailedLogging)
                     {
-                        AppLogger.WriteLog("database", "Connection is null, reinitializing...");
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Database, "Connection is null, reinitializing...");
                     }
                     this.Initialize();
                     return this._TrackerDbConn != null;
@@ -369,7 +369,7 @@ namespace TrackerDotNet.Classes
                 if (this._TrackerDbConn.State == ConnectionState.Broken)
                 {
                     // Always log broken connections as these are problems
-                    AppLogger.WriteLog("database", "Connection is broken, recreating...");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Database, "Connection is broken, recreating...");
                     this._TrackerDbConn.Close();
                     this._TrackerDbConn.Dispose();
                     this.Initialize();
@@ -380,7 +380,7 @@ namespace TrackerDotNet.Classes
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("database", $"Connection validation failed: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Connection validation failed: {ex.Message}");
                 return false;
             }
         }
@@ -410,11 +410,11 @@ namespace TrackerDotNet.Classes
                 this._TrackerDbConn.Close();
 
                 // Remove this line - only log on errors
-                // AppLogger.WriteLog("database", "Database connection initialized successfully");
+                // AppLogger.WriteLog(SystemConstants.LogTypes.Database, "Database connection initialized successfully");
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("database", $"Failed to initialize database connection: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Failed to initialize database connection: {ex.Message}");
                 throw new Exception($"Database connection failed: {ex.Message}", ex);
             }
         }
@@ -471,7 +471,7 @@ namespace TrackerDotNet.Classes
           List<DBParameter> pParams,
           List<DBParameter> pWhereParams)
         {
-            string str = string.Empty;
+            this.ErrorResult = string.Empty;
 
             try
             {
@@ -511,13 +511,13 @@ namespace TrackerDotNet.Classes
                 this.ErrorResult = BuildDetailedErrorMessage(ex, strSQL, CombineParameters(pParams, pWhereParams));
 
                 // Also log to AppLogger like the retry method
-                AppLogger.WriteLog("database", $"ExecuteNonQuerySQL failed: {this.ErrorResult}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"ExecuteNonQuerySQL failed: {this.ErrorResult}");
             }
             catch (Exception ex)
             {
                 // Handle non-OleDb exceptions
                 this.ErrorResult = $"Unexpected Error in ExecuteNonQuery: {ex.Message}\nQuery: {strSQL}";
-                AppLogger.WriteLog("database", this.ErrorResult);
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, this.ErrorResult);
             }
             finally
             {
@@ -527,7 +527,7 @@ namespace TrackerDotNet.Classes
                 this._TrackerDbConn.Close();
             }
 
-            return str;
+            return this.ErrorResult;
 
         }
 
@@ -562,13 +562,13 @@ namespace TrackerDotNet.Classes
                 // Enhanced error logging with detailed parameter information
                 this.ErrorResult = BuildDetailedErrorMessage(ex, strSQL, pWhereParams);
                 // Also log to AppLogger like the retry method
-                AppLogger.WriteLog("database", $"ReturnDataSet failed: {this.ErrorResult}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"ReturnDataSet failed: {this.ErrorResult}");
             }
             catch (Exception ex)
             {
                 // Handle non-OleDb exceptions
                 this.ErrorResult = $"Unexpected Error in ReturnDataSet: {ex.Message}\nQuery: {strSQL}";
-                AppLogger.WriteLog("database", this.ErrorResult);
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, this.ErrorResult);
             }
             finally
             {
@@ -581,8 +581,7 @@ namespace TrackerDotNet.Classes
             return dataSet;
         }
 
-        private static readonly bool EnableDetailedLogging =
-    ConfigurationManager.AppSettings["EnableDatabaseDetailedLogging"]?.ToLower() == "true";
+        private static readonly bool EnableDetailedLogging = ConfigurationManager.AppSettings["EnableDatabaseDetailedLogging"]?.ToLower() == "true";
 
         public IDataReader ExecuteSQLGetDataReader(string strSQL)
         {
@@ -612,7 +611,7 @@ namespace TrackerDotNet.Classes
             catch (OleDbException ex)
             {
                 this.ErrorResult = BuildDetailedErrorMessage(ex, strSQL, pWhereParams);
-                AppLogger.WriteLog("database", $"ExecuteSQLGetDataReader failed: {this.ErrorResult}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"ExecuteSQLGetDataReader failed: {this.ErrorResult}");
 
                 if (this._TrackerDbConn?.State == ConnectionState.Open)
                 {
@@ -624,7 +623,7 @@ namespace TrackerDotNet.Classes
             catch (Exception ex)
             {
                 this.ErrorResult = $"Unexpected Error in ExecuteSQLGetDataReader: {ex.Message}\nQuery: {strSQL}";
-                AppLogger.WriteLog("database", this.ErrorResult);
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, this.ErrorResult);
 
                 if (this._TrackerDbConn?.State == ConnectionState.Open)
                 {
@@ -656,7 +655,7 @@ namespace TrackerDotNet.Classes
                 catch (OleDbException ex) when (IsTransientError(ex) && retryCount < maxRetries - 1)
                 {
                     retryCount++;
-                    AppLogger.WriteLog("database", $"Transient error on attempt {retryCount}, retrying in {delay.TotalMilliseconds}ms: {ex.Message}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Transient error on attempt {retryCount}, retrying in {delay.TotalMilliseconds}ms: {ex.Message}");
 
                     System.Threading.Thread.Sleep(delay);
                     delay = TimeSpan.FromMilliseconds(delay.TotalMilliseconds * 2); // Exponential backoff
@@ -668,12 +667,12 @@ namespace TrackerDotNet.Classes
                     }
                     catch (Exception initEx)
                     {
-                        AppLogger.WriteLog("database", $"Failed to reinitialize connection for retry: {initEx.Message}");
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Failed to reinitialize connection for retry: {initEx.Message}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    AppLogger.WriteLog("database", $"Non-retryable error: {ex.Message}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Non-retryable error: {ex.Message}");
                     throw;
                 }
             }
@@ -807,13 +806,13 @@ namespace TrackerDotNet.Classes
             {
                 this.ErrorResult = ex.Message;
                 HttpContext.Current.Session["DataAccessError"] = ex.Message;
-                AppLogger.WriteLog("database", $"ReturnHashTable failed: {this.ErrorResult}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"ReturnHashTable failed: {this.ErrorResult}");
             }
             catch (Exception ex)
             {
                 // Handle non-OleDb exceptions
                 this.ErrorResult = $"Unexpected Error in ReturnHashTable: {ex.Message}\nQuery: {strSQL}";
-                AppLogger.WriteLog("database", this.ErrorResult);
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, this.ErrorResult);
             }
             finally
             {
@@ -972,7 +971,7 @@ namespace TrackerDotNet.Classes
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("database", $"Connection test failed: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Connection test failed: {ex.Message}");
                 return false;
             }
         }

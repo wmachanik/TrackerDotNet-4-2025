@@ -5,6 +5,8 @@
 // Assembly location: C:\SRC\Apps\qtracker\bin\TrackerDotNet.dll
 
 //- only form later versions #nullable disable
+using System;
+
 namespace TrackerDotNet.Controls
 {
     public class ReoccuringOrderExtData : ReoccuringOrderTbl
@@ -12,28 +14,49 @@ namespace TrackerDotNet.Controls
         private string _CompanyName;
         private string _ItemTypeDesc;
         private string _ReoccuranceTypeDesc;
+        private DateTime _PrepDate; // Added: prep/roast date associated with the next delivery
 
         public ReoccuringOrderExtData()
         {
-            this._CompanyName = this._ItemTypeDesc = this._ReoccuranceTypeDesc = string.Empty;
+            _CompanyName = _ItemTypeDesc = _ReoccuranceTypeDesc = string.Empty;
+            _PrepDate = DateTime.MinValue; // default until set explicitly
         }
 
+        /// <summary>
+        /// Display/company name for the customer owning this recurring pattern.
+        /// </summary>
         public string CompanyName
         {
-            get => this._CompanyName;
-            set => this._CompanyName = value;
+            get => _CompanyName;
+            set => _CompanyName = value;
         }
 
+        /// <summary>
+        /// Human-readable item description.
+        /// </summary>
         public string ItemTypeDesc
         {
-            get => this._ItemTypeDesc;
-            set => this._ItemTypeDesc = value;
+            get => _ItemTypeDesc;
+            set => _ItemTypeDesc = value;
         }
 
+        /// <summary>
+        /// Human-readable recurrence type description.
+        /// </summary>
         public string ReoccuranceTypeDesc
         {
-            get => this._ReoccuranceTypeDesc;
-            set => this._ReoccuranceTypeDesc = value;
+            get => _ReoccuranceTypeDesc;
+            set => _ReoccuranceTypeDesc = value;
+        }
+
+        /// <summary>
+        /// The prep (roast) date that pairs with NextDateRequired (delivery date).
+        /// This is NOT persisted by the base table; it is an extended/calculated value.
+        /// </summary>
+        public DateTime PrepDate
+        {
+            get => _PrepDate;
+            set => _PrepDate = value;
         }
     }
 }

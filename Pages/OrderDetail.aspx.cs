@@ -5,6 +5,8 @@
 // Assembly location: C:\SRC\Apps\qtracker\bin\TrackerDotNet.dll
 
 using AjaxControlToolkit;
+using AjaxControlToolkit.HtmlEditor.ToolbarButtons;
+using Org.BouncyCastle.Asn1.Cmp;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -237,7 +239,7 @@ namespace TrackerDotNet.Pages
             if (Request.QueryString[CONST_QRYSTR_NEWORDER] != null &&
                 Request.QueryString[CONST_QRYSTR_NEWORDER].Equals("true", StringComparison.OrdinalIgnoreCase))
             {
-                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Explicit new order mode requested - clearing session");
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Explicit new order mode requested - clearing session");
                 ClearOrderSession(); // Clear session when explicitly requesting new order
                 return true; // New Order mode
             }
@@ -321,7 +323,7 @@ namespace TrackerDotNet.Pages
             if (!hasPermission)
             {
                 btnNewItem.Enabled = false;
-                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "btnNewItem disabled - user lacks required roles");
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "btnNewItem disabled - user lacks required roles");
                 return;
             }
 
@@ -336,14 +338,14 @@ namespace TrackerDotNet.Pages
                 if (cboManualContacts == null || cboManualContacts.SelectedIndex <= 0)
                 {
                     shouldEnable = false;
-                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "New Order: No customer selected");
+                    //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "New Order: No customer selected");
                 }
                 // Special validation for default customer ("ZZName") - must have notes
                 else if (currentCustomer == SystemConstants.CustomerConstants.SundryCustomerIDStr &&
                          string.IsNullOrEmpty(currentNotes))
                 {
                     shouldEnable = false;
-                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"New Order: Default customer selected but no notes provided. Notes length: {currentNotes.Length}");
+                    //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"New Order: Default customer selected but no notes provided. Notes length: {currentNotes.Length}");
                 }
 
                 btnNewItem.Enabled = shouldEnable;
@@ -529,7 +531,7 @@ namespace TrackerDotNet.Pages
                 if (cboManualContacts?.Items.Count == 0)
                 {
                     cboManualContacts.DataBind();
-                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"SetContactByID: Force DataBind completed, Items.Count = {cboManualContacts.Items.Count}");
+                    //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"SetContactByID: Force DataBind completed, Items.Count = {cboManualContacts.Items.Count}");
                 }
             }
 
@@ -539,7 +541,7 @@ namespace TrackerDotNet.Pages
             if (contactsControl?.Items?.FindByValue(pCoNameID) != null)
             {
                 contactsControl.SelectedValue = pCoNameID;
-                AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"SetContactByID: Successfully set contact to {pCoNameID}");
+                //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"SetContactByID: Successfully set contact to {pCoNameID}");
 
                 // Enable controls when customer is selected via query string
                 if (IsNewOrderMode)
@@ -694,7 +696,7 @@ namespace TrackerDotNet.Pages
                 // Set customer preferences when contact changes
                 if (cboManualContacts.SelectedValue != null && cboManualContacts.SelectedValue != "0" && cboManualContacts.SelectedValue != "")
                 {
-                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Customer selected, enabling controls and showing last order button");
+                    //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Customer selected, enabling controls and showing last order button");
 
                     // ENABLE CONTROLS WHEN CUSTOMER IS SELECTED
                     SetControlsEnabledState(true);
@@ -718,7 +720,7 @@ namespace TrackerDotNet.Pages
                 }
                 else
                 {
-                    AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "No customer selected, disabling controls and hiding last order button");
+                    //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "No customer selected, disabling controls and hiding last order button");
 
                     // DISABLE CONTROLS WHEN NO CUSTOMER SELECTED
                     SetControlsEnabledState(false);
@@ -744,6 +746,38 @@ namespace TrackerDotNet.Pages
                 ltrlStatus.Text = $"Error: {ex.Message}";
             }
         }
+        private void WarnIfClosureConflict(DateTime roastDate, DateTime deliveryDate)
+        {
+            try
+            {
+                var provider = new HolidayClosureProvider();
+                bool roastClosed = provider.IsClosed(roastDate, true);
+                bool deliveryClosed = provider.IsClosed(deliveryDate, false);
+
+                if (!roastClosed && !deliveryClosed)
+                    return;
+
+                var adj = provider.AdjustPair(roastDate, deliveryDate);
+
+                string msg = "Selected dates occur during a closure period. " +
+                             $"Prep {(roastClosed ? "CLOSED" : "OK")} / Delivery {(deliveryClosed ? "CLOSED" : "OK")}. " +
+                             $"Suggested: Prep {adj.Prep:yyyy-MM-dd}, Delivery {adj.Delivery:yyyy-MM-dd}. " +
+                             "Please review before saving (dates not auto-adjusted).";
+
+                // Option A: show in a label
+                ltrlStatus.Text = msg;
+
+                // Option B: modal / popup (if showMessageBox helper exists)
+                new showMessageBox(this.Page, "Closure Warning", msg);
+
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
+                    $"OrderDetail warning: user chose dates needing closure review. OrigPrep={roastDate:yyyy-MM-dd} OrigDel={deliveryDate:yyyy-MM-dd} SuggestPrep={adj.Prep:yyyy-MM-dd} SuggestDel={adj.Delivery:yyyy-MM-dd}");
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.System, "WarnIfClosureConflict failed: " + ex.Message);
+            }
+        }
         /// <summary>
         /// Updates preparation and delivery dates based on selected customer preferences
         /// </summary>
@@ -765,6 +799,7 @@ namespace TrackerDotNet.Pages
                 DateTime deliveryDate = DateTime.MinValue; // This will be set by reference
                 DateTime roastDate = trackerTools.GetNextRoastDateByCustomerID(customerIdLong, ref deliveryDate);
                 DateTime orderDate = TimeZoneUtils.Now().Date;
+                WarnIfClosureConflict(roastDate, deliveryDate);
 
                 //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Customer-specific dates - Order: {orderDate:yyyy-MM-dd}, Roast: {roastDate:yyyy-MM-dd}, Delivery: {deliveryDate:yyyy-MM-dd}");
 
@@ -1366,7 +1401,7 @@ namespace TrackerDotNet.Pages
             // Validate button states - this is the key part that checks ZZName + empty notes
             UpdateNewItemButtonStateWithRoleCheck();
 
-            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "HandleNotesChanged completed");
+            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"HandleNotesChanged completed note: {notesText}");
         }
         private OrderHeaderData Get_dvOrderHeaderData(bool pInEditMode)
         {
@@ -1547,7 +1582,7 @@ namespace TrackerDotNet.Pages
             UpdateUrlToExistingOrderMode();
 
             // Log the transition
-            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Switched from manual mode to DetailsView mode after adding first item");
+            //AppLogger.WriteLog(SystemConstants.LogTypes.Orders, "Switched from manual mode to DetailsView mode after adding first item");
         }
         /// <summary>
         /// Updates the browser URL to reflect existing order mode - only for AJAX scenarios
@@ -2060,12 +2095,15 @@ namespace TrackerDotNet.Pages
         {
             var manager = new TrackerDotNet.Managers.OrderManager();
             string empty = string.Empty;
+            int count = 0;
             foreach (TableRow row in this.gvOrderLines.Rows)
             {
                 var control = (HiddenField)row.Cells[4].FindControl(CONST_ORDERLINE_HIDDENFIELD_ORDER_ID);
                 empty += manager.UnDoOrderItem(Convert.ToInt32(control.Value));
             }
             this.ltrlStatus.Text = empty;
+            AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"UndoDone applied to {count} order line(s).");
+
             this.dvOrderHeader.DataBind();
             this.pnlOrderHeader.Update();
             this.gvOrderLines.DataBind();

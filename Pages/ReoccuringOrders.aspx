@@ -64,9 +64,9 @@
                         <asp:TemplateField HeaderText="&nbsp;" ItemStyle-HorizontalAlign="Center"
                             HeaderStyle-CssClass="col-priority-1" ItemStyle-CssClass="col-priority-1">
                             <ItemTemplate>
-                                <asp:HyperLink ID="hlEditRepair" runat="server"
+                                <asp:HyperLink ID="hlEditReoccuringOrder" runat="server"
                                     ImageUrl="~/images/imgButtons/EditItem.gif"
-                                    ToolTip="Edit Repair"
+                                    ToolTip="Edit Reoccuring Order"
                                     NavigateUrl='<%# Eval("ReoccuringOrderID", "~/Pages/ReoccuringOrderDetails.aspx?ID={0}&") %>' />
                             </ItemTemplate>
                             <ItemStyle HorizontalAlign="Center" />

@@ -24,8 +24,8 @@
     </asp:UpdateProgress>
     <asp:UpdatePanel ID="upnlCustomerDetails" runat="server" ChildrenAsTriggers="true" UpdateMode="Conditional">
         <Triggers>
-            <asp:AsyncPostBackTrigger ControlID="btnForceNext"  EventName="Click" />
-            <asp:AsyncPostBackTrigger ControlID="btnForceCheckup"  EventName="Click" />
+            <asp:AsyncPostBackTrigger ControlID="btnForceNext" EventName="Click" />
+            <asp:AsyncPostBackTrigger ControlID="btnForceCheckup" EventName="Click" />
 
         </Triggers>
 
@@ -220,7 +220,7 @@
             <!-- ModalPopupExtender -->
         </ContentTemplate>
     </asp:UpdatePanel>
-    <asp:Literal ID="ltrlStatus" Text="" runat="server" />
+    <div class="status-message"><asp:Literal ID="ltrlStatus" Text="" runat="server" /></div>
     <br />
     <asp:UpdatePanel ID="uppnlTabContainer" runat="server" UpdateMode="Conditional" ChildrenAsTriggers="true">
         <ContentTemplate>
@@ -347,7 +347,7 @@
                         <asp:UpdatePanel ID="upnlNextItems" runat="server" UpdateMode="Conditional">
                             <ContentTemplate>
                                 <div style="padding: 4px">
-                                    <asp:DataGrid ID="dgCustomerUsage" runat="server" CssClass="TblWhite small" HeaderStyle-BackColor="Khaki"   DataSourceID="dsCustomerUsage" AutoGenerateColumns="false">
+                                    <asp:DataGrid ID="dgCustomerUsage" runat="server" CssClass="TblWhite small" HeaderStyle-BackColor="Khaki" DataSourceID="dsCustomerUsage" AutoGenerateColumns="false">
                                         <Columns>
                                             <asp:BoundColumn DataField="CustomerID" Visible="false" />
                                             <asp:BoundColumn DataField="LastCupCount" HeaderText="Last Count" ItemStyle-HorizontalAlign="Right" />

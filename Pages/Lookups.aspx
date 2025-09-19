@@ -1082,72 +1082,79 @@
             </ContentTemplate>
         </ajaxToolkit:TabPanel>
         <ajaxToolkit:TabPanel ID="tabpnlRepairStatuses" runat="server" HeaderText="Repair Statuses">
-    <ContentTemplate>
-        <asp:UpdatePanel ID="upnlRepairStatuses" runat="server" UpdateMode="Conditional">
             <ContentTemplate>
-                <div class="results-container">
-                    <asp:GridView ID="gvRepairStatuses" runat="server" AllowPaging="True" AllowSorting="True"
-                        AutoGenerateColumns="False" PageSize="20" DataKeyNames="RepairStatusID"
-                        DataSourceID="odsRepairStatuses" CssClass="results-table" ShowFooter="True"
-                        EditRowStyle-BackColor="#F7F7DE">
-                        <Columns>
-                            <asp:BoundField DataField="RepairStatusID" HeaderText="ID" ReadOnly="True" />
-                            <asp:TemplateField HeaderText="Status">
-                                <EditItemTemplate>
-                                    <asp:TextBox ID="tbxStatusDesc" runat="server" Text='<%# Bind("RepairStatusDesc") %>' />
-                                </EditItemTemplate>
-                                <ItemTemplate>
-                                    <asp:Label ID="lblStatusDesc" runat="server" Text='<%# Bind("RepairStatusDesc") %>' />
-                                </ItemTemplate>
-                                <FooterTemplate>
-                                    <asp:TextBox ID="tbxStatusDescFooter" runat="server" Width="12em" />
-                                </FooterTemplate>
-                            </asp:TemplateField>
-                            <asp:CheckBoxField DataField="EmailClient" HeaderText="Email Client" />
-                            <asp:BoundField DataField="SortOrder" HeaderText="Sort Order" />
-                            <asp:TemplateField HeaderText="Status Note">
-                                <EditItemTemplate>
-                                    <asp:TextBox ID="tbxStatusNote" runat="server" Text='<%# Bind("StatusNote") %>' Width="30em" />
-                                </EditItemTemplate>
-                                <ItemTemplate>
-                                    <asp:Label ID="lblStatusNote" runat="server" Text='<%# Bind("StatusNote") %>' />
-                                </ItemTemplate>
-                                <FooterTemplate>
-                                    <asp:TextBox ID="tbxStatusNoteFooter" runat="server" Width="30em" />
-                                </FooterTemplate>
-                            </asp:TemplateField>
-                            <asp:TemplateField ShowHeader="False">
-                                <EditItemTemplate>
-                                    <asp:ImageButton ID="btnUpdate" runat="server" CausesValidation="False" CommandName="Update"
-                                        AlternateText="Update" ImageUrl="~/images/imgButtons/UpdateItem.gif" />
-                                    <asp:ImageButton ID="btnCancel" runat="server" CausesValidation="False" CommandName="Cancel"
-                                        AlternateText="Cancel" ImageUrl="~/images/imgButtons/CancelItem.gif" />
-                                </EditItemTemplate>
-                                <ItemTemplate>
-                                    <asp:ImageButton ID="btnEdit" runat="server" CausesValidation="False" CommandName="Edit"
-                                        AlternateText="Edit" ImageUrl="~/images/imgButtons/EditItem.gif" />
-                                </ItemTemplate>
-                                <FooterTemplate>
-                                    <asp:ImageButton ID="btnAdd" runat="server" CausesValidation="False" CommandName="AddItem"
-                                        ImageUrl="~/images/imgButtons/AddItem.gif" AlternateText="Add" />
-                                </FooterTemplate>
-                            </asp:TemplateField>
-                        </Columns>
-                        <EditRowStyle BackColor="#F7F7DE" />
-                        <FooterStyle BackColor="#CCCC99" Font-Bold="True" ForeColor="White" BorderStyle="Dashed" BorderColor="Cornsilk" />
-                        <HeaderStyle BackColor="#D0D17C" Font-Bold="True" ForeColor="Black" />
-                    </asp:GridView>
-                </div>
+                <asp:UpdatePanel ID="upnlRepairStatuses" runat="server" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <div class="results-container">
+                            <asp:GridView ID="gvRepairStatuses" runat="server" DataKeyNames="RepairStatusID"
+                                DataSourceID="odsRepairStatuses" AutoGenerateColumns="False" AllowPaging="True" AllowSorting="True"
+                                ShowFooter="True" PageSize="20">
+                                <Columns>
+                                    <asp:BoundField DataField="RepairStatusID" HeaderText="ID" ReadOnly="True" />
+                                    <asp:TemplateField HeaderText="Status">
+                                        <EditItemTemplate>
+                                            <asp:TextBox ID="tbxStatusDesc" runat="server" Text='<%# Bind("RepairStatusDesc") %>' />
+                                        </EditItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="lblStatusDesc" runat="server" Text='<%# Bind("RepairStatusDesc") %>' />
+                                        </ItemTemplate>
+                                        <FooterTemplate>
+                                            <asp:TextBox ID="tbxStatusDescFooter" runat="server" Width="12em" />
+                                        </FooterTemplate>
+                                    </asp:TemplateField>
+                                    <asp:CheckBoxField DataField="EmailClient" HeaderText="Email Client" />
+                                    <asp:BoundField DataField="SortOrder" HeaderText="Sort Order" />
+                                    <asp:TemplateField HeaderText="Status Note">
+                                        <EditItemTemplate>
+                                            <asp:TextBox ID="tbxStatusNote" runat="server" Text='<%# Bind("StatusNote") %>' Width="30em" />
+                                        </EditItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:Label ID="lblStatusNote" runat="server" Text='<%# Bind("StatusNote") %>' />
+                                        </ItemTemplate>
+                                        <FooterTemplate>
+                                            <asp:TextBox ID="tbxStatusNoteFooter" runat="server" Width="30em" />
+                                        </FooterTemplate>
+                                    </asp:TemplateField>
+                                    <asp:TemplateField ShowHeader="False">
+                                        <EditItemTemplate>
+                                            <asp:ImageButton ID="btnUpdate" runat="server" CommandName="Update"
+                                                ImageUrl="~/images/imgButtons/UpdateItem.gif" AlternateText="Update" />
+                                            <asp:ImageButton ID="btnCancel" runat="server" CommandName="Cancel"
+                                                ImageUrl="~/images/imgButtons/CancelItem.gif" AlternateText="Cancel" />
+                                        </EditItemTemplate>
+                                        <ItemTemplate>
+                                            <asp:ImageButton ID="btnEdit" runat="server" CommandName="Edit"
+                                                ImageUrl="~/images/imgButtons/EditItem.gif" AlternateText="Edit" />
+                                            <asp:ImageButton ID="btnDelete" runat="server" CommandName="Delete"
+                                                ImageUrl="~/images/imgButtons/Trashcan.gif" AlternateText="Delete" />
+                                        </ItemTemplate>
+                                        <FooterTemplate>
+                                            <asp:ImageButton ID="btnAdd" runat="server" CommandName="Insert"
+                                                ImageUrl="~/images/imgButtons/AddItem.gif" AlternateText="Add" />
+                                        </FooterTemplate>
+                                    </asp:TemplateField>
+                                </Columns>
+                            </asp:GridView>
+
+                            <asp:ObjectDataSource ID="odsRepairStatuses" runat="server"
+                                TypeName="TrackerDotNet.Controls.RepairStatusesTbl"
+                                DataObjectTypeName="TrackerDotNet.Controls.RepairStatusesTbl"
+                                SelectMethod="GetAll" InsertMethod="Insert" UpdateMethod="Update" DeleteMethod="Delete"
+                                SortParameterName="SortBy"
+                                OnInserted="odsRepairStatuses_Inserted"
+                                OnUpdated="odsRepairStatuses_Updated"
+                                OnDeleted="odsRepairStatuses_Deleted">
+                                <SelectParameters>
+                                    <asp:Parameter Name="SortBy" Type="String" DefaultValue="SortOrder" />
+                                </SelectParameters>
+                                <DeleteParameters>
+                                    <asp:Parameter Name="repairStatusID" Type="Int32" />
+                                </DeleteParameters>
+                            </asp:ObjectDataSource>
+                    </ContentTemplate>
+                </asp:UpdatePanel>
             </ContentTemplate>
-        </asp:UpdatePanel>
-        <asp:ObjectDataSource ID="odsRepairStatuses" runat="server"
-            TypeName="TrackerDotNet.Controls.RepairStatusesTbl"
-            SelectMethod="GetAll" UpdateMethod="Update" InsertMethod="Insert" DeleteMethod="Delete"
-            DataObjectTypeName="TrackerDotNet.Controls.RepairStatusesTbl"
-            SortParameterName="SortBy">
-        </asp:ObjectDataSource>
-    </ContentTemplate>
-</ajaxToolkit:TabPanel>
+        </ajaxToolkit:TabPanel>
     </ajaxToolkit:TabContainer>
     <asp:SqlDataSource ID="sdsItems" runat="server" ConflictDetection="OverwriteChanges"
         ConnectionString="<%$ ConnectionStrings:Tracker08ConnectionString %>"

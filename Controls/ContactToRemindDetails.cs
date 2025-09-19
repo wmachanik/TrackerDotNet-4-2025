@@ -31,6 +31,7 @@ namespace TrackerDotNet.Controls
         private bool _enabled;
         private bool _AlwaysSendChkUp;
         private int _ReminderCount;
+        private string _Notes;
         private bool _RequiresPurchOrder;
         private DateTime _LastDateSentReminder;
         private DateTime _NextPrepDate;
@@ -61,6 +62,7 @@ namespace TrackerDotNet.Controls
             this._enabled = this._autofulfill = false;
             this._AlwaysSendChkUp = this._RequiresPurchOrder = false;
             this._ReminderCount = 0;
+            this._Notes = string.Empty;
             this._NextPrepDate = this._NextDeliveryDate = TimeZoneUtils.Now().Date;
             this._LastDateSentReminder = this._NextCoffee = this._NextClean = this._NextFilter = this._NextService = DateTime.MinValue;
         }
@@ -178,7 +180,11 @@ namespace TrackerDotNet.Controls
             get => this._ReminderCount;
             set => this._ReminderCount = value;
         }
-
+        public string Notes
+        {
+            get { return _Notes; }
+            set { _Notes = value; }
+        }
         public bool RequiresPurchOrder
         {
             get => this._RequiresPurchOrder;

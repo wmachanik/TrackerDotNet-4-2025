@@ -116,8 +116,11 @@
     <Content Include="Administration\ManageUsers.aspx" />
     <Content Include="Administration\ResetPasswordHelper.aspx" />
     <Content Include="Administration\UserInformation.aspx" />
+    <Content Include="App_Data\SQLCommands-HolidayClosure-01.xml" />
+    <Content Include="App_Data\SQLCommands-ShowAwayChangesXML.xml" />
     <Content Include="App_Data\SQLCommands-RepStatusUpdate-01.xml" />
     <Content Include="App_Data\SQLCommands001.xml" />
+    <Content Include="App_Data\SQLCommands_AwayPeriod.xml" />
     <Content Include="Default.aspx" />
     <Content Include="DisableClient.aspx" />
     <Content Include="Global.asax" />
@@ -156,6 +159,7 @@
     <Content Include="images\imgButtons\Calculator.gif" />
     <Content Include="images\imgButtons\Calendar.gif" />
     <Content Include="images\imgButtons\CalendarBtn.png" />
+    <Content Include="images\imgButtons\CalendarClock.gif" />
     <Content Include="images\imgButtons\CancelButton.gif" />
     <Content Include="images\imgButtons\CancelItem.gif" />
     <Content Include="images\imgButtons\Clock.gif" />
@@ -192,9 +196,13 @@
     <Content Include="Pages\CoffeeRequired.aspx" />
     <Content Include="Pages\CustomerDetails.aspx" />
     <Content Include="Pages\Customers.aspx" />
+    <Content Include="Pages\CustomersAway.aspx" />
+    <Content Include="Pages\CustomersAwayDetail.aspx" />
     <Content Include="Pages\DeleteOrderLine.aspx" />
     <Content Include="Pages\DeliverySheet.aspx" />
     <Content Include="Pages\GroupItemDetail.aspx" />
+    <Content Include="Tools\HolidayClosureDetail.aspx" />
+    <Content Include="Tools\HolidayClosures.aspx" />
     <Content Include="Pages\ItemGroups.aspx" />
     <Content Include="Pages\LeaveApp.aspx" />
     <Content Include="Pages\LogTable.aspx" />
@@ -240,6 +248,7 @@
     <Content Include="Tools\GenMachineKeys.aspx" />
     <Content Include="Tools\LogViewer.aspx" />
     <Content Include="Tools\MergeCustomersFromQB.aspx" />
+    <Content Include="Tools\MessagesEditor.aspx" />
     <Content Include="Tools\MoveDeliveryDate.aspx" />
     <Content Include="Tools\PrintingTblHeadersTest.htm" />
     <Content Include="Tools\SQLCommands.xml" />
@@ -324,6 +333,9 @@
     <Compile Include="Classes\CustomersTbl.cs" />
     <Compile Include="Classes\DateCalculator.cs" />
     <Compile Include="Classes\SystemConstants.cs" />
+    <Compile Include="Controls\ClientAwayPeriod.cs" />
+    <Compile Include="Controls\CustomersAwayTbl.cs" />
+    <Compile Include="Controls\HolidayClosureProvider.cs" />
     <Compile Include="Controls\OrderCheckTbl.cs" />
     <Compile Include="Controls\ServiceTypeTbl.cs" />
     <Compile Include="Managers\CoffeeCheckupEmailManager.cs" />
@@ -332,6 +344,7 @@
     <Compile Include="Managers\CustomerManager.cs" />
     <Compile Include="Managers\DisableClientManager.cs" />
     <Compile Include="Classes\MessageKeys.cs" />
+    <Compile Include="Managers\MessagesResourceManager.cs" />
     <Compile Include="Managers\OrderDetailManager .cs" />
     <Compile Include="Managers\OrderDoneManager.cs" />
     <Compile Include="Managers\OrderManager.cs" />
@@ -368,7 +381,6 @@
     <Compile Include="Controls\ContactToRemindDetails.cs" />
     <Compile Include="Controls\ContactToRemindWithItems.cs" />
     <Compile Include="Controls\ContactType.cs" />
-    <Compile Include="Controls\CustomerDAL.cs" />
     <Compile Include="Controls\CustomerData.cs" />
     <Compile Include="Controls\CustomersAccInfoTbl.cs" />
     <Compile Include="Controls\CustomersTbl.cs" />
@@ -487,6 +499,17 @@
     <Compile Include="Pages\Customers.aspx.designer.cs">
       <DependentUpon>Customers.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Pages\CustomersAway.aspx.cs">
+      <DependentUpon>CustomersAway.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\CustomersAway.aspx.designer.cs">
+      <DependentUpon>CustomersAway.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\CustomersAwayDetail.aspx.cs">
+      <DependentUpon>CustomersAwayDetail.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Pages\DeleteOrderLine.aspx.cs">
       <DependentUpon>DeleteOrderLine.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -507,6 +530,17 @@
     </Compile>
     <Compile Include="Pages\GroupItemDetail.aspx.designer.cs">
       <DependentUpon>GroupItemDetail.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\HolidayClosureDetail.aspx.cs">
+      <DependentUpon>HolidayClosureDetail.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Tools\HolidayClosureDetail.aspx.designer.cs">
+      <DependentUpon>HolidayClosureDetail.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\HolidayClosures.aspx.cs">
+      <DependentUpon>HolidayClosures.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Pages\ItemGroups.aspx.cs">
       <DependentUpon>ItemGroups.aspx</DependentUpon>
@@ -713,6 +747,9 @@
     <Compile Include="Tools\GenMachineKeys.aspx.designer.cs">
       <DependentUpon>GenMachineKeys.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Tools\HolidayClosures.aspx.designer.cs">
+      <DependentUpon>HolidayClosures.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Tools\LogViewer.aspx.cs">
       <DependentUpon>LogViewer.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -724,6 +761,13 @@
     </Compile>
     <Compile Include="Tools\MergeCustomersFromQB.aspx.designer.cs">
       <DependentUpon>MergeCustomersFromQB.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\MessagesEditor.aspx.cs">
+      <DependentUpon>MessagesEditor.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Tools\MessagesEditor.aspx.designer.cs">
+      <DependentUpon>MessagesEditor.aspx</DependentUpon>
     </Compile>
     <Compile Include="Tools\MoveDeliveryDate.aspx.cs">
       <DependentUpon>MoveDeliveryDate.aspx</DependentUpon>

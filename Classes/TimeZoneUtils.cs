@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 
@@ -8,6 +9,17 @@ namespace TrackerDotNet.Classes
     {
         private static readonly string DefaultTimeZoneId =
             System.Configuration.ConfigurationManager.AppSettings["AppTimeZoneId"] ?? "South Africa Standard Time";
+        // --- Test date override (cached) ---
+        private static readonly bool TestNowEnabled =
+            bool.TryParse(ConfigurationManager.AppSettings["TestNow.Enabled"], out var _enabled) && _enabled;
+
+        private static readonly string TestNowRaw =
+            ConfigurationManager.AppSettings["TestNow.Value"];
+
+        private static readonly string TestNowInputKind =
+            (ConfigurationManager.AppSettings["TestNow.InputKind"] ?? "Local").Trim();
+
+        private static readonly Lazy<DateTime?> ParsedTestNow = new Lazy<DateTime?>(ParseTestNow, isThreadSafe: true);
 
         private static TimeZoneInfo EffectiveTimeZone
         {
@@ -65,6 +77,10 @@ namespace TrackerDotNet.Classes
         }
         public static DateTime Now()
         {
+            // If test override enabled and parsed successfully, return it.
+            if (TestNowEnabled && ParsedTestNow.Value.HasValue)
+                return ParsedTestNow.Value.Value;
+
             return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, EffectiveTimeZone);
         }
 
@@ -81,6 +97,70 @@ namespace TrackerDotNet.Classes
         public static string GetZoneId()
         {
             return EffectiveTimeZone.Id;
+        }
+        // INTERNAL: parsing logic for test date
+        private static DateTime? ParseTestNow()
+        {
+            if (!TestNowEnabled) return null;
+            if (string.IsNullOrWhiteSpace(TestNowRaw)) return null;
+
+            var raw = TestNowRaw.Trim();
+
+            // Accept simple date or datetime (ISO-ish)
+            // Try exact patterns first
+            DateTime dt;
+            string[] formats = {
+                "yyyy-MM-dd",
+                "yyyy-MM-dd HH:mm",
+                "yyyy-MM-dd HH:mm:ss",
+                "yyyy-MM-ddTHH:mm",
+                "yyyy-MM-ddTHH:mm:ss",
+                "yyyy-MM-ddTHH:mm:ssK"
+            };
+
+            if (DateTime.TryParseExact(raw, formats,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.AdjustToUniversal |
+                    System.Globalization.DateTimeStyles.AllowWhiteSpaces,
+                    out dt))
+            {
+                // If kind is unspecified and InputKind=UTC treat as UTC
+                if (dt.Kind == DateTimeKind.Unspecified && TestNowInputKind.Equals("UTC", StringComparison.OrdinalIgnoreCase))
+                {
+                    dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+                }
+            }
+            else if (DateTime.TryParse(raw,
+                     System.Globalization.CultureInfo.InvariantCulture,
+                     System.Globalization.DateTimeStyles.AllowWhiteSpaces,
+                     out dt))
+            {
+                // fallback parse
+            }
+            else
+            {
+                // Could not parse -> ignore override
+                return null;
+            }
+
+            // Normalize:
+            // If value is UTC or specified as UTC -> convert into EffectiveTimeZone
+            if (dt.Kind == DateTimeKind.Utc || TestNowInputKind.Equals("UTC", StringComparison.OrdinalIgnoreCase))
+            {
+                return TimeZoneInfo.ConvertTimeFromUtc(
+                    dt.Kind == DateTimeKind.Utc ? dt : DateTime.SpecifyKind(dt, DateTimeKind.Utc),
+                    EffectiveTimeZone);
+            }
+
+            // Treat as local in EffectiveTimeZone (if unspecified or Local)
+            if (dt.Kind == DateTimeKind.Local || dt.Kind == DateTimeKind.Unspecified)
+            {
+                // dt represents local wall clock in EffectiveTimeZone already
+                return dt;
+            }
+
+            // Default fallback
+            return dt;
         }
     }
 }

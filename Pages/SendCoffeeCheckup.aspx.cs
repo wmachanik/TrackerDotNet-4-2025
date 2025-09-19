@@ -23,6 +23,7 @@ namespace TrackerDotNet.Pages
     {
         private static Dictionary<int, string> _cachedCityNames = new Dictionary<int, string>();
         private static Dictionary<int, string> _cachedItemDescriptions = new Dictionary<int, string>();
+        private int reminderWindowDays = SystemConstants.CheckupConstants.DefaultReminderWindowDays; // CoffeeCheckupManager.GetReminderWindowDays(); // fallback
 
         // Business logic manager - PROPERLY INITIALIZED
         private readonly CoffeeCheckupManager _coffeeCheckupManager;
@@ -47,8 +48,9 @@ namespace TrackerDotNet.Pages
                 // Set initial status
                 //autoLoadingStatus.Visible = true;
                 btnPrepData.Visible = true; // Keep visible for manual fallback
-                
-                // Setup reminder window dropdown
+
+                // Setup reminder window including dropdown
+                reminderWindowDays = CoffeeCheckupManager.GetReminderWindowDays();
                 int min = 5, max = 30, def = CoffeeCheckupManager.GetReminderWindowDays();
                 int.TryParse(ConfigurationManager.AppSettings["CoffeeCheckupReminderWindowMin"], out min);
                 int.TryParse(ConfigurationManager.AppSettings["CoffeeCheckupReminderWindowMax"], out max);
@@ -88,14 +90,79 @@ namespace TrackerDotNet.Pages
                 ltrlStatus.Text = $"<div class='alert alert-warning'>Warning: {ex.Message}</div>";
             }
         }
+        protected void btnPrepData_Click(object sender, EventArgs e)
+        {
+            uprgCustomerCheckup.DisplayAfter = 100;
+            uprgSendEmail.DisplayAfter = int.MaxValue;
 
+            try
+            {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+                upnlSendEmail.Update();
+
+                
+                if (ddlReminderWindow.SelectedItem != null)
+                    int.TryParse(ddlReminderWindow.SelectedValue, out reminderWindowDays);
+
+                // 1) Build the temp/contact list only
+                _coffeeCheckupManager.PrepareCustomerReminderData(reminderWindowDays);
+
+                // 2) Single post-pass adjust over the prepared list (only if holiday in window)
+                int adjustedCount = _coffeeCheckupManager.PostAdjustPreparedReminderData(reminderWindowDays);
+                ViewState["AdjustedCount"] = adjustedCount; // keep for later, optional
+                // Determine if a holiday exists in the selected window
+                bool holidayInWindow = adjustedCount != -1;
+
+                // Refresh UI
+                odsContactsToSendCheckup.DataBind();
+                gvCustomerCheckup.DataBind();
+
+                int customerCount = GetCustomerCount();
+                stopwatch.Stop();
+
+                btnPrepData.Text = "Refresh Data";
+                btnPrepData.Visible = true;
+
+                ltrlStatus.Text = $"<div style='background-color: #d4edda; color: #155724; padding: 8px; border-radius: 4px; margin: 5px 0; text-align: left;'>" +
+                                  $"<strong>Success!</strong> Customer data prepared. You can now send reminders or test emails.</div>";
+                // If we adjusted any rows, surface a notice via Site.Master (if available), else fallback
+                if (holidayInWindow)
+                {
+                    string msg = adjustedCount > 0
+                        ? $"Upcoming holiday detected. Adjusted {adjustedCount} prep/delivery date(s)."
+                        : "Upcoming holiday detected. Dates were verified against closures; no changes were required.";
+
+                    new showMessageBox(this.Page, "Holiday Notice", msg);
+                    ltrlStatus.Text += $"<div style='background-color:#e8f4fd;color:#084c7f;padding:8px;border-radius:4px;margin:5px 0;text-align:left;'>{HttpUtility.HtmlEncode(msg)}</div>";
+                }
+                upnlCustomerCheckup.Update();
+                upnlSendEmail.Update();
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog("error", $"SendCoffeeCheckup: Error in btnPrepData_Click: {ex.Message}");
+                btnPrepData.Visible = true;
+                btnPrepData.Text = "Retry Data Prep";
+                ltrlStatus.Text = $"<div style='background-color: #f8d7da; color: #721c24; padding: 8px; border-radius: 4px; margin: 5px 0; text-align: left;'>" +
+                                  $"<strong>Error:</strong> {ex.Message}<br/><small>Check the logs for more details.</small></div>";
+                upnlCustomerCheckup.Update();
+                upnlSendEmail.Update();
+            }
+            finally
+            {
+                uprgCustomerCheckup.DisplayAfter = 500;
+                uprgSendEmail.DisplayAfter = 0;
+            }
+        }
+        /* old before 15 Sept PrepData
         protected void btnPrepData_Click(object sender, EventArgs e)
         {
             // Control progress indicators
             uprgCustomerCheckup.DisplayAfter = 100; // Show customer prep progress quickly
             uprgSendEmail.DisplayAfter = int.MaxValue; // Don't show email progress
             
-            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "SendCoffeeCheckup: Prep Data Click triggered");
+            //AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "SendCoffeeCheckup: Prep Data Click triggered");
             
             try
             {
@@ -110,7 +177,7 @@ namespace TrackerDotNet.Pages
                 // Force immediate update
                 upnlSendEmail.Update();
                 
-                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "SendCoffeeCheckup: Starting CoffeeCheckupManager.PrepareCustomerReminderData()");
+                //AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "SendCoffeeCheckup: Starting CoffeeCheckupManager.PrepareCustomerReminderData()");
                 
                 // Use the enhanced CoffeeCheckupManager
                 int reminderWindowDays = CoffeeCheckupManager.GetReminderWindowDays(); // fallback
@@ -119,7 +186,7 @@ namespace TrackerDotNet.Pages
 
                 _coffeeCheckupManager.PrepareCustomerReminderData(reminderWindowDays);
                 
-                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "SendCoffeeCheckup: PrepareCustomerReminderData completed, refreshing grids");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "SendCoffeeCheckup: Customer Reminder Data prepared, refreshing grids");
                 
                 // Refresh the grid data
                 odsContactsToSendCheckup.DataBind();
@@ -140,7 +207,7 @@ namespace TrackerDotNet.Pages
                 ltrlStatus.Text = $"<div style='background-color: #d4edda; color: #155724; padding: 8px; border-radius: 4px; margin: 5px 0; text-align: left;'>" +
                                  $"<strong>Success!</strong> Customer data prepared automatically. You can now send reminders or test emails.</div>";
                 
-                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup: Auto-prep completed successfully in {stopwatch.ElapsedMilliseconds}ms - {customerCount} customers");
+                //AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup: Auto-prep completed successfully in {stopwatch.ElapsedMilliseconds}ms - {customerCount} customers");
                 
                 // Force update of all panels
                 upnlCustomerCheckup.Update();
@@ -170,7 +237,7 @@ namespace TrackerDotNet.Pages
                 uprgSendEmail.DisplayAfter = 0;
             }
         }
-
+        */
         /// <summary>
         /// Get count of prepared customers
         /// </summary>
@@ -222,7 +289,19 @@ namespace TrackerDotNet.Pages
                     Body = this.tbxEmailBody.Text,
                     Footer = this.tbxEmailFooter.Text
                 };
-                
+                // If a holiday is within window, append a friendly note from Messages.resx (before signature)
+                var closureProvider = new HolidayClosureProvider();
+                if (closureProvider.IsThereAHolodayComing(TimeZoneUtils.Now().Date, reminderWindowDays))
+                {
+                    string holidayNote = MessageProvider.Get(MessageKeys.CoffeeCheckup.HolidayClosureEmailNote);
+                    if (string.IsNullOrWhiteSpace(holidayNote))
+                        holidayNote = "Please note: upcoming public holidays may affect delivery timing. Thanks for your understanding.";
+
+                    emailData.Footer = (emailData.Footer ?? string.Empty) +
+                       $"<p style='margin:8px 0'>{HttpUtility.HtmlEncode(holidayNote)}</p>";
+                }
+
+
                 UpdateStatus("📋 Processing customers...");
                 
                 // Use the manager to process reminders

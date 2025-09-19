@@ -52,7 +52,7 @@
                             </td>
                         </tr>
                     </table>
-                    <asp:Literal ID="ltrlStatus" runat="server" />
+                     <div class="status-message"><asp:Literal ID="ltrlStatus" runat="server" /></div>
                 </div>
             </div>
         </ContentTemplate>

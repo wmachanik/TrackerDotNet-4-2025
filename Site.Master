@@ -6,7 +6,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head runat="server">
     <title>QOnT</title>
-    <link href="~/Styles/Site.css?v=20250904" rel="stylesheet" type="text/css" />
+    <link href="~/Styles/Site.css?v=20250917a" rel="stylesheet" type="text/css" />
     <link rel="icon" type="image/ico" href="~/images/icon/QonTIcon.ico" />
     <meta name="viewport" content="min-width=340px, width=device-width,initial-scale=1.0, minimum-scale=0.5, user-scalable=yes" />
     <meta name="MobileOptimized" content="width" />
@@ -160,6 +160,7 @@
                                             Value="Customer List" />
                                         <asp:MenuItem NavigateUrl="~/Pages/CustomerDetails.aspx" Text="New Customer"
                                             Value="New Customers" />
+                                        <asp:MenuItem NavigateUrl="~/Pages/CustomersAway.aspx" Text="Customers Away" Value="CustomersAway" />
                                         <asp:MenuItem NavigateUrl="~/Pages/SendCoffeeCheckup.aspx" Text="Send Checkup"
                                             Value="Send Checkup" />
                                         <asp:MenuItem NavigateUrl="~/Pages/SentRemindersSheet.aspx" Text="View List of reminders sent"
@@ -190,7 +191,6 @@
                                     <asp:MenuItem NavigateUrl="#" Text="System" Value="System">
                                         <asp:MenuItem NavigateUrl="~/Pages/ItemGroups.aspx" Text="Item Groups" Value="Item Groups" />
                                         <asp:MenuItem NavigateUrl="~/Pages/Lookups.aspx" Text="Lookup Tables" Value="Lookup Tables" />
-                                        <asp:MenuItem NavigateUrl="~/Pages/QuaffeeCoffeeTastingSheet.aspx" Text="Tasting Sheet" Value="Tasting Sheet" />
                                         <asp:MenuItem NavigateUrl="~/Tools/LogViewer.aspx" Text="Log Viewer" Value="Logs" />
                                         <asp:MenuItem NavigateUrl="~/Tools/SystemTools.aspx" Text="System Tools" Value="System Tools">
                                             <asp:MenuItem NavigateUrl="~/Tools/SystemTools.aspx" Text="All Tools" Value="All Tools" />
@@ -200,8 +200,6 @@
                                         </asp:MenuItem>
                                         <asp:MenuItem Text="Forms" Value="Forms">
                                             <asp:MenuItem NavigateUrl="~/Pages/LeaveApp.aspx" Text="Leave App" Value="Leave App"></asp:MenuItem>
-                                            <asp:MenuItem NavigateUrl="~/Pages/OrderBuiten2Vineyard.aspx" Text="Order from Vineyard" Value="OrderVBuit2Vin"></asp:MenuItem>
-                                            <asp:MenuItem NavigateUrl="~/Pages/OrderVineyard2Buiten.aspx" Text="Order from Buiten" Value="OrderVin2Buit"></asp:MenuItem>
                                         </asp:MenuItem>
                                     </asp:MenuItem>
                                     <asp:MenuItem Text="User" Value="User">
@@ -235,7 +233,7 @@
                             </LoggedInTemplate>
                         </asp:LoginView>
                         <br />
-                        <span class="small" style="font-style: normal; text-decoration: none">v2.2.2.1</span>
+                        <span class="small" style="font-style: normal; text-decoration: none">v2.2.2.2</span>
                     </td>
                 </tr>
             </table>
@@ -255,6 +253,8 @@
             <ul class="mobile-nav-list">
                 <li><a href="/Default.aspx">🏠 Home</a></li>
                 <li><a href="/Pages/Customers.aspx">👥 Customers</a></li>
+                <li><a href="/Pages/CustomersAway.aspx">🛫 Customers Away</a></li>
+                <li><a href="/Pages/SendCoffeeCheckup.aspx">☕ Send Checkup</a></li>
                 <li><a href="/Pages/OrderDetail.aspx?NewOrder=true">📋 New Order</a></li>
                 <li><a href="/Pages/DeliverySheet.aspx">🚚 Deliveries</a></li>
                 <li><a href="/Pages/Repairs.aspx">🔧 Repairs</a></li>

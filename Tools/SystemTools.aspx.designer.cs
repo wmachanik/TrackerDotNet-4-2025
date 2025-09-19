@@ -78,6 +78,15 @@ namespace TrackerDotNet.Tools
         protected global::System.Web.UI.WebControls.Button btnMoveDlvryDate;
 
         /// <summary>
+        /// btnHolidayClosures control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnHolidayClosures;
+
+        /// <summary>
         /// btnEditSystemData control.
         /// </summary>
         /// <remarks>
@@ -121,6 +130,24 @@ namespace TrackerDotNet.Tools
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnSetLastOrderDate;
+
+        /// <summary>
+        /// btnMessagesEditor control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnMessagesEditor;
+
+        /// <summary>
+        /// btnDisableInactiveClients control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnDisableInactiveClients;
 
         /// <summary>
         /// pnlResultsSection control.

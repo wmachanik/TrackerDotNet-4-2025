@@ -86,7 +86,7 @@ namespace TrackerDotNet.Controls
                 // Validate input
                 if (pCustomerID <= 0)
                 {
-                    AppLogger.WriteLog("database", $"Invalid CustomerID: {pCustomerID}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Invalid CustomerID: {pCustomerID}");
                     return prepDataForCustomer;
                 }
 
@@ -100,7 +100,7 @@ namespace TrackerDotNet.Controls
                 if (trackerTools.IsTrackerSessionErrorString())
                 {
                     string errorMsg = trackerTools.GetTrackerSessionErrorString();
-                    AppLogger.WriteLog("database", $"Error in GetPrepDataForCustomer for customer {pCustomerID}: {errorMsg}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Error in GetPrepDataForCustomer for customer {pCustomerID}: {errorMsg}");
                     trackerTools.ClearTrackerSessionErrorString();
                     return prepDataForCustomer; // Return default object
                 }
@@ -115,12 +115,12 @@ namespace TrackerDotNet.Controls
                         }
                         else
                         {
-                            AppLogger.WriteLog("database", $"No data found for customer {pCustomerID}");
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"No data found for customer {pCustomerID}");
                         }
                     }
                     catch (Exception readEx)
                     {
-                        AppLogger.WriteLog("database", $"Error reading data for customer {pCustomerID}: {readEx.Message}");
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Error reading data for customer {pCustomerID}: {readEx.Message}");
                     }
                     finally
                     {
@@ -129,12 +129,12 @@ namespace TrackerDotNet.Controls
                 }
                 else
                 {
-                    AppLogger.WriteLog("database", $"DataReader is null for customer {pCustomerID}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"DataReader is null for customer {pCustomerID}");
                 }
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("database", $"Unexpected error in GetPrepDataForCustomer for customer {pCustomerID}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Unexpected error in GetPrepDataForCustomer for customer {pCustomerID}: {ex.Message}");
             }
             finally
             {
@@ -144,7 +144,7 @@ namespace TrackerDotNet.Controls
                 }
                 catch (Exception closeEx)
                 {
-                    AppLogger.WriteLog("database", $"Error closing database connection: {closeEx.Message}");
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Error closing database connection: {closeEx.Message}");
                 }
             }
 
@@ -165,7 +165,7 @@ namespace TrackerDotNet.Controls
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("database", $"Error reading individual fields: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Error reading individual fields: {ex.Message}");
             }
 
             return result;
@@ -178,7 +178,7 @@ namespace TrackerDotNet.Controls
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("database", $"Error reading {columnName}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Error reading {columnName}: {ex.Message}");
                 return defaultValue;
             }
         }
@@ -191,7 +191,7 @@ namespace TrackerDotNet.Controls
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("database", $"Error reading {columnName}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Error reading {columnName}: {ex.Message}");
                 return defaultValue;
             }
         }

@@ -27,6 +27,13 @@ namespace TrackerDotNet.test
         protected Panel pnlFileBrowser;
         protected Button RefreshFilesButton;
 
+        private class SqlCommandResult
+        {
+            public string Type { get; set; }
+            public string Sql { get; set; }
+            public string Error { get; set; }
+            public string Result { get; set; }
+        }
         private void SetDefaultFileName()
         {
             string folderPath = Server.MapPath("~/App_Data/");
@@ -98,6 +105,36 @@ namespace TrackerDotNet.test
             System.Web.UI.ScriptManager.RegisterStartupScript(this.Page, this.Page.GetType(), pTitle, script, true);
         }
 
+        private string StripInlineComments(string sql)
+        {
+            if (string.IsNullOrEmpty(sql)) return sql;
+            var lines = sql.Replace("\r", "").Split('\n');
+            for (int i = 0; i < lines.Length; i++)
+            {
+                int idx = lines[i].IndexOf("--", StringComparison.Ordinal);
+                if (idx >= 0)
+                    lines[i] = lines[i].Substring(0, idx);
+            }
+            return string.Join(" ", lines).Trim();
+        }
+        private string ExtractCreatedTableName(string sql)
+        {
+            try
+            {
+                // Expect form: CREATE TABLE <name> (
+                string s = sql.Trim();
+                int tblIdx = s.IndexOf("TABLE", StringComparison.OrdinalIgnoreCase);
+                if (tblIdx < 0) return null;
+                string after = s.Substring(tblIdx + 5).Trim();
+                int paren = after.IndexOf('(');
+                if (paren < 0) return null;
+                string name = after.Substring(0, paren).Trim();
+                if (name.StartsWith("[") && name.EndsWith("]"))
+                    name = name.Substring(1, name.Length - 2);
+                return name;
+            }
+            catch { return null; }
+        }
         protected void GoButton_Click(object sender, EventArgs e)
         {
             List<XMLtoSQL.SQLCommand> sqlCommandList = new List<XMLtoSQL.SQLCommand>();
@@ -230,17 +267,34 @@ namespace TrackerDotNet.test
                         }
                         else if (cmd.type == "update" || cmd.type == "insert" || cmd.type == "delete" || cmd.type == "create" || cmd.type == "alter" || cmd.type == "drop")
                         {
+                            // Strip inline '--' comments for Access DDL safety
+                            if (cmd.type == "create" || cmd.type == "alter")
+                                cmd.sql = StripInlineComments(cmd.sql);
+
                             cmd.errString = this.RunCommand(cmd.sql);
                             cmd.result = string.IsNullOrWhiteSpace(cmd.errString);
 
+                            // Post‑verification for CREATE TABLE
+                            if (cmd.result && cmd.type == "create" && cmd.sql.Trim().ToLower().StartsWith("create table"))
+                            {
+                                string created = ExtractCreatedTableName(cmd.sql);
+                                if (!string.IsNullOrEmpty(created))
+                                {
+                                    using (var verify = new TrackerDb())
+                                    {
+                                        if (!verify.TableExists(created))
+                                        {
+                                            cmd.errString = "CREATE reported success but table not found: " + created;
+                                            cmd.result = false;
+                                        }
+                                    }
+                                }
+                            }
+
                             if (cmd.result)
-                            {
                                 AppLogger.WriteLog("xmltosql", $"{cmd.type.ToUpper()} command {index + 1} executed successfully");
-                            }
                             else
-                            {
                                 AppLogger.WriteLog("xmltosql", $"{cmd.type.ToUpper()} command {index + 1} failed: {cmd.errString}");
-                            }
                         }
                         else
                         {
@@ -318,11 +372,11 @@ namespace TrackerDotNet.test
                 }
 
                 var html = new System.Text.StringBuilder();
-        
+
                 // Group files by type
                 var sqlCommandFiles = new List<FileInfo>();
                 var otherFiles = new List<FileInfo>();
-        
+
                 foreach (var file in allFiles)
                 {
                     if (file.Name.StartsWith("SQLCommands"))
@@ -336,7 +390,7 @@ namespace TrackerDotNet.test
                 {
                     html.AppendLine("<strong>Migration Files:</strong><br/>");
                     Array.Sort(sqlCommandFiles.ToArray(), (f1, f2) => string.Compare(f1.Name, f2.Name));
-            
+
                     foreach (var file in sqlCommandFiles)
                     {
                         html.AppendLine($"<div class='file-item xml-file' onclick=\"selectFile('{file.FullName.Replace("\\", "\\\\")}')\">");
@@ -351,7 +405,7 @@ namespace TrackerDotNet.test
                 {
                     html.AppendLine("<strong>Other XML Files:</strong><br/>");
                     Array.Sort(otherFiles.ToArray(), (f1, f2) => string.Compare(f1.Name, f2.Name));
-            
+
                     foreach (var file in otherFiles)
                     {
                         html.AppendLine($"<div class='file-item' onclick=\"selectFile('{file.FullName.Replace("\\", "\\\\")}')\">");
@@ -370,7 +424,15 @@ namespace TrackerDotNet.test
 
         private DataSet RunSelect(string pSQL) => new TrackerDb().ReturnDataSet(pSQL);
 
-        private string RunCommand(string pSQL) => new TrackerDb().ExecuteNonQuerySQL(pSQL);
+        private string RunCommand(string pSQL)
+        {
+            var db = new TrackerDb();
+            string err = db.ExecuteNonQuerySQL(pSQL);
+            if (string.IsNullOrEmpty(err) && !string.IsNullOrEmpty(db.ErrorResult))
+                err = db.ErrorResult;
+            db.Close();
+            return err;
+        }
 
         private class SQLCommand
         {

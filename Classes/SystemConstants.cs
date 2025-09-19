@@ -208,6 +208,7 @@ namespace TrackerDotNet.Classes
             public const string Delivery = "delivery";
             public const string Login = "login";
             public const string System = "system";
+            public const string Database = "database";
             // Add more as needed for your application
         }
 
@@ -222,6 +223,21 @@ namespace TrackerDotNet.Classes
         public static class EmailConstants
         {
             public const string DefaultContact = "Coffee Lover";
+        }
+        public static class CheckupConstants
+        {
+            public const int ForceReminderDelayCount = 4;
+            public const int MaxReminders = 7;
+            public const int DefaultReminderWindowDays = 9;
+            public const int DefaultMinimumMonthlyRecurringDays = 20;
+        }
+
+        public static class HolidayClosureConstants
+        {
+            // AppSettings key name
+            public const string ImminentWindowDaysSettingKey = "HolidayClosureImminentDays";
+            // Fallback default if setting missing or invalid
+            public const int DefaultImminentWindowDays = 4;
         }
     }
 }

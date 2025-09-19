@@ -8,8 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.Linq;
 using System.Web;
-using TrackerDotNet.Controls; 
+using TrackerDotNet.Controls;
 
 //- only form later versions #nullable disable
 namespace TrackerDotNet.Classes
@@ -19,45 +20,46 @@ namespace TrackerDotNet.Classes
         public const string CONST_STR_NULLDATE = "1980/01/01";
         public const string CONST_SESSION_DATAACCESSERROR = "DataAccessError";
         //public const string CONST_POREQUIRED = "!!!PO required!!!"; → SystemConstants.UIConstants.PORequiredText
-        public const int CONST_SERVTYPECLEAN = 1;
-        public const int CONST_SERVTYPECOFFEE = 2;
-        public const int CONST_SERVTYPECOUNT = 3;
-        public const int CONST_SERVTYPEDESCALE = 4;
-        public const int CONST_SERVTYPEFILTER = 5;
-        public const int CONST_SERVTYPESWOPCOLLECT = 6;
-        public const int CONST_SERVTYPESWOPSTART = 7;
-        public const int CONST_SERVTYPESWOPSTOP = 8;
-        public const int CONST_SERVTYPESWOPRETRUN = 9;
-        public const int CONST_SERVTYPESERVICE = 10;
-        public const int CONST_SERVTYPE1WKHOLI = 11;
-        public const int CONST_SERVTYPE2WKHOLI = 12;
-        public const int CONST_SERVTYPE3WKHOLI = 13;
-        public const int CONST_SERVTYPE1MTHHOLI = 14;
-        public const int CONST_SERVTYPE6WKHOLI = 15;
-        public const int CONST_SERVTYPE2MTHHOLI = 16 /*0x10*/;
-        public const int CONST_SERVTYPENOTAPPLICABLE = 17;
-        public const int CONST_SERVTYPEMAINTENANCE = 18;
-        public const int CONST_SERVTYPEGREENBEAN = 19;
-        public const int CONST_SERVTYPEGROUPITEM = 21;
-        public const string CONST_STRING_SERVTYPECLEAN = "1";
-        public const string CONST_STRING_SERVTYPECOFFEE = "2";
-        public const string CONST_STRING_SERVTYPECOUNT = "3";
-        public const string CONST_STRING_SERVTYPEDESCALE = "4";
-        public const string CONST_STRING_SERVTYPEFILTER = "5";
-        public const string CONST_STRING_SERVTYPESWOPCOLLECT = "6";
-        public const string CONST_STRING_SERVTYPESWOPSTART = "7";
-        public const string CONST_STRING_SERVTYPESWOPSTOP = "8";
-        public const string CONST_STRING_SERVTYPESWOPRETRUN = "9";
-        public const string CONST_STRING_SERVTYPESERVICE = "10";
-        public const string CONST_STRING_SERVTYPE1WKHOLI = "11";
-        public const string CONST_STRING_SERVTYPE2WKHOLI = "12";
-        public const string CONST_STRING_SERVTYPE3WKHOLI = "13";
-        public const string CONST_STRING_SERVTYPE1MTHHOLI = "14";
-        public const string CONST_STRING_SERVTYPE6WKHOLI = "15";
-        public const string CONST_STRING_SERVTYPE2MTHHOLI = "16";
-        public const string CONST_STRING_SERVTYPENOTAPPLICABLE = "17";
-        public const string CONST_STRING_SERVTYPEMAINTENANCE = "18";
-        public const string CONST_STRING_SERVTYPEGREENBEAN = "19";
+        // all moved in to SystemConstants
+        //public const int CONST_SERVTYPECLEAN = 1;
+        //public const int CONST_SERVTYPECOFFEE = 2;
+        //public const int CONST_SERVTYPECOUNT = 3;
+        //public const int CONST_SERVTYPEDESCALE = 4;
+        //public const int CONST_SERVTYPEFILTER = 5;
+        //public const int CONST_SERVTYPESWOPCOLLECT = 6;
+        //public const int CONST_SERVTYPESWOPSTART = 7;
+        //public const int CONST_SERVTYPESWOPSTOP = 8;
+        //public const int CONST_SERVTYPESWOPRETRUN = 9;
+        //public const int CONST_SERVTYPESERVICE = 10;
+        //public const int CONST_SERVTYPE1WKHOLI = 11;
+        //public const int CONST_SERVTYPE2WKHOLI = 12;
+        //public const int CONST_SERVTYPE3WKHOLI = 13;
+        //public const int CONST_SERVTYPE1MTHHOLI = 14;
+        //public const int CONST_SERVTYPE6WKHOLI = 15;
+        //public const int CONST_SERVTYPE2MTHHOLI = 16 /*0x10*/;
+        //public const int CONST_SERVTYPENOTAPPLICABLE = 17;
+        //public const int CONST_SERVTYPEMAINTENANCE = 18;
+        //public const int CONST_SERVTYPEGREENBEAN = 19;
+        //public const int CONST_SERVTYPEGROUPITEM = 21;
+        //public const string CONST_STRING_SERVTYPECLEAN = "1";
+        //public const string CONST_STRING_SERVTYPECOFFEE = "2";
+        //public const string CONST_STRING_SERVTYPECOUNT = "3";
+        //public const string CONST_STRING_SERVTYPEDESCALE = "4";
+        //public const string CONST_STRING_SERVTYPEFILTER = "5";
+        //public const string CONST_STRING_SERVTYPESWOPCOLLECT = "6";
+        //public const string CONST_STRING_SERVTYPESWOPSTART = "7";
+        //public const string CONST_STRING_SERVTYPESWOPSTOP = "8";
+        //public const string CONST_STRING_SERVTYPESWOPRETRUN = "9";
+        //public const string CONST_STRING_SERVTYPESERVICE = "10";
+        //public const string CONST_STRING_SERVTYPE1WKHOLI = "11";
+        //public const string CONST_STRING_SERVTYPE2WKHOLI = "12";
+        //public const string CONST_STRING_SERVTYPE3WKHOLI = "13";
+        //public const string CONST_STRING_SERVTYPE1MTHHOLI = "14";
+        //public const string CONST_STRING_SERVTYPE6WKHOLI = "15";
+        //public const string CONST_STRING_SERVTYPE2MTHHOLI = "16";
+        //public const string CONST_STRING_SERVTYPENOTAPPLICABLE = "17";
+        //public const string CONST_STRING_SERVTYPEMAINTENANCE = "18";
+        //public const string CONST_STRING_SERVTYPEGREENBEAN = "19";
         public const string CONST_DESC_SERVTYPECLEANSTR = "Clean";
         public const string CONST_DESC_SERVTYPECOFFEESTR = "Coffee";
         public const string CONST_DESC_SERVTYPECOUNTSTR = "Count";
@@ -224,46 +226,136 @@ namespace TrackerDotNet.Classes
             }
             return preAndDeliveryDate;
         }
-
         public void SetNextRoastDateByCity()
         {
+            // Load all rows ordered by CityID, PrepDayOfWeekID (as before)
             List<CityPrepDaysTbl> all = new CityPrepDaysTbl().GetAll("CityID, PrepDayOfWeekID");
-            DateTime minValue = DateTime.MinValue;
-            TrackerTools.PrepAndDeliveryData prepAndDeliveryData1 = new TrackerTools.PrepAndDeliveryData();
-            TrackerTools.PrepAndDeliveryData prepAndDeliveryData2 = new TrackerTools.PrepAndDeliveryData();
-            DateTime pForThisDate1 = TimeZoneUtils.Now().Date;
-            if (pForThisDate1.Hour >= 14)
-                pForThisDate1 = pForThisDate1.AddDays(1.0);
-            int num = 0;
-        label_6:
-            while (num < all.Count)
+
+            // Anchor date: if now >= 14:00, use tomorrow; else today
+            var now = TimeZoneUtils.Now();
+            DateTime anchorDate = now.Hour >= 14 ? now.Date.AddDays(1) : now.Date;
+
+            // Determine the first index of each CityID in the 'all' list (so we can call GetPreAndDeliveryDate correctly)
+            var cityStartIndex = new Dictionary<int, int>();
+            for (int i = 0; i < all.Count; i++)
             {
-                int cityId = all[num].CityID;
-                TrackerTools.PrepAndDeliveryData preAndDeliveryDate1 = this.GetPreAndDeliveryDate(num, cityId, all, pForThisDate1);
-                DateTime pForThisDate2 = preAndDeliveryDate1.PrepDate == preAndDeliveryDate1.DeliveryDate ? preAndDeliveryDate1.PrepDate.AddDays(1.0).Date : preAndDeliveryDate1.DeliveryDate.Date;
-                TrackerTools.PrepAndDeliveryData preAndDeliveryDate2 = this.GetPreAndDeliveryDate(num, cityId, all, pForThisDate2);
-                this.UpdateOrInsertCityNextRstDate(cityId, preAndDeliveryDate1, preAndDeliveryDate2);
-                ++num;
-                while (true)
-                {
-                    if (num < all.Count && cityId == all[num].CityID)
-                        ++num;
-                    else
-                        goto label_6;
-                }
+                int cityId = all[i].CityID;
+                if (!cityStartIndex.ContainsKey(cityId))
+                    cityStartIndex[cityId] = i;
             }
-            TrackerDb trackerDb = new TrackerDb();
-            trackerDb.ExecuteNonQuerySQLWithParams("UPDATE SysDataTbl SET DateLastPrepDateCalcd = ? WHERE ID=1", new List<DBParameter>()
-    {
-      new DBParameter()
-      {
-        DataValue = (object) TimeZoneUtils.Now().Date,
-        DataDbType = DbType.Date
-      }
-    });
-            trackerDb.Close();
+
+            // Read holiday window (reuse CoffeeCheckupReminderWindowDays)
+            int windowDays = 9;
+            int.TryParse(System.Configuration.ConfigurationManager.AppSettings["CoffeeCheckupReminderWindowDays"], out windowDays);
+            if (windowDays <= 0) windowDays = 9;
+
+            var closureProvider = new HolidayClosureProvider();
+            bool holidayInWindow = closureProvider.IsThereAHolodayComing(TimeZoneUtils.Now().Date, windowDays);
+
+            // Process each city once
+            foreach (var kvp in cityStartIndex.OrderBy(k => k.Key))
+            {
+                int cityId = kvp.Key;
+                int startIdx = kvp.Value;
+
+                // Current window (based on anchorDate)
+                var thisPair = this.GetPreAndDeliveryDate(startIdx, cityId, all, anchorDate);
+
+                // Next window starts the day after the current delivery (or prep if same-day)
+                DateTime nextAnchor = (thisPair.PrepDate == thisPair.DeliveryDate)
+                    ? thisPair.PrepDate.AddDays(1).Date
+                    : thisPair.DeliveryDate.Date;
+
+                var nextPair = this.GetPreAndDeliveryDate(startIdx, cityId, all, nextAnchor);
+
+                if (holidayInWindow)
+                {
+                    closureProvider = HandleHolidayClosures(closureProvider, thisPair, nextPair);
+                }
+
+                // Persist for this city
+                this.UpdateOrInsertCityNextRstDate(cityId, thisPair, nextPair);
+            }
+
+            // Mark last calculated date
+            using (TrackerDb trackerDb = new TrackerDb())
+            {
+                trackerDb.ExecuteNonQuerySQLWithParams(
+                    "UPDATE SysDataTbl SET DateLastPrepDateCalcd = ? WHERE ID=1",
+                    new List<DBParameter>
+                    {
+                new DBParameter { DataValue = TimeZoneUtils.Now().Date, DataDbType = DbType.Date }
+                    }
+                );
+            }
         }
 
+        private static HolidayClosureProvider HandleHolidayClosures(HolidayClosureProvider closureProvider, PrepAndDeliveryData thisPair, PrepAndDeliveryData nextPair)
+        {
+            // Adjust current pair only if dates land on closures
+            if (closureProvider.IsClosed(thisPair.PrepDate, true) || closureProvider.IsClosed(thisPair.DeliveryDate, false))
+            {
+                var adj = closureProvider.AdjustPair(thisPair.PrepDate, thisPair.DeliveryDate);
+                if (adj.WasAdjusted)
+                {
+                    thisPair.PrepDate = adj.Prep;
+                    thisPair.DeliveryDate = adj.Delivery;
+                }
+            }
+
+            // Adjust next pair only if dates land on closures
+            if (closureProvider.IsClosed(nextPair.PrepDate, true) || closureProvider.IsClosed(nextPair.DeliveryDate, false))
+            {
+                var adj2 = closureProvider.AdjustPair(nextPair.PrepDate, nextPair.DeliveryDate);
+                if (adj2.WasAdjusted)
+                {
+                    nextPair.PrepDate = adj2.Prep;
+                    nextPair.DeliveryDate = adj2.Delivery;
+                }
+            }
+            return closureProvider;
+        }
+
+        /*
+public void SetNextRoastDateByCity()
+{
+   List<CityPrepDaysTbl> all = new CityPrepDaysTbl().GetAll("CityID, PrepDayOfWeekID");
+   DateTime minValue = DateTime.MinValue;
+   TrackerTools.PrepAndDeliveryData prepAndDeliveryData1 = new TrackerTools.PrepAndDeliveryData();
+   TrackerTools.PrepAndDeliveryData prepAndDeliveryData2 = new TrackerTools.PrepAndDeliveryData();
+   DateTime pForThisDate1 = TimeZoneUtils.Now().Date;
+   if (pForThisDate1.Hour >= 14)
+       pForThisDate1 = pForThisDate1.AddDays(1.0);
+   int num = 0;
+label_6:
+   while (num < all.Count)
+   {
+       int cityId = all[num].CityID;
+       TrackerTools.PrepAndDeliveryData preAndDeliveryDate1 = this.GetPreAndDeliveryDate(num, cityId, all, pForThisDate1);
+       DateTime pForThisDate2 = preAndDeliveryDate1.PrepDate == preAndDeliveryDate1.DeliveryDate ? preAndDeliveryDate1.PrepDate.AddDays(1.0).Date : preAndDeliveryDate1.DeliveryDate.Date;
+       TrackerTools.PrepAndDeliveryData preAndDeliveryDate2 = this.GetPreAndDeliveryDate(num, cityId, all, pForThisDate2);
+       this.UpdateOrInsertCityNextRstDate(cityId, preAndDeliveryDate1, preAndDeliveryDate2);
+       ++num;
+       while (true)
+       {
+           if (num < all.Count && cityId == all[num].CityID)
+               ++num;
+           else
+               goto label_6;
+       }
+   }
+   TrackerDb trackerDb = new TrackerDb();
+   trackerDb.ExecuteNonQuerySQLWithParams("UPDATE SysDataTbl SET DateLastPrepDateCalcd = ? WHERE ID=1", new List<DBParameter>()
+   {
+       new DBParameter()
+       {
+           DataValue = (object) TimeZoneUtils.Now().Date,
+           DataDbType = DbType.Date
+       }
+   });
+   trackerDb.Close();
+}
+*/
         public DateTime GetNextRoastDateByCustomerID(long pCustID, ref DateTime pDelivery)
         {
             if (!this.IsNextRoastDateByCityTodays())

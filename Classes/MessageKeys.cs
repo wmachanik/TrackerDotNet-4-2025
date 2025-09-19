@@ -28,6 +28,13 @@ namespace TrackerDotNet.Classes
             public const string ReminderCountReset = "Customer.ReminderCountReset";
         }
 
+        public static class AwayPeriod
+        {
+            public const string ConfirmationSubject = "AwayPeriod.ConfirmationSubject";
+            public const string Greeting = "AwayPeriod.Greeting";
+            public const string ConfirmationInfo = "AwayPeriod.ConfirmationInfo";
+            public const string ConfirmationBody = "AwayPeriod.ConfirmationBody";
+        }
         /// <summary>
         /// Disable Client feature messages
         /// </summary>
@@ -194,6 +201,10 @@ namespace TrackerDotNet.Classes
             public const string TableNextDispatchDate = "CoffeeCheckup.TableNextDispatchDate";
             public const string TableType = "CoffeeCheckup.TableType";
             public const string TableListOfItems = "CoffeeCheckup.TableListOfItems";
+            public const string ClosureAdjustmentPrefix = "CoffeeCheckup.ClosureAdjustmentPrefix";
+            public const string UpcomingClosures = "CoffeeCheckup.UpcomingClosures";
+            public const string AdjustedDatesLabel = "CoffeeCheckup.AdjustedDatesLabel";
+            public const string HolidayClosureEmailNote = "CoffeeCheckup.HolidayClosureEmailNote";
         }
 
         /// <summary>

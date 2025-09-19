@@ -483,5 +483,29 @@ namespace TrackerDotNet.Pages
                 pPaymentTermsTbl.Delete(pPaymentTermsTbl.PaymentTermID);
             this.gvPaymentTerms.DataBind();
         }
+        protected void odsRepairStatuses_Updated(object sender, ObjectDataSourceStatusEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                lblStatus.Text = "Update failed: " + e.Exception.Message;
+                e.ExceptionHandled = true;
+            }
+        }
+        protected void odsRepairStatuses_Inserted(object sender, ObjectDataSourceStatusEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                lblStatus.Text = "Insert failed: " + e.Exception.Message;
+                e.ExceptionHandled = true;
+            }
+        }
+        protected void odsRepairStatuses_Deleted(object sender, ObjectDataSourceStatusEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                lblStatus.Text = "Delete failed: " + e.Exception.Message;
+                e.ExceptionHandled = true;
+            }
+        }
     }
 }

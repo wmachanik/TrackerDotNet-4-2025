@@ -73,8 +73,10 @@
                 </asp:TableHeaderRow>
             </asp:Table>
             <br />
-            <asp:Table ID="tblTotals" runat="server" CssClass="TblCoffee" Width="100%">
-            </asp:Table>
+            <div class="TblWrapper">
+                <asp:Table ID="tblTotals" runat="server" CssClass="TblCoffee" Width="100%">
+                </asp:Table>
+            </div>
             <div style="text-align: right; width: 98%" class="small">
                 <asp:Label ID="ltrlWhichDate" Text="" runat="server" CssClass="small" />
             </div>

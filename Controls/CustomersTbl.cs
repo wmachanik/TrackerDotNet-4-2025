@@ -491,7 +491,7 @@ namespace TrackerDotNet.Controls
             }
             else
             {
-                sql += " ORDER BY enabled DESC, CompanyName ASC";
+                sql += " ORDER BY IIF(enabled,1,0) DESC, CompanyName ASC";
             }
 
             IDataReader reader = trackerDb.ExecuteSQLGetDataReader(sql);
@@ -870,7 +870,7 @@ namespace TrackerDotNet.Controls
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog("database", $"Error resetting reminder count for customer {customerID}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.Database, $"Error resetting reminder count for customer {customerID}: {ex.Message}");
                 result = ex.Message;
             }
             finally
