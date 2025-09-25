@@ -6,6 +6,8 @@ using System.Web.UI.WebControls;
 using TrackerDotNet.Classes;
 using TrackerDotNet.Managers;
 using System.Text.RegularExpressions;
+using HtmlAgilityPack; // add this
+using System.IO;       // for StringWriter
 
 namespace TrackerDotNet.Tools
 {
@@ -148,42 +150,261 @@ namespace TrackerDotNet.Tools
             gvMessages.EditIndex = -1;
             BindGrid();
         }
-        private static readonly Regex BrTagRegex = new Regex(@"<\s*br\s*/?\s*>", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex ScriptStyleBlockRegex = new Regex(@"<(script|style)\b.*?</\1\s*>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
-        private static readonly Regex AnyTagRegex = new Regex(@"<[^>]+>", RegexOptions.Compiled);
+
+        // Whitelists for safe HTML (expanded to support your examples)
+        private static readonly HashSet<string> AllowedTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "p","br","a","strong","em","b","i","u","ul","ol","li",
+            "h2","div","span",
+            "table","thead","tbody","tfoot","tr","td","th"
+        };
+
+        // Allowed attributes per tag (style validated separately; href validated)
+        private static readonly Dictionary<string, HashSet<string>> AllowedAttributes =
+            new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "a",     new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "href","title","target","style" } },
+            { "p",     new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style" } },
+            { "h2",    new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style" } },
+            { "div",   new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style" } },
+            { "span",  new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style" } },
+            { "ul",    new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style" } },
+            { "ol",    new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style" } },
+            { "li",    new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style" } },
+            { "table", new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style","cellpadding","cellspacing" } },
+            { "tr",    new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style" } },
+            { "td",    new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style","colspan","rowspan" } },
+            { "th",    new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "style","colspan","rowspan" } }
+        };
+
+        private static bool IsSafeHref(string href)
+        {
+            if (string.IsNullOrWhiteSpace(href)) return false;
+            href = href.Trim();
+
+            // Allow relative URLs
+            if (Uri.TryCreate(href, UriKind.Relative, out _)) return true;
+
+            // Allow only http/https/mailto absolute URLs
+            if (Uri.TryCreate(href, UriKind.Absolute, out var uri))
+                return uri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase)
+                    || uri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase)
+                    || uri.Scheme.Equals("mailto", StringComparison.OrdinalIgnoreCase);
+
+            return false;
+        }
+
+        private static bool IsDigits(string s) => !string.IsNullOrWhiteSpace(s) && Regex.IsMatch(s.Trim(), @"^\d+$");
+
+        // px lengths: allow "12px" or up to four values like "10px 0 10px 0"
+        private static bool IsPxLengths(string value)
+        {
+            var parts = value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0 || parts.Length > 4) return false;
+            return parts.All(p => Regex.IsMatch(p, @"^\d{1,3}px$", RegexOptions.IgnoreCase));
+        }
+
+        private static bool IsBorderSpec(string value)
+        {
+            // e.g. "1px solid #ccc"
+            var m = Regex.Match(value.Trim(), @"^(?<w>\d{1,3}px)\s+(?<s>solid|dashed|dotted)\s+(?<c>#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})|[a-zA-Z]+)$",
+                RegexOptions.IgnoreCase);
+            return m.Success;
+        }
+
+        private static bool IsColor(string value)
+            => Regex.IsMatch(value.Trim(), @"^(#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})|[a-zA-Z]+)$");
+
+        private static bool IsFontWeight(string value)
+            => Regex.IsMatch(value.Trim(), @"^(normal|bold|[1-9]00)$", RegexOptions.IgnoreCase);
+
+        private static bool IsFontSize(string value)
+            => Regex.IsMatch(value.Trim(), @"^\d{1,2}px$", RegexOptions.IgnoreCase); // simple and safe
+
+        private static bool IsTextAlign(string value)
+            => Regex.IsMatch(value.Trim(), @"^(left|right|center|justify)$", RegexOptions.IgnoreCase);
+
+        private static bool IsBorderCollapse(string value)
+            => Regex.IsMatch(value.Trim(), @"^(collapse|separate)$", RegexOptions.IgnoreCase);
+
+        private static readonly HashSet<string> AllowedFontFamilies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        { "Arial","Helvetica","Tahoma","Verdana","Georgia","Times New Roman","sans-serif","serif" };
+
+        private static bool IsFontFamily(string value)
+        {
+            // Comma-separated list; ensure each is in the allowlist (quotes optional)
+            var parts = value.Split(',').Select(p => p.Trim().Trim('\'','"'));
+            return parts.All(p => AllowedFontFamilies.Contains(p));
+        }
+
+        // Strict CSS allowlist for inline styles
+        private static bool IsSafeStyle(string style)
+        {
+            if (string.IsNullOrWhiteSpace(style)) return false;
+
+            var decls = style.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var rawDecl in decls)
+            {
+                var parts = rawDecl.Split(new[] { ':' }, 2);
+                if (parts.Length != 2) return false;
+
+                var name = parts[0].Trim().ToLowerInvariant();
+                var val = parts[1].Trim();
+
+                switch (name)
+                {
+                    case "color":
+                    case "background-color":
+                        if (!IsColor(val)) return false;
+                        break;
+
+                    case "font-weight":
+                        if (!IsFontWeight(val)) return false;
+                        break;
+
+                    case "font-size":
+                        if (!IsFontSize(val)) return false;
+                        break;
+
+                    case "text-align":
+                        if (!IsTextAlign(val)) return false;
+                        break;
+
+                    case "border":
+                    case "border-top":
+                    case "border-bottom":
+                    case "border-left":
+                    case "border-right":
+                        if (!IsBorderSpec(val)) return false;
+                        break;
+
+                    case "border-radius":
+                        if (!Regex.IsMatch(val, @"^\d{1,3}px$", RegexOptions.IgnoreCase)) return false;
+                        break;
+
+                    case "padding":
+                    case "padding-top":
+                    case "padding-right":
+                    case "padding-bottom":
+                    case "padding-left":
+                    case "margin":
+                    case "margin-top":
+                    case "margin-right":
+                    case "margin-bottom":
+                    case "margin-left":
+                        if (!IsPxLengths(val)) return false;
+                        break;
+
+                    case "border-collapse":
+                        if (!IsBorderCollapse(val)) return false;
+                        break;
+
+                    case "font-family":
+                        if (!IsFontFamily(val)) return false;
+                        break;
+
+                    default:
+                        // Any other CSS property is disallowed
+                        return false;
+                }
+            }
+            return true;
+        }
 
         private static string SanitizeMessage(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return string.Empty;
 
-            // Normalize newlines
-            input = input.Replace("\r\n", "\n");
-
-            // Remove script/style blocks entirely
-            input = ScriptStyleBlockRegex.Replace(input, string.Empty);
-
-            // Protect allowed <br> tags with tokens
-            int brIndex = 0;
-            var brMap = new Dictionary<string, string>();
-            input = BrTagRegex.Replace(input, m =>
+            var doc = new HtmlDocument
             {
-                string token = "___BR" + (brIndex++) + "___";
-                brMap[token] = "<br />";
-                return token;
-            });
+                OptionFixNestedTags = true,
+                OptionWriteEmptyNodes = true
+            };
+            doc.LoadHtml(input);
 
-            // Strip any remaining tags (do NOT HTML encode them)
-            input = AnyTagRegex.Replace(input, string.Empty);
+            // Remove script/style entirely
+            foreach (var node in doc.DocumentNode.SelectNodes("//script|//style") ?? Enumerable.Empty<HtmlNode>())
+                node.Remove();
 
-            // Restore <br /> tokens
-            foreach (var kv in brMap)
+            // Walk nodes and sanitize
+            SanitizeNode(doc.DocumentNode);
+
+            using (var sw = new StringWriter())
             {
-                input = input.Replace(kv.Key, kv.Value);
+                doc.Save(sw);
+                var html = sw.ToString();
+
+                // Normalize <br> to <br />
+                html = Regex.Replace(html, @"<br(?=[^>]*?)>", "<br />", RegexOptions.IgnoreCase);
+
+                var root = doc.DocumentNode;
+                return root.InnerHtml.Trim();
+            }
+        }
+
+        private static void SanitizeNode(HtmlNode node)
+        {
+            if (node.NodeType == HtmlNodeType.Element)
+            {
+                var name = node.Name;
+
+                if (!AllowedTags.Contains(name))
+                {
+                    if (node.ParentNode != null)
+                    {
+                        for (int i = node.ChildNodes.Count - 1; i >= 0; i--)
+                        {
+                            var child = node.ChildNodes[i];
+                            node.ParentNode.InsertAfter(child, node);
+                        }
+                        node.Remove();
+                        return;
+                    }
+                }
+                else
+                {
+                    var allowed = AllowedAttributes.ContainsKey(name) ? AllowedAttributes[name] : null;
+
+                    foreach (var attr in node.Attributes.ToList())
+                    {
+                        bool keep = allowed != null && allowed.Contains(attr.Name);
+
+                        // Special handling for <a href>
+                        if (keep && name.Equals("a", StringComparison.OrdinalIgnoreCase) &&
+                            attr.Name.Equals("href", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (!IsSafeHref(attr.Value)) keep = false;
+                        }
+
+                        // Validate style on allowed tags
+                        if (keep && attr.Name.Equals("style", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (!IsSafeStyle(attr.Value)) keep = false;
+                        }
+
+                        // Validate numeric attributes
+                        if (keep && (attr.Name.Equals("colspan", StringComparison.OrdinalIgnoreCase) ||
+                                     attr.Name.Equals("rowspan", StringComparison.OrdinalIgnoreCase) ||
+                                     attr.Name.Equals("cellpadding", StringComparison.OrdinalIgnoreCase) ||
+                                     attr.Name.Equals("cellspacing", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            if (!IsDigits(attr.Value)) keep = false;
+                        }
+
+                        // Drop event handlers, javascript:*, data:* attributes defensively
+                        if (attr.Name.StartsWith("on", StringComparison.OrdinalIgnoreCase))
+                            keep = false;
+
+                        if (!keep)
+                            node.Attributes.Remove(attr);
+                    }
+                }
             }
 
-            // Trim extra whitespace (but keep intentional line break tags)
-            return input.Trim();
+            foreach (var child in node.ChildNodes.ToList())
+                SanitizeNode(child);
         }
+
         protected void gvMessages_RowUpdating(object sender, GridViewUpdateEventArgs e)
         {
             if (!IsUserAdmin()) { DenyAccess(); return; }
@@ -192,14 +413,12 @@ namespace TrackerDotNet.Tools
             GridViewRow row = gvMessages.Rows[e.RowIndex];
             var txt = (TextBox)row.FindControl("txtEditValue");
 
-            // Retrieve unvalidated value if you later re-enable validation globally
             string rawVal;
             if (txt != null)
             {
-                // Prefer unvalidated collection (works when request validation deferred)
                 try
                 {
-                    rawVal = Request.Unvalidated[txt.UniqueID] ?? txt.Text;
+                    rawVal = Request.Unvalidated[txt.UniqueID] ?? txt.Text; // keep raw HTML
                 }
                 catch
                 {
@@ -221,21 +440,18 @@ namespace TrackerDotNet.Tools
                 BindGrid();
                 ltrlStatus.Text = "Updated '" + key + "'.";
                 new showMessageBox(this, "Status", ltrlStatus.Text);
-                AppLogger.WriteLog(SystemConstants.LogTypes.System,
-                    "MessagesEditor: Updated key '" + key + "'");
+                AppLogger.WriteLog(SystemConstants.LogTypes.System, "MessagesEditor: Updated key '" + key + "'");
             }
             catch (Exception ex)
             {
                 ltrlStatus.Text = "Update failed: " + ex.Message;
-                AppLogger.WriteLog(SystemConstants.LogTypes.System,
-                    "MessagesEditor update error for key '" + key + "': " + ex.Message);
+                AppLogger.WriteLog(SystemConstants.LogTypes.System, "MessagesEditor update error for key '" + key + "': " + ex.Message);
             }
         }
 
         protected void gvMessages_RowDataBound(object sender, GridViewRowEventArgs e)
         {
-            // Nothing special now; values are HTML-encoded in markup to prevent breaking the table.
+            // Preview is HTML-encoded in markup; stored value keeps allowed HTML for emails.
         }
-
     }
 }

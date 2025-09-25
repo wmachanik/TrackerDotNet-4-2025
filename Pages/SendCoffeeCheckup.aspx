@@ -96,9 +96,9 @@
                             OnClick="btnUpdate_Click" />&nbsp;&nbsp;&nbsp;
                         <asp:Button ID="btnReload" Text="Email Text Reload" runat="server"
                             OnClick="btnReload_Click" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <asp:Button ID="btnSend" Text="Send Check Email" runat="server" OnClick="btnSend_Click" />&nbsp;&nbsp;&nbsp;&nbsp;
-                        <asp:Button ID="btnTestSingleCustomer" Text="Test Single Email" runat="server" OnClick="btnTestSingleCustomer_Click"
-                            ToolTip="Send a test email to verify email formatting and content" />&nbsp;&nbsp;&nbsp;&nbsp;
+                        <asp:Button ID="btnSend" Text="Send Checkup" runat="server" OnClick="btnSend_Click" />&nbsp;&nbsp;&nbsp;&nbsp;
+<%--                        <asp:Button ID="btnTestSingleCustomer" Text="Test Single Email" runat="server" OnClick="btnTestSingleCustomer_Click"
+                            ToolTip="Send a test email to verify email formatting and content" />&nbsp;&nbsp;&nbsp;&nbsp;--%>
                         <asp:Button ID="btnClearTodaysData" Text="Clear Sents" runat="server" OnClick="btnClearTodaysData_Click"
                             ToolTip="Clear the sent today's table" />&nbsp;&nbsp;&nbsp;&nbsp;
                         <asp:Button ID="btnRefreshCustomerCheckupList" Text="Refresh List" runat="server" OnClick="btnPrepData_Click"

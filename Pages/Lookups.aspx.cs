@@ -115,32 +115,147 @@ namespace TrackerDotNet.Pages
                 this.lblStatus.Text = "Error adding record: " + ex.Message;
             }
         }
-
-        protected void gvPeople_RowCommand(object sender, GridViewCommandEventArgs e)
+        protected void gvPeople_RowUpdating(object sender, GridViewUpdateEventArgs e)
         {
-            if (!e.CommandName.Equals("AddItem"))
-                return;
             try
             {
-                TextBox control1 = (TextBox)this.gvPeople.FooterRow.FindControl("tbxPerson");
-                TextBox control2 = (TextBox)this.gvPeople.FooterRow.FindControl("tbxAbreviation");
-                CheckBox control3 = (CheckBox)this.gvPeople.FooterRow.FindControl("cbxEnabled");
-                DropDownList control4 = (DropDownList)this.gvPeople.FooterRow.FindControl("ddlDayOfWeek");
-                DropDownList control5 = (DropDownList)this.gvPeople.FooterRow.FindControl("ddlSecurityNames");
-                PersonsTbl pPerson = new PersonsTbl();
-                pPerson.Person = control1.Text;
-                pPerson.Abreviation = control2.Text;
-                pPerson.Enabled = control3.Checked;
-                pPerson.NormalDeliveryDoW = Convert.ToInt32(control4.SelectedValue);
-                pPerson.SecurityUsername = control5.SelectedValue;
-                pPerson.InsertPerson(pPerson);
-                this.gvPeople.DataBind();
+                GridViewRow row = gvPeople.Rows[e.RowIndex];
+
+                var tbxPerson = (TextBox)row.FindControl("tbxPerson");
+                var tbxAbreviation = (TextBox)row.FindControl("tbxAbreviation");
+                var cbxEnabled = (CheckBox)row.FindControl("cbxEnabled");
+                var ddlDayOfWeek = (DropDownList)row.FindControl("ddlDayOfWeek");
+                var ddlSecurityNames = (DropDownList)row.FindControl("ddlSecurityNames");
+
+                PersonsTbl pPerson = new PersonsTbl
+                {
+                    PersonID = Convert.ToInt32(gvPeople.DataKeys[e.RowIndex].Value),
+                    Person = tbxPerson?.Text ?? "",
+                    Abreviation = tbxAbreviation?.Text ?? "",
+                    Enabled = cbxEnabled != null && cbxEnabled.Checked,
+                    NormalDeliveryDoW = ddlDayOfWeek != null ? Convert.ToInt32(ddlDayOfWeek.SelectedValue) : 0,
+                    SecurityUsername = ddlSecurityNames != null ? ddlSecurityNames.SelectedValue : ""
+                };
+
+                // SAFEGUARD: if selected username no longer exists, force blank
+                if (ddlSecurityNames != null && ddlSecurityNames.Items.FindByValue(pPerson.SecurityUsername) == null)
+                {
+                    pPerson.SecurityUsername = string.Empty;
+                }
+
+                PersonsTbl.UpdatePerson(pPerson, pPerson.PersonID);
+
+                gvPeople.EditIndex = -1;
+                gvPeople.DataBind();
             }
             catch (Exception ex)
             {
-                this.lblStatus.Text = "Error adding record: " + ex.Message;
+                lblStatus.Text = "Error updating record: " + ex.Message;
             }
         }
+        protected void gvPeople_RowEditing(object sender, GridViewEditEventArgs e)
+        {
+            try
+            {
+                gvPeople.EditIndex = e.NewEditIndex;
+                lblStatus.Text = $"RowEditing: Setting edit index to {e.NewEditIndex}";
+                gvPeople.DataBind();
+                upnlPeople.Update();
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = $"RowEditing error: {ex.Message}";
+            }
+        }
+        protected void gvPeople_RowDataBound(object sender, GridViewRowEventArgs e)
+        {
+            if (e.Row.RowType != DataControlRowType.DataRow) return;
+
+            bool isEdit = (e.Row.RowState & DataControlRowState.Edit) != 0;
+            if (!isEdit) return;
+
+            var ddl = (DropDownList)e.Row.FindControl("ddlSecurityNames");
+            if (ddl == null) return;
+
+            string current = (DataBinder.Eval(e.Row.DataItem, "SecurityUsername") as string ?? "").Trim();
+
+            if (string.IsNullOrEmpty(current))
+            {
+                // Blank / n/a
+                if (ddl.Items.FindByValue("") != null)
+                    ddl.SelectedValue = "";
+                return;
+            }
+
+            // Try exact match first
+            var existing = ddl.Items.FindByValue(current);
+            if (existing != null)
+            {
+                ddl.SelectedValue = current;
+                return;
+            }
+
+            // Case-insensitive fallback
+            ListItem caseInsensitive = null;
+            foreach (ListItem li in ddl.Items)
+            {
+                if (string.Equals(li.Value, current, StringComparison.OrdinalIgnoreCase))
+                {
+                    caseInsensitive = li;
+                    break;
+                }
+            }
+            if (caseInsensitive != null)
+            {
+                ddl.SelectedValue = caseInsensitive.Value;
+                return;
+            }
+
+            // Orphaned username → inject a marker item
+            ddl.Items.Insert(0, new ListItem(current + " (missing)", current));
+            ddl.SelectedValue = current;
+        }
+        protected void gvPeople_RowCommand(object sender, GridViewCommandEventArgs e)
+        {
+            try
+            {
+                if (e.CommandName.Equals("AddItem"))
+                {
+                    var personTbx = (TextBox)gvPeople.FooterRow.FindControl("tbxPerson");
+                    var abrvTbx = (TextBox)gvPeople.FooterRow.FindControl("tbxAbreviation");
+                    var enabledCbx = (CheckBox)gvPeople.FooterRow.FindControl("cbxEnabled");
+                    var dowDdl = (DropDownList)gvPeople.FooterRow.FindControl("ddlDayOfWeek");
+                    var userDdl = (DropDownList)gvPeople.FooterRow.FindControl("ddlSecurityNames");
+
+                    if (personTbx == null || abrvTbx == null || enabledCbx == null || dowDdl == null || userDdl == null)
+                    {
+                        lblStatus.Text = "Footer controls missing.";
+                        return;
+                    }
+
+                    var newPerson = new PersonsTbl
+                    {
+                        Person = personTbx.Text,
+                        Abreviation = abrvTbx.Text,
+                        Enabled = enabledCbx.Checked,
+                        NormalDeliveryDoW = Convert.ToInt32(dowDdl.SelectedValue),
+                        SecurityUsername = userDdl.SelectedValue
+                    };
+
+                    // If user value not in list (shouldn't happen here, but safe)
+                    if (userDdl.Items.FindByValue(newPerson.SecurityUsername) == null)
+                        newPerson.SecurityUsername = string.Empty;
+
+                    newPerson.InsertPerson(newPerson);
+                    gvPeople.DataBind();
+                }
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "Command error: " + ex.Message;
+            }
+        }
+        
 
         protected void dvItems_ItemInserted(object sender, DetailsViewInsertedEventArgs e)
         {

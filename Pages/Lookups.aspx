@@ -314,12 +314,16 @@
             </HeaderTemplate>
             <ContentTemplate>
                 <asp:UpdatePanel ID="upnlPeople" runat="server" UpdateMode="Conditional">
+                    <Triggers>
+                        <asp:AsyncPostBackTrigger ControlID="gvPeople" />
+                    </Triggers>
                     <ContentTemplate>
                         <div class="results-container">
                             <asp:GridView ID="gvPeople" runat="server" AllowPaging="True" AllowSorting="True"
                                 AutoGenerateColumns="False" CellPadding="1" PageSize="20" DataKeyNames="PersonID"
-                                OnRowCommand="gvPeople_RowCommand" DataSourceID="odsPeople" CssClass="results-table" ShowFooter="True">
-                                <FooterStyle BorderStyle="Dashed" BorderColor="Cornsilk" />
+                                OnRowCommand="gvPeople_RowCommand" OnRowUpdating="gvPeople_RowUpdating"
+                                OnRowEditing="gvPeople_RowEditing" OnRowDataBound="gvPeople_RowDataBound"
+                                DataSourceID="odsPeople" CssClass="results-table" ShowFooter="True">
                                 <Columns>
                                     <asp:TemplateField ShowHeader="False">
                                         <EditItemTemplate>
@@ -329,7 +333,8 @@
                                                 AlternateText="no" ImageUrl="~/images/imgButtons/CancelItem.gif" />
                                         </EditItemTemplate>
                                         <ItemTemplate>
-                                            <asp:ImageButton ID="btnEdit" runat="server" CausesValidation="False" CommandName="Edit"
+                                            <asp:ImageButton ID="btnEdit" runat="server" CausesValidation="False"
+                                                CommandName="Edit" CommandArgument='<%# Container.DataItemIndex %>'
                                                 AlternateText="Edit" ImageUrl="~/images/imgButtons/EditItem.gif" />
                                         </ItemTemplate>
                                         <FooterTemplate>
@@ -415,8 +420,7 @@
                                     <asp:TemplateField HeaderText="Username" SortExpression="SecurityUsername">
                                         <EditItemTemplate>
                                             <asp:DropDownList ID="ddlSecurityNames" runat="server" AppendDataBoundItems="True"
-                                                SelectedValue='<%# Bind("SecurityUsername") %>' DataSourceID="sdsUserNames"
-                                                DataTextField="SecurityUsername" DataValueField="SecurityUsername">
+                                                DataSourceID="sdsUserNames" DataTextField="SecurityUsername" DataValueField="SecurityUsername">
                                                 <asp:ListItem Value="" Text="n/a" />
                                             </asp:DropDownList>
                                         </EditItemTemplate>
@@ -1211,6 +1215,10 @@
         <SelectParameters>
             <asp:Parameter DefaultValue="&quot;Abreviation&quot;" Name="SortBy" Type="String" />
         </SelectParameters>
+        <UpdateParameters>
+            <asp:Parameter Name="pPerson" Type="Object" DbType="Object" />
+            <asp:Parameter Name="pOrignal_PersonID" Type="Int32" />
+        </UpdateParameters>
         <DeleteParameters>
             <asp:Parameter Name="pPersonID" Type="Int32" />
         </DeleteParameters>
