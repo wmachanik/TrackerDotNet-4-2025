@@ -203,6 +203,16 @@
                 </td>
             </tr>
         </table>
+
+<%--<asp:Button ID="btnShowMatrix" runat="server"
+    Text="Show Delivery Matrix"
+    OnClick="btnShowMatrix_Click"
+    CssClass="btn btn-secondary"
+    Style="margin-top:8px;margin-right:8px;" />
+
+<asp:Panel ID="pnlMatrixDump" runat="server" Visible="false" Style="margin-top:10px;">
+    <asp:Literal ID="ltrlMatrixDump" runat="server" Mode="PassThrough" />
+</asp:Panel>--%>
         <asp:ObjectDataSource ID="odsContactsToSendCheckup" runat="server"
             DataObjectTypeName="TrackerDotNet.Controls.ContactToRemindDetails"
             InsertMethod="InsertContacts" SelectMethod="GetAllContacts"

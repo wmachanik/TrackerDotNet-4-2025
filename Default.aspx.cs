@@ -21,8 +21,8 @@ namespace TrackerDotNet
 
         protected void Page_PreInit(object sender, EventArgs e)
         {
-           bool flag = new CheckBrowser().fBrowserIsMobile();
-           this.Session["RunningOnMoble"] = (object)flag;
+            bool flag = new CheckBrowser().fBrowserIsMobile();
+            this.Session["RunningOnMoble"] = (object)flag;
             //if (flag)
             //    this.MasterPageFile = "~/MobileSite.master";
             //else
@@ -31,9 +31,15 @@ namespace TrackerDotNet
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            this.sdsCupCountTotal.DataBind();
-            foreach (DataRowView dataRowView in (DataView)this.sdsCupCountTotal.Select(DataSourceSelectArguments.Empty))
-                this.lblTotalCupCount.Text = $"{dataRowView["TotalCupCount"]:n0}";
+            if (!IsPostBack)
+            {
+                var now = TimeZoneUtils.Now();
+                // Example format: Monday, 03 Feb 2025 14:32 SAST
+                litCurrentDate.Text = $"Date: {now:dddd, dd MMM yyyy HH:mm} {TimeZoneUtils.GetZoneAbbreviation()}";
+                this.sdsCupCountTotal.DataBind();
+                foreach (DataRowView dataRowView in (DataView)this.sdsCupCountTotal.Select(DataSourceSelectArguments.Empty))
+                    this.lblTotalCupCount.Text = $"{dataRowView["TotalCupCount"]:n0}";
+            }
         }
     }
 }

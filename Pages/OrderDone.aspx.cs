@@ -60,19 +60,26 @@ namespace TrackerDotNet.Pages
             }
         }
 
+        //protected override void OnInit(EventArgs e)
+        //{
+        //    base.OnInit(e);
+        //    // Ensure mode set before automatic data binding
+        //    fvOrderDone.DefaultMode = FormViewMode.Edit;
+        //}
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
             {
-                sdsOrderDoneHeader.Select(DataSourceSelectArguments.Empty);
-                fvOrderDone.ChangeMode(FormViewMode.Edit);
-
-                // NEW: Set the radio button selection based on delivery type
+                var tempHeader = new TempOrdersHeaderTbl().GetFirst();
+                if (tempHeader != null)
+                {
+                    sdsOrderDoneHeader.SelectParameters["CustomerID"].DefaultValue = tempHeader.CustomerID.ToString();
+                }
+                fvOrderDone.DataBind();
                 SetDefaultRadioButtonFromDeliveryType();
             }
         }
-
-        // NEW: Method to set radio button based on delivery person type
+        // Method to set radio button based on delivery person type
         private void SetDefaultRadioButtonFromDeliveryType()
         {
             try

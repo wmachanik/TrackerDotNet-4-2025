@@ -25,6 +25,7 @@ namespace TrackerDotNet.Pages
         private static Dictionary<int, string> _cachedItemDescriptions = new Dictionary<int, string>();
         private int reminderWindowDays = SystemConstants.CheckupConstants.DefaultReminderWindowDays; // CoffeeCheckupManager.GetReminderWindowDays(); // fallback
 
+
         // Business logic manager - PROPERLY INITIALIZED
         private readonly CoffeeCheckupManager _coffeeCheckupManager;
         
@@ -37,7 +38,23 @@ namespace TrackerDotNet.Pages
         {
             if (!IsPostBack)
             {
-               
+
+                // NEW: Clear any stale temp data from a previous session to avoid showing old results
+                try
+                {
+                    var temp = new TempCoffeeCheckup();
+                    // Keep order consistent with existing cleanup usage elsewhere
+                    temp.DeleteAllContactRecords();
+                    temp.DeleteAllContactItems();
+                    AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                        "SendCoffeeCheckup: Cleared previous TempCoffeeCheckup data on initial page load.");
+                }
+                catch (Exception ex)
+                {
+                    AppLogger.WriteLog("error",
+                        $"SendCoffeeCheckup: Failed to clear previous temp data on load: {ex.Message}");
+                }
+
                 // Make sure panels are visible
                 upnlCustomerCheckup.Visible = true;
                 upnlContactItems.Visible = true;
@@ -51,9 +68,9 @@ namespace TrackerDotNet.Pages
 
                 // Setup reminder window including dropdown
                 reminderWindowDays = CoffeeCheckupManager.GetReminderWindowDays();
-                int min = 5, max = 30, def = CoffeeCheckupManager.GetReminderWindowDays();
-                int.TryParse(ConfigurationManager.AppSettings["CoffeeCheckupReminderWindowMin"], out min);
-                int.TryParse(ConfigurationManager.AppSettings["CoffeeCheckupReminderWindowMax"], out max);
+                int min = ConfigHelper.GetInt("CoffeeCheckupReminderWindowMin", 5);
+                int max = ConfigHelper.GetInt("CoffeeCheckupReminderWindowMax", 30);
+                int def = CoffeeCheckupManager.GetReminderWindowDays();
 
                 ddlReminderWindow.Items.Clear();
                 for (int i = min; i <= max; i++)
@@ -488,5 +505,55 @@ namespace TrackerDotNet.Pages
             // Trigger data prep with the new value
             btnPrepData_Click(sender, e);
         }
+        //protected void btnShowMatrix_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        // Make sure matrix is current (TTL respected by EnsureBuilt)
+        //        CityDeliveryMatrix.EnsureBuilt();
+
+        //        var rows = CityDeliveryMatrix.GetSnapshot();
+        //        if (rows == null || rows.Count == 0)
+        //        {
+        //            ltrlMatrixDump.Text = "<div style='padding:6px;background:#fff3cd;color:#856404;border:1px solid #ffeeba;border-radius:4px;'>No matrix rows found.</div>";
+        //        }
+        //        else
+        //        {
+        //            var sb = new System.Text.StringBuilder();
+        //            sb.Append("<table style='border-collapse:collapse;font-size:12px;'>");
+        //            sb.Append("<tr style='background:#e9ecef;'>");
+        //            sb.Append("<th style='border:1px solid #ccc;padding:4px;'>CityID</th>");
+        //            sb.Append("<th style='border:1px solid #ccc;padding:4px;'>Prep</th>");
+        //            sb.Append("<th style='border:1px solid #ccc;padding:4px;'>Delivery</th>");
+        //            sb.Append("<th style='border:1px solid #ccc;padding:4px;'>Next Prep</th>");
+        //            sb.Append("<th style='border:1px solid #ccc;padding:4px;'>Next Delivery</th>");
+        //            sb.Append("</tr>");
+
+        //            foreach (var r in rows)
+        //            {
+        //                sb.Append("<tr>");
+        //                sb.AppendFormat("<td style='border:1px solid #ccc;padding:3px;text-align:center;'>{0}</td>", r.CityID);
+        //                sb.AppendFormat("<td style='border:1px solid #ccc;padding:3px;'>{0:yyyy-MM-dd}</td>", r.PrepDate);
+        //                sb.AppendFormat("<td style='border:1px solid #ccc;padding:3px;'>{0:yyyy-MM-dd}</td>", r.DeliveryDate);
+        //                sb.AppendFormat("<td style='border:1px solid #ccc;padding:3px;'>{0:yyyy-MM-dd}</td>", r.NextPrepDate);
+        //                sb.AppendFormat("<td style='border:1px solid #ccc;padding:3px;'>{0:yyyy-MM-dd}</td>", r.NextDeliveryDate);
+        //                sb.Append("</tr>");
+        //            }
+
+        //            sb.Append("</table>");
+        //            ltrlMatrixDump.Text = sb.ToString();
+        //        }
+
+        //        pnlMatrixDump.Visible = true;
+        //        UpdateStatus("Delivery matrix snapshot generated.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"SendCoffeeCheckup: Error dumping matrix: {ex.Message}");
+        //        ltrlMatrixDump.Text = "<div style='padding:6px;background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;border-radius:4px;'>Matrix dump failed: "
+        //            + HttpUtility.HtmlEncode(ex.Message) + "</div>";
+        //        pnlMatrixDump.Visible = true;
+        //    }
+        //}
     }
 }

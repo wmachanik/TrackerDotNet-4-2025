@@ -118,4 +118,8 @@
         ProviderName="<%$ ConnectionStrings:Tracker08ConnectionString.ProviderName %>"
         SelectCommand="SELECT SUM(LastCupCount) AS TotalCupCount FROM ClientUsageTbl"></asp:SqlDataSource>
 
+    <div style="margin-top:40px; border-top:1px solid #ccc; padding-top:6px; font-size:12px; color:#555;">
+        <asp:Literal ID="litCurrentDate" runat="server" />
+    </div>
+
 </asp:Content>

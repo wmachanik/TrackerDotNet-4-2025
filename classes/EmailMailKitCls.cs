@@ -25,22 +25,9 @@ namespace TrackerDotNet.Classes
         private EmailSettings emailConfig;
 
         // Updated test mode properties that read from web.config
-        public bool IsTestMode 
-        { 
-            get 
-            { 
-                // Default to false if config missing/invalid for safety
-                return bool.TryParse(ConfigurationManager.AppSettings["EmailTestMode"], out bool result) && result;
-            } 
-        }
+        public bool IsTestMode = ConfigHelper.GetBool("EmailTestMode", false);
         
-        public string TestRecipientAddress 
-        { 
-            get 
-            { 
-                return ConfigurationManager.AppSettings["EmailTestRecipient"] ?? "warren@machanik.com";
-            } 
-        }
+        public string TestRecipientAddress = ConfigHelper.GetString("EmailTestRecipient","warren@machanik.com");
 
         // batch message stuff
         private readonly List<MimeMessage> batchMessages = new List<MimeMessage>();

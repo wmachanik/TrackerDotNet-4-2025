@@ -223,7 +223,7 @@ namespace TrackerDotNet.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;br/&gt;&lt;br/&gt;&lt;p&gt;If you would prefer not to receive these reminders, &lt;a href=&apos;{0}&apos;&gt;click here to disable them&lt;/a&gt;.&lt;/p&gt;.
+        ///   Looks up a localized string similar to &lt;br/&gt;&lt;p&gt;If you would prefer not to receive these reminders, &lt;a href=&apos;{0}&apos;&gt;click here to disable them&lt;/a&gt;.&lt;/p&gt;.
         /// </summary>
         public static string CoffeeCheckup_FooterDisableLink {
             get {
@@ -1437,6 +1437,42 @@ namespace TrackerDotNet.Resources {
         public static string Order_StatusSubject {
             get {
                 return ResourceManager.GetString("Order.StatusSubject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View-only link..
+        /// </summary>
+        public static string OrderDetail_PublicViewLoginPrompt {
+            get {
+                return ResourceManager.GetString("OrderDetail.PublicViewLoginPrompt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Request Changes.
+        /// </summary>
+        public static string OrderDetail_RequestChangesButtonText {
+            get {
+                return ResourceManager.GetString("OrderDetail.RequestChangesButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please describe the change you would like to request below this line:\r\n\r\nCustomerID: {0}\r\nDeliveryDate: {1}\r\nRequested change: .
+        /// </summary>
+        public static string OrderDetail_RequestChangesMailBody {
+            get {
+                return ResourceManager.GetString("OrderDetail.RequestChangesMailBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Order change request - Customer {0} - Delivery {1}.
+        /// </summary>
+        public static string OrderDetail_RequestChangesMailSubject {
+            get {
+                return ResourceManager.GetString("OrderDetail.RequestChangesMailSubject", resourceCulture);
             }
         }
         

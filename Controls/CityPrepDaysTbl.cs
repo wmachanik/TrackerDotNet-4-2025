@@ -64,7 +64,7 @@ namespace TrackerDotNet.Controls
             set => this._DeliveryOrder = value;
         }
 
-        public List<CityPrepDaysTbl> GetAll(string SortBy)
+        public List<CityPrepDaysTbl> GetAll(string SortBy = "")
         {
             TrackerDb trackerDb = new TrackerDb();
             string strSQL = "SELECT CityPrepDaysID, CityID, PrepDayOfWeekID, DeliveryDelayDays, DeliveryOrder FROM CityPrepDaysTbl";

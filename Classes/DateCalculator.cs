@@ -37,56 +37,69 @@ namespace TrackerDotNet.Classes
             _trackerTools = new TrackerTools();
             _cityTblDAL = new CityTblDAL();
         }
-        //public static class DateTimeExtensions
-        //{
-        //    public static DateTime GetFirstDayOfWeek(this DateTime sourceDateTime)
-        //    {
-        //        int diff = -(int)sourceDateTime.DayOfWeek;
-        //        return sourceDateTime.AddDays(diff).Date;
-        //    }
-
-
-        //    public static DateTime GetLastDayOfWeek(this DateTime sourceDateTime)
-        //    {
-        //        DayOfWeek dayOfWeek = 6 - sourceDateTime.DayOfWeek;
-        //        sourceDateTime = sourceDateTime.AddDays((double)dayOfWeek);
-        //        return sourceDateTime;
-        //    }
-        //}
-        /// Calculates the optimal delivery date for a monthly recurring order:
-        /// chooses the city-based prep/delivery combination whose delivery is
-        /// closest (absolute days) to the intended recurrence target date,
-        /// never scheduling a delivery in the past.
-        /// </summary>
-        /// <param name="customerId">Customer ID</param>
-        /// <param name="targetDayOfMonth">Target day of month (1-31)</param>
-        /// <param name="lastOrderDate">Date of last order</param>
+        private static bool IsDeliveryValidForRules(DateTime deliveryDate, List<CityPrepDaysTbl> rules)
+        {
+            foreach (var rule in rules)
+            {
+                var candidatePrep = deliveryDate.AddDays(-rule.DeliveryDelayDays).Date;
+                if ((int)candidatePrep.DayOfWeek == rule.PrepDayOfWeekID)
+                    return true;
+            }
+            return false;
+        }
         public PrepDeliveryPair CalculateOptimalMonthlyDeliveryDates(long customerId, int targetDayOfMonth, DateTime lastOrderDate)
         {
             try
             {
                 var today = TimeZoneUtils.Now().Date;
+
+                // 1. Anchor (recurrence target) – this must remain stable so filtering/window logic still works
                 DateTime targetDate = CalculateNextMonthlyOccurrence(targetDayOfMonth, lastOrderDate).Date;
-                if (targetDate < today) targetDate = today;
+                if (targetDate < today) targetDate = today; // never schedule in past
 
-                var pair = FindBestCityDeliveryDate(
-                    customerId,
-                    centerDate: targetDate,
-                    mode: DeliverySelectionMode.ClosestToTargetDate,
-                    referenceDate: targetDate,
-                    minDeliveryDate: targetDate,
-                    requireFuturePrep: true);
+                // 2. Get city prep rules (if missing, just return target unchanged)
+                int cityId = _cityTblDAL.GetCityIdByCustomerId(customerId);
+                var rules = (cityId == 0) ? null : _cityTblDAL.GetPrepRulesForCity(cityId);
+                if (rules == null || rules.Count == 0)
+                {
+                    var prepFallback = CalculateRoastDateFromDelivery(targetDate);
+                    return new PrepDeliveryPair(prepFallback, targetDate);
+                }
 
-                return pair;
+                // 3. Build candidate list: target, +1, -1 (if -1 >= today)
+                var candidates = new List<DateTime> { targetDate, targetDate.AddDays(1) };
+                var backOne = targetDate.AddDays(-1);
+                if (backOne >= today) candidates.Add(backOne);
+
+                // 4. Try in priority order; pick first valid
+                foreach (var delivery in candidates)
+                {
+                    if (IsDeliveryValidForRules(delivery, rules))
+                    {
+                        // derive matching prep
+                        foreach (var rule in rules)
+                        {
+                            var prep = delivery.AddDays(-rule.DeliveryDelayDays).Date;
+                            if ((int)prep.DayOfWeek == rule.PrepDayOfWeekID)
+                            {
+                                if (prep < today) prep = today;
+                                return new PrepDeliveryPair(prep, delivery);
+                            }
+                        }
+                    }
+                }
+
+                // 5. None matched: return target unmodified (do NOT widen search here to avoid pushing outside window)
+                var fallbackPrepDate = CalculateRoastDateFromDelivery(targetDate);
+                return new PrepDeliveryPair(fallbackPrepDate, targetDate);
             }
             catch (Exception ex)
             {
                 AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
                     $"DateCalculator: Monthly calc failed for customer {customerId}: {ex.Message}");
-
-                var fallbackDelivery = TimeZoneUtils.Now().Date;
-                var fallbackPrep = CalculateRoastDateFromDelivery(fallbackDelivery);
-                return new PrepDeliveryPair(fallbackPrep, fallbackDelivery);
+                var delivery = TimeZoneUtils.Now().Date;
+                var prep = CalculateRoastDateFromDelivery(delivery);
+                return new PrepDeliveryPair(prep, delivery);
             }
         }
         /// <summary>
@@ -162,19 +175,14 @@ namespace TrackerDotNet.Classes
         private DateTime CalculateNextMonthlyOccurrence(int targetDayOfMonth, DateTime lastOrderDate)
         {
             DateTime today = TimeZoneUtils.Now().Date;
-            // Define “first cycle” / “stale” conditions
             bool isFirstTime = lastOrderDate <= SystemConstants.DatabaseConstants.SystemMinDate;
             bool isOlderThanOneMonth = lastOrderDate < today.AddMonths(-1);
 
-            // If first time OR too old → anchor to CURRENT month
             if (isFirstTime || isOlderThanOneMonth)
             {
                 int daysInThisMonth = DateTime.DaysInMonth(today.Year, today.Month);
                 int day = Math.Min(Math.Max(1, targetDayOfMonth), daysInThisMonth);
                 DateTime candidate = new DateTime(today.Year, today.Month, day);
-
-                // If target day already passed this month, requirement says “use current month”;
-                // but we cannot return a past date for scheduling. We clamp to today instead.
                 if (candidate < today)
                     candidate = today;
 
@@ -184,11 +192,20 @@ namespace TrackerDotNet.Classes
                 return candidate;
             }
 
-            // Normal progression: base on lastOrderDate + 1 month
+            // Base month (one month after last order)
             DateTime cycleMonth = lastOrderDate.AddMonths(1);
             DateTime nextOccurrence = BuildMonthlyTargetDate(cycleMonth, targetDayOfMonth);
 
-            // Ensure we don't return a past date; advance whole months until >= today
+            // If the target day in that month is earlier than the day-of-month of the last order
+            // (e.g. last=29 Sep, target day=1 → gives 1 Oct only 2 days later),
+            // skip ahead one more month to enforce a full-cycle gap (result: 1 Nov).
+            if (targetDayOfMonth < lastOrderDate.Day)
+            {
+                cycleMonth = cycleMonth.AddMonths(1);
+                nextOccurrence = BuildMonthlyTargetDate(cycleMonth, targetDayOfMonth);
+            }
+
+            // Still ensure we never return a past date relative to today
             while (nextOccurrence < today)
             {
                 cycleMonth = cycleMonth.AddMonths(1);
@@ -201,7 +218,6 @@ namespace TrackerDotNet.Classes
 
             return nextOccurrence;
         }
-
         /// <summary>
         /// Helper: builds a target day within the bounds of a given month.
         /// </summary>

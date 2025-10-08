@@ -73,7 +73,7 @@ namespace TrackerDotNet.Managers
 
         public static string GetApplicationUrl()
         {
-            string baseUrl = ConfigurationManager.AppSettings["ApplicationBaseUrl"];
+            string baseUrl = ConfigHelper.GetString("ApplicationBaseUrl","");
             
             if (string.IsNullOrEmpty(baseUrl))
             {

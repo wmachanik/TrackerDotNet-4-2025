@@ -431,7 +431,7 @@ namespace TrackerDotNet.Controls
         }
 
         /// <summary>
-        /// Updates the order datr (if it is done and the next order date 
+        /// Updates the order date (if it is done and the next order date 
         /// </summary>
         public string SetReoccuringOrderDates(DateTime orderDate, long reoccuringOrderId, bool orderDone = false)
         {
@@ -441,43 +441,81 @@ namespace TrackerDotNet.Controls
                 if (recurringOrder == null)
                 {
                     AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
-                        $"ReoccuringOrderDAL: Failed to update dates - recurring order {reoccuringOrderId} not found.");
+                        $"ReoccuringOrderDAL: Not found RecID={reoccuringOrderId}");
                     return "Recurring order not found";
                 }
 
-                // Always update DateLastDone in memory for correct calculation
                 var recurrenceType = ReoccuranceTypeTbl.GetRecurrenceType(recurringOrder.ReoccuranceTypeID);
-                recurringOrder.DateLastDone = CalculateRecurringLastDate(orderDate, recurrenceType, recurringOrder.ReoccuranceValue);
-                recurringOrder.NextDateRequired = CalculateNextDeliveryDateRequired(recurringOrder);
 
-                // Build SQL and parameters
+                if (orderDone)
+                {
+                    // Store actual delivered date
+                    recurringOrder.DateLastDone = orderDate.Date;
+                }
+
+                // Compute next date with normalization for MONTHLY so cadence stays aligned
+                DateTime nextDate;
+                //if (recurrenceType == ReoccuranceTypeTbl.RecurrenceType.Monthly)
+                //{
+                //    int targetDay = recurringOrder.ReoccuranceValue <= 0 ? 1 : recurringOrder.ReoccuranceValue;
+                //    var daysInMonth = DateTime.DaysInMonth(orderDate.Year, orderDate.Month);
+                //    // Anchor at intended target day for current (delivered) month
+                //    var normalizedAnchor = new DateTime(orderDate.Year, orderDate.Month, Math.Min(targetDay, daysInMonth));
+
+                //    // If you delivered before the target day, treat the pattern as still fulfilled for THIS month:
+                //    // so next should be target day NEXT month.
+                //    if (orderDate.Date < normalizedAnchor.Date)
+                //        normalizedAnchor = normalizedAnchor.AddMonths(1);
+
+                //    // Temporarily swap for calculation
+                //    var originalActual = recurringOrder.DateLastDone;
+                //    var tempForCalc = new ReoccuringOrderTbl
+                //    {
+                //        ReoccuringOrderID = recurringOrder.ReoccuringOrderID,
+                //        CustomerID = recurringOrder.CustomerID,
+                //        ReoccuranceTypeID = recurringOrder.ReoccuranceTypeID,
+                //        ReoccuranceValue = recurringOrder.ReoccuranceValue,
+                //        ItemRequiredID = recurringOrder.ItemRequiredID,
+                //        DateLastDone = normalizedAnchor, // synthetic
+                //        QtyRequired = recurringOrder.QtyRequired,
+                //        PackagingID = recurringOrder.PackagingID,
+                //        Enabled = recurringOrder.Enabled,
+                //        Notes = recurringOrder.Notes
+                //    };
+                //    nextDate = CalculateNextDeliveryDateRequired(tempForCalc);
+                //}
+                //else
+                //{
+                    nextDate = CalculateNextDeliveryDateRequired(recurringOrder);
+                //}
+                recurringOrder.NextDateRequired = nextDate;
+
                 string sql;
-                TrackerDb trackerDb = new TrackerDb();
+                var trackerDb = new TrackerDb();
                 if (orderDone)
                 {
                     sql = "UPDATE ReoccuringOrderTbl SET DateLastDone = ?, NextDateRequired = ? WHERE (ID = ?)";
-                    trackerDb.AddParams((object)recurringOrder.DateLastDone, DbType.Date, "@DateLastDone");
-                    trackerDb.AddParams((object)recurringOrder.NextDateRequired, DbType.Date, "@NextDateRequired");
+                    trackerDb.AddParams(recurringOrder.DateLastDone, DbType.Date, "@DateLastDone");
+                    trackerDb.AddParams(recurringOrder.NextDateRequired, DbType.Date, "@NextDateRequired");
                 }
                 else
                 {
                     sql = "UPDATE ReoccuringOrderTbl SET NextDateRequired = ? WHERE (ID = ?)";
-                    trackerDb.AddParams((object)recurringOrder.NextDateRequired, DbType.Date, "@NextDateRequired");
+                    trackerDb.AddParams(recurringOrder.NextDateRequired, DbType.Date, "@NextDateRequired");
                 }
-                trackerDb.AddWhereParams((object)reoccuringOrderId, DbType.Int32, "@ID");
-
-                string result = trackerDb.ExecuteNonQuerySQL(sql);
+                trackerDb.AddWhereParams(reoccuringOrderId, DbType.Int32, "@ID");
+                var result = trackerDb.ExecuteNonQuerySQL(sql);
                 trackerDb.Close();
 
                 AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
-                    $"ReoccuringOrderDAL: Updated {(orderDone ? "DateLastDone and " : "")}NextDateRequired for recurring order {reoccuringOrderId} - DateLastDone: {recurringOrder.DateLastDone:yyyy-MM-dd}, NextDateRequired: {recurringOrder.NextDateRequired:yyyy-MM-dd}");
+                    $"RecID={reoccuringOrderId} Done={orderDone} Last={recurringOrder.DateLastDone:yyyy-MM-dd} Next={recurringOrder.NextDateRequired:yyyy-MM-dd}");
 
                 return result;
             }
             catch (Exception ex)
             {
                 AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
-                    $"ReoccuringOrderDAL: Error updating dates for recurring order {reoccuringOrderId}: {ex.Message}");
+                    $"ReoccuringOrderDAL: Error RecID={reoccuringOrderId}: {ex.Message}");
                 return $"Error: {ex.Message}";
             }
         }

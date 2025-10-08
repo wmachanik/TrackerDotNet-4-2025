@@ -172,7 +172,7 @@
     <value>Failed to insert records into temporary tables</value>
   </data>
   <data name="CoffeeCheckup.FooterDisableLink" xml:space="preserve">
-    <value>&lt;br/&gt;&lt;br/&gt;&lt;p&gt;If you would prefer not to receive these reminders, &lt;a href='{0}'&gt;click here to disable them&lt;/a&gt;.&lt;/p&gt;</value>
+    <value>&lt;br/&gt;&lt;p&gt;If you would prefer not to receive these reminders, &lt;a href='{0}'&gt;click here to disable them&lt;/a&gt;.&lt;/p&gt;</value>
   </data>
   <data name="CoffeeCheckup.FooterOrderAdded" xml:space="preserve">
     <value>&lt;p&gt;✅ &lt;strong&gt;Good news!&lt;/strong&gt; We've automatically created an order for you with the items above.&lt;/p&gt;</value>
@@ -590,6 +590,18 @@ Disabled recurring orders:
   </data>
   <data name="Order.StatusSubject" xml:space="preserve">
     <value>Order Status Update</value>
+  </data>
+  <data name="OrderDetail.PublicViewLoginPrompt" xml:space="preserve">
+    <value>View-only link.</value>
+  </data>
+  <data name="OrderDetail.RequestChangesButtonText" xml:space="preserve">
+    <value>Request Changes</value>
+  </data>
+  <data name="OrderDetail.RequestChangesMailBody" xml:space="preserve">
+    <value>Please describe the change you would like to request below this line:\r\n\r\nCustomerID: {0}\r\nDeliveryDate: {1}\r\nRequested change: </value>
+  </data>
+  <data name="OrderDetail.RequestChangesMailSubject" xml:space="preserve">
+    <value>Order change request - Customer {0} - Delivery {1}</value>
   </data>
   <data name="Repairs.DisclaimerFooter" xml:space="preserve">
     <value>Note: you're receiving this because your email is linked to a machine repair.&lt;br /&gt;&lt;br /&gt;

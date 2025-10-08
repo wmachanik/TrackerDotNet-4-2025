@@ -119,44 +119,30 @@ namespace TrackerDotNet.Pages
                 Session[CONST_NEWORDER_MODE] = value;
             }
         }
-
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (!this.IsPostBack)
+            if (!IsPostBack)
             {
-                // Determine if this is new order mode vs existing order mode
                 bool isNewOrder = DetermineOrderMode();
+                if (isNewOrder) InitializeNewOrderMode();
+                else InitializeExistingOrderMode();
 
-                if (isNewOrder)
-                {
-                    InitializeNewOrderMode();
-                }
-                else
-                {
-                    InitializeExistingOrderMode();
-                }
-
-                // Common initialization
-                this.btnOrderCancelled.Enabled = Membership.GetUser().UserName.ToLower() == SystemConstants.UserConstants.AdminUserName;
-                // Use combined role + customer validation to determin srtate of new button
+                btnOrderCancelled.Enabled = SecurityManager.IsAdmin();   // simplified
                 UpdateNewItemButtonStateWithRoleCheck();
                 new TrackerTools().ClearTrackerSessionErrorString();
-
-                // Handle NON-LastOrder special query string actions only
                 HandleNonLastOrderQueryStringActions();
             }
             else
             {
-                TrackerTools trackerTools = new TrackerTools();
-                string sessionErrorString = trackerTools.GetTrackerSessionErrorString();
-                if (!string.IsNullOrEmpty(sessionErrorString))
+                var trackerTools = new TrackerTools();
+                var err = trackerTools.GetTrackerSessionErrorString();
+                if (!string.IsNullOrEmpty(err))
                 {
-                    new showMessageBox(this.Page, "Tracker Error", "ERROR: " + sessionErrorString);
+                    new showMessageBox(Page, "Tracker Error", "ERROR: " + err);
                     trackerTools.SetTrackerSessionErrorString(string.Empty);
                 }
             }
         }
-
         private void HandleNonLastOrderQueryStringActions()
         {
             // Handle Invoiced parameter
@@ -1718,7 +1704,7 @@ namespace TrackerDotNet.Pages
 
         protected void btnCancelled_Click(object sender, EventArgs e)
         {
-            if (!(Membership.GetUser().UserName.ToLower() == SystemConstants.UserConstants.AdminUserName))
+            if (!SecurityManager.IsAdmin())
                 return;
             foreach (TableRow row in this.gvOrderLines.Rows)
                 this.DeleteOrderItem(((HiddenField)row.Cells[4].FindControl(CONST_ORDERLINE_HIDDENFIELD_ORDER_ID)).Value);
@@ -2145,5 +2131,6 @@ namespace TrackerDotNet.Pages
         {
 
         }
+        
     }
 }

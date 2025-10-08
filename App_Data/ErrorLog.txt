@@ -1432,3 +1432,33 @@ Parameter name: value
    at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
 ----------------------
 
+[2025/10/01 00:00:00]
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at TrackerDotNet.Pages.OrderDetail.dvOrderHeaderGetCBoControlSelectedValue(String comboBoxControlName) in C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx.cs:line 1353
+   at TrackerDotNet.Pages.OrderDetail.UpdateNewItemButtonStateWithRoleCheck() in C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx.cs:line 343
+   at TrackerDotNet.Pages.OrderDetail.Page_Load(Object sender, EventArgs e) in C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx.cs:line 131
+   at System.Web.UI.Control.OnLoad(EventArgs e)
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/10/01 00:00:00]
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at TrackerDotNet.Pages.OrderDetail.dvOrderHeaderGetCBoControlSelectedValue(String comboBoxControlName) in C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx.cs:line 1353
+   at TrackerDotNet.Pages.OrderDetail.UpdateNewItemButtonStateWithRoleCheck() in C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx.cs:line 343
+   at TrackerDotNet.Pages.OrderDetail.Page_Load(Object sender, EventArgs e) in C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx.cs:line 131
+   at System.Web.UI.Control.OnLoad(EventArgs e)
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+
+[2025/10/01 00:00:00]
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at TrackerDotNet.Pages.OrderDetail.dvOrderHeaderGetCBoControlSelectedValue(String comboBoxControlName) in C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx.cs:line 1353
+   at TrackerDotNet.Pages.OrderDetail.UpdateNewItemButtonStateWithRoleCheck() in C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx.cs:line 343
+   at TrackerDotNet.Pages.OrderDetail.Page_Load(Object sender, EventArgs e) in C:\SRC\ASP.net\TrackerDotNet\Pages\OrderDetail.aspx.cs:line 131
+   at System.Web.UI.Control.OnLoad(EventArgs e)
+   at System.Web.UI.Control.LoadRecursive()
+   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)
+----------------------
+

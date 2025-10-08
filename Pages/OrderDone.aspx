@@ -16,26 +16,24 @@
                 <h2>Order Delivered</h2>
                 <div class="responsive-layout-container">
                     <div class="results-table">
-                        <asp:FormView ID="fvOrderDone" runat="server" DataSourceID="sdsOrderDoneHeader" BackColor="#DEBA84"
-                            BorderColor="#DEBA84" BorderStyle="None" BorderWidth="1px" CellPadding="4" CellSpacing="2"
-                            GridLines="Both" CssClass="TblFlex">
-                            <EmptyDataTemplate>Please access this page view the Order Detail Page</EmptyDataTemplate>
-                            <EditRowStyle BackColor="#738A9C" Font-Bold="True" ForeColor="White" />
-                            <FooterStyle BackColor="#F7DFB5" ForeColor="#8C4510" />
+                        <asp:FormView ID="fvOrderDone" runat="server" DataSourceID="sdsOrderDoneHeader"
+                            BackColor="#DEBA84" BorderColor="#DEBA84" BorderStyle="None" BorderWidth="1px"
+                            CellPadding="4" CellSpacing="2" GridLines="Both" CssClass="TblFlex">
+                            <RowStyle BackColor="#FFF7E7" ForeColor="#292909" />
                             <HeaderStyle BackColor="#A55129" Font-Bold="True" ForeColor="White" />
                             <ItemTemplate>
                                 <table>
-                                    <tbody>
-                                        <tr>
-                                            <td class="TblLHCol-first">CompanyName</td>
-                                            <td>
-                                                <asp:Label ID="CompanyNameLabel" runat="server" Text='<%# Eval("CompanyName") %>' />&nbsp;
-                                            (<asp:Label ID="CustomerIDLabel" runat="server" Text='<%# Eval("CustomerID") %>' />)</td>
-                                            <td class="TblLHCol-first">DeliveryDate:</td>
-                                            <td>
-                                                <asp:TextBox ID="ByDateTextBox" runat="server" Text='<%# Eval("RequiredByDate", "{0:d}") %>' /></td>
-                                        </tr>
-                                    </tbody>
+                                    <tr>
+                                        <td class="TblLHCol-first">CompanyName</td>
+                                        <td>
+                                            <asp:Label ID="CompanyNameLabel" runat="server" Text='<%# Eval("CompanyName") %>' />
+                                            &nbsp;(<asp:Label ID="CustomerIDLabel" runat="server" Text='<%# Eval("CustomerID") %>' />)
+                </td>
+                                        <td class="TblLHCol-first">DeliveryDate:</td>
+                                        <td>
+                                            <asp:TextBox ID="ByDateTextBox" runat="server" Text='<%# Eval("RequiredByDate", "{0:d}") %>' />
+                                        </td>
+                                    </tr>
                                 </table>
                             </ItemTemplate>
                             <EditItemTemplate>
@@ -126,7 +124,9 @@
                             </tbody>
                         </table>
                         <br />
-                        <div class="status-message"><asp:Literal ID="ltrlStatus" Text="" runat="server" /></div>
+                        <div class="status-message">
+                            <asp:Literal ID="ltrlStatus" Text="" runat="server" />
+                        </div>
                     </div>
                     <div class="layout-footer-panel button-toolbar-rounded ">
                         <asp:Button ID="btnDone" Text="Done" runat="server" AccessKey="D" OnClick="btnDone_Click" /><br
@@ -171,15 +171,16 @@
         </ContentTemplate>
     </asp:UpdatePanel>
     <asp:SqlDataSource ID="sdsOrderDoneHeader" runat="server"
-        CancelSelectOnNullParameter="True"
         ConnectionString="<%$ ConnectionStrings:Tracker08ConnectionString %>"
         ProviderName="<%$ ConnectionStrings:Tracker08ConnectionString.ProviderName %>"
-        SelectCommand="SELECT CustomersTbl.CompanyName, TempOrdersHeaderTbl.CustomerID, TempOrdersHeaderTbl.RequiredByDate FROM TempOrdersHeaderTbl INNER JOIN CustomersTbl ON TempOrdersHeaderTbl.CustomerID = CustomersTbl.CustomerID">
+        SelectCommand="SELECT c.CompanyName, h.CustomerID, h.RequiredByDate
+                   FROM TempOrdersHeaderTbl h
+                   INNER JOIN CustomersTbl c ON h.CustomerID = c.CustomerID
+                   WHERE h.CustomerID = ?">
         <SelectParameters>
             <asp:Parameter Name="CustomerID" Type="Int32" DefaultValue="0" />
         </SelectParameters>
     </asp:SqlDataSource>
-
     <asp:SqlDataSource ID="sdsOrderDoneLines" runat="server"
         CancelSelectOnNullParameter="True"
         ConnectionString="<%$ ConnectionStrings:Tracker08ConnectionString %>"

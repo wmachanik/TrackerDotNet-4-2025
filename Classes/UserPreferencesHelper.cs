@@ -11,7 +11,7 @@ namespace TrackerDotNet.Classes
     public static class UserPreferencesHelper
     {
         private const string SessionKey = "UserPreferences";
-        private static readonly string DefaultTimeZone = ConfigurationManager.AppSettings["AppTimeZoneId"] ?? "South Africa Standard Time";
+        private static readonly string DefaultTimeZone = ConfigHelper.GetString("AppTimeZoneId","South Africa Standard Time");
 
         public static UserPreferences GetCurrentPreferences()
         {

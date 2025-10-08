@@ -33,14 +33,7 @@ namespace TrackerDotNet
         {
             try
             {
-                string systemEmail = ConfigurationManager.AppSettings["SysFromEmail"];
-                
-                if (string.IsNullOrEmpty(systemEmail))
-                {
-                    systemEmail = "info@quaffee.co.za";
-                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, "DisableClient: SysFromEmail not configured, using fallback");
-                }
-                
+                string systemEmail = ConfigHelper.GetString("SysFromEmail", "info@quaffee.co.za");                
                 string emailLink = $"<a href='mailto:{systemEmail}'>{systemEmail}</a>";
                 
                 if (ltrlContactEmail != null)
@@ -236,7 +229,7 @@ namespace TrackerDotNet
                 
                 // Use MessageProvider for all email content
                 string subject = MessageProvider.Get(MessageKeys.DisableClient.GoodbyeSubject);
-                string systemEmail = ConfigurationManager.AppSettings["SysFromEmail"] ?? "info@quaffee.co.za";
+                string systemEmail =  ConfigHelper.GetString("SysFromEmail","info@quaffee.co.za");
                 
                 string body = MessageProvider.GetFormattedHtmlEmail(
                     MessageKeys.DisableClient.GoodbyeHeader,

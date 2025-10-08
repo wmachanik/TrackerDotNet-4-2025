@@ -223,6 +223,7 @@ namespace TrackerDotNet.Classes
         public static class EmailConstants
         {
             public const string DefaultContact = "Coffee Lover";
+            public const string DefaultAdminEmail = "orders@quaffee.co.za";
         }
         public static class CheckupConstants
         {

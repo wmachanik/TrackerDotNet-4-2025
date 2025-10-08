@@ -245,8 +245,7 @@ namespace TrackerDotNet.Classes
             }
 
             // Read holiday window (reuse CoffeeCheckupReminderWindowDays)
-            int windowDays = 9;
-            int.TryParse(System.Configuration.ConfigurationManager.AppSettings["CoffeeCheckupReminderWindowDays"], out windowDays);
+            int windowDays = ConfigHelper.GetInt("CoffeeCheckupReminderWindowDays", 9);
             if (windowDays <= 0) windowDays = 9;
 
             var closureProvider = new HolidayClosureProvider();

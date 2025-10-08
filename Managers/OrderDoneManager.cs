@@ -192,48 +192,91 @@ namespace TrackerDotNet.Managers
             return message;
         }
 
+        // Add helper (adjust service type IDs to your real constants)
+        private static bool IsCoffeeOrConsumableServiceType(int serviceType)
+        {
+            return serviceType == SystemConstants.ServiceTypeConstants.Coffee
+        // || serviceType == SystemConstants.ServiceTypeConstants.Consumable   // enable when constant available
+        ;
+        }
+        private static bool IsCoffeeOrConsumable(int itemId)
+        {
+            int serviceType = TrackerDotNet.Controls.ItemTypeTbl.GetServiceTypeForItem(itemId);
+            return IsCoffeeOrConsumableServiceType(serviceType);
+        }
+
         private static void SyncReoccurringOrderLastDone(int customerId, DateTime deliveryDate)
         {
             var reoccurDal = new ReoccuringOrderDAL();
-            var reoccurOrders = reoccurDal.GetAll(ReoccuringOrderDAL.CONST_ENABLEDONLY,"",$"ReoccuringOrderTbl.CustomerID = {customerId}");
+            var reoccurOrders = reoccurDal.GetAll(ReoccuringOrderDAL.CONST_ENABLEDONLY, "",
+                $"ReoccuringOrderTbl.CustomerID = {customerId}");
 
-            // Get the items just delivered (from temp order)
             var deliveredItems = new ClientUsageFromTempOrder().GetAll(customerId);
-            AppLogger.WriteLog(SystemConstants.LogTypes.System, $"SyncReoccurringOrderLastDone: Querying reoccurring orders for customerId={customerId}, found {reoccurOrders.Count} records.");
+
+            AppLogger.WriteLog(SystemConstants.LogTypes.System,
+                $"SyncReoccurringOrderLastDone: Cust={customerId} RecurCnt={reoccurOrders.Count} DeliveredCnt={deliveredItems.Count}");
+
             foreach (var reoccurOrder in reoccurOrders)
             {
                 foreach (var item in deliveredItems)
                 {
+                    // Only coffee / consumable items should move DateLastDone
+                    if (!IsCoffeeOrConsumable(item.ItemID))
+                        continue;
+
                     if (OrderMatchesReoccuringOrder(item, reoccurOrder))
                     {
                         reoccurDal.SetReoccuringOrderDates(deliveryDate, reoccurOrder.ReoccuringOrderID, true);
-                        AppLogger.WriteLog(SystemConstants.LogTypes.Orders, $"Reoccurring order {reoccurOrder.ReoccuringOrderID} for customer {customerId} updated: DateLastDone set to {deliveryDate:yyyy-MM-dd} (ItemID={item.ItemID}, Qty={item.Qty}, PackagingID={item.PackagingID})");
+                        AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
+                            $"Recurring updated (Cust={customerId}, RecID={reoccurOrder.ReoccuringOrderID}) using delivered ItemID={item.ItemID}");
+                        break; // stop inner loop once matched
                     }
                 }
             }
         }
-
-        // Helper method to compare delivered item and reoccurring order
-        private static bool OrderMatchesReoccuringOrder(ClientUsageFromTempOrder deliveredItem, ReoccuringOrderExtData reoccurOrder)
-        {
-            // If the reoccurring order is for a group item, match any item in the group
-            if (IsGroupItem(reoccurOrder.ItemRequiredID))
-            {
-                var groupItemIds = TrackerDotNet.Controls.ItemGroupTbl.GetItemIdsForGroup(reoccurOrder.ItemRequiredID);
-                return groupItemIds.Contains(deliveredItem.ItemID);
-            }
-            // For non-group items, match by service type only
-            int deliveredServiceTypeSingle = TrackerDotNet.Controls.ItemTypeTbl.GetServiceTypeForItem(deliveredItem.ItemID);
-            int requiredServiceTypeSingle = TrackerDotNet.Controls.ItemTypeTbl.GetServiceTypeForItem(reoccurOrder.ItemRequiredID);
-            return deliveredServiceTypeSingle == requiredServiceTypeSingle;
-        }
-
         // Helper to check if an item is a group item
         private static bool IsGroupItem(int itemTypeId)
         {
             // This assumes group items are flagged by ServiceTypeConstants.GroupItem
             // Adjust if your schema uses a different approach
             return TrackerDotNet.Controls.ItemTypeTbl.GetServiceTypeForItem(itemTypeId) == SystemConstants.ServiceTypeConstants.GroupItem;
+        }
+        // Helper: cache-friendly check
+        private static bool GroupContainsCoffeeOrConsumable(IEnumerable<int> groupItemIds)
+        {
+            foreach (var id in groupItemIds)
+            {
+                if (IsCoffeeOrConsumable(id)) return true;
+            }
+            return false;        }
+
+        // Helper method to compare delivered item and reoccurring order
+        private static bool OrderMatchesReoccuringOrder(ClientUsageFromTempOrder deliveredItem, ReoccuringOrderExtData reoccurOrder)
+        {
+            if (IsGroupItem(reoccurOrder.ItemRequiredID))
+            {
+                var groupItemIds = TrackerDotNet.Controls.ItemGroupTbl.GetItemIdsForGroup(reoccurOrder.ItemRequiredID);
+
+                if (groupItemIds.Contains(deliveredItem.ItemID))
+                    return true;
+
+                if (IsCoffeeOrConsumable(deliveredItem.ItemID) && GroupContainsCoffeeOrConsumable(groupItemIds))
+                    return true;
+
+                return false;
+            }
+
+            // Non-group logic:
+            // Coffee / consumable items are treated as interchangeable by service type (broad match)
+            // All other service types require an exact ItemID match.
+            bool requiredIsCoffeeLike = IsCoffeeOrConsumable(reoccurOrder.ItemRequiredID);
+            bool deliveredIsCoffeeLike = IsCoffeeOrConsumable(deliveredItem.ItemID);
+
+            if (requiredIsCoffeeLike && deliveredIsCoffeeLike)
+                return true; // any coffee/consumable satisfies the recurring coffee/consumable order
+
+            // For non-coffee (e.g. maintenance, accessories, equipment-linked, etc.) require exact item.
+            return deliveredItem.ItemID == reoccurOrder.ItemRequiredID;
         }
     }
 }

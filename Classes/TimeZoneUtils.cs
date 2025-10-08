@@ -7,18 +7,11 @@ namespace TrackerDotNet.Classes
 {
     public static class TimeZoneUtils
     {
-        private static readonly string DefaultTimeZoneId =
-            System.Configuration.ConfigurationManager.AppSettings["AppTimeZoneId"] ?? "South Africa Standard Time";
+        private static readonly string DefaultTimeZoneId = ConfigHelper.GetString("AppTimeZoneId", "South Africa Standard Time");
         // --- Test date override (cached) ---
-        private static readonly bool TestNowEnabled =
-            bool.TryParse(ConfigurationManager.AppSettings["TestNow.Enabled"], out var _enabled) && _enabled;
-
-        private static readonly string TestNowRaw =
-            ConfigurationManager.AppSettings["TestNow.Value"];
-
-        private static readonly string TestNowInputKind =
-            (ConfigurationManager.AppSettings["TestNow.InputKind"] ?? "Local").Trim();
-
+        private static readonly bool TestNowEnabled = ConfigHelper.GetBool("TestNow.Enabled", false);
+        private static readonly string TestNowRaw = ConfigHelper.GetString("TestNow.Value", "").Trim();
+        private static readonly string TestNowInputKind = ConfigHelper.GetString("TestNow.InputKind", "Local").Trim();
         private static readonly Lazy<DateTime?> ParsedTestNow = new Lazy<DateTime?>(ParseTestNow, isThreadSafe: true);
 
         private static TimeZoneInfo EffectiveTimeZone

@@ -17,7 +17,6 @@ namespace TrackerDotNet.Managers
     public class CoffeeCheckupManager
     {
         private readonly CoffeeCheckupEmailManager _emailManager;
-        private readonly DateCalculator _deliveryCalculator; // ADD THIS
 
         // Constants moved from code-behind for better organization to system cosntatns
         // private const int CONST_FORCEREMINDERDELAYCOUNT = 4;
@@ -37,21 +36,64 @@ namespace TrackerDotNet.Managers
         public CoffeeCheckupManager()
         {
             _emailManager = new CoffeeCheckupEmailManager();
-            _deliveryCalculator = new DateCalculator(); // ADD THIS
         }
         private static void UpdateCacheExpiry()
         {
             _cacheExpiry = DateTime.Now.AddMinutes(1); // or your preferred duration
+        }
+        // Add this helper near other private helpers
+        /// <summary>
+        /// Ensures the TempCoffeeCheckup table has data prepared today.
+        /// If empty or oldest stamp predates today, we treat it as stale.
+        /// </summary>
+        private bool TempDataIsFresh()
+        {
+            try
+            {
+                var temp = new TempCoffeeCheckup();
+                var contacts = temp.GetAllContacts("CustomerID");
+                if (contacts == null || contacts.Count == 0)
+                    return false;
+
+                // Heuristic: at least one contact has a NextPrepDate or NextDeliveryDate == today or later
+                var today = TimeZoneUtils.Now().Date;
+                bool anyValid = contacts.Any(c =>
+                    c.NextPrepDate.Date >= today ||
+                    c.NextDeliveryDate.Date >= today);
+
+                return anyValid;
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                    $"CoffeeCheckupManager: TempDataIsFresh check failed: {ex.Message}");
+                // Fail safe: force user to prep again
+                return false;
+            }
         }
         /// <summary>
         /// Main entry point for processing coffee checkup reminders
         /// </summary>
         public BatchSendResult ProcessCoffeeCheckupReminders(SendCheckEmailTextsData emailData)
         {
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew(); // MISSING: Stopwatch declaration
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             try
             {
+                // NEW: Freshness guard – prevent sending with stale (yesterday/older) prep data
+                if (!TempDataIsFresh())
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                        "CoffeeCheckupManager: Temp reminder data is stale or empty. Abort send and instruct user to Prep Data first.");
+                    return new BatchSendResult
+                    {
+                        IsSuccess = false,
+                        TotalSent = 0,
+                        TotalFailed = 0,
+                        ErrorMessage = "Reminder data is stale or missing. Click 'Prep Data' before sending."
+                    };
+                }
+
                 AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "CoffeeCheckupManager: Starting coffee checkup process");
 
                 // 1. Validate configuration
@@ -119,13 +161,6 @@ namespace TrackerDotNet.Managers
 
             // Check if we're in test mode
             var testEmailClient = new EmailMailKitCls();
-            bool isTestMode = testEmailClient.IsTestMode;
-
-            if (isTestMode)
-            {
-                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "CoffeeCheckupManager: TEST MODE - Database updates will be skipped");
-            }
-
             // Group contacts by reminder type
             var recurringContacts = new List<ContactToRemindWithItems>();
             var autoFulfillContacts = new List<ContactToRemindWithItems>();
@@ -148,17 +183,11 @@ namespace TrackerDotNet.Managers
                     AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"Processing contact {processed}: {contact.CompanyName} (ID: {contact.CustomerID})");
 
                     string orderType = GetOrderType(contact);
-
-                    // Update customer data if not in test mode
-                    //if (!isTestMode)
-                    //{
                     if (!UpdateCustomerReminderData(contact, customersTbl))
                     {
                         failedContacts.Add($"{contact.CompanyName} - Database update failed");
                         continue;
                     }
-                    //}
-
                     // Categorize for batch processing
                     CategorizeContact(contact, orderType, recurringContacts, autoFulfillContacts, reminderOnlyContacts);
                 }
@@ -179,7 +208,6 @@ namespace TrackerDotNet.Managers
             AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: Batch completed - {totalResult.TotalSent} sent, {totalResult.TotalFailed} failed");
             return totalResult;
         }
-
         /// <summary>
         /// Determines order type for a contact
         /// </summary>
@@ -197,7 +225,6 @@ namespace TrackerDotNet.Managers
 
             return string.Empty; // Reminder only
         }
-
         /// <summary>
         /// Updates customer reminder data in database
         /// </summary>
@@ -238,7 +265,6 @@ namespace TrackerDotNet.Managers
                 return false;
             }
         }
-
         /// <summary>
         /// Categorizes contact into appropriate batch - FIXED TO PREVENT DUPLICATES
         /// </summary>
@@ -316,14 +342,19 @@ namespace TrackerDotNet.Managers
                     trackerTools.SetNextRoastDateByCity();
                 }
 
+                CityDeliveryMatrix.EnsureBuilt();
+
                 // Build reminder list and populate temp tables
                 SetListOfContactsToSendReminderTo(reminderWindowDays);
 
-                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "CoffeeCheckupManager: Customer reminder data preparation completed  (window: {reminderWindowDays} days)");
+                AppLogger.WriteLog(
+                    SystemConstants.LogTypes.SendCheckup,
+                    $"CoffeeCheckupManager: Customer reminder data preparation completed (window: {reminderWindowDays} days)");
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: Error preparing customer data: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                    $"CoffeeCheckupManager: Error preparing customer data: {ex.Message}");
                 throw;
             }
         }
@@ -555,7 +586,6 @@ namespace TrackerDotNet.Managers
                 return _cachedItemSKUs[uomKeyHash];
             }
         }
-
         private bool HasValidEmailAddress(ContactToRemindWithItems contact)
         {
             // QUICK WIN: Use optimized version
@@ -759,12 +789,10 @@ namespace TrackerDotNet.Managers
                 return false;
             }
         }
-
         private bool IsEligibleForReminder(ContactToRemindWithItems contact)
         {
             return contact.enabled && contact.ReminderCount < SystemConstants.CheckupConstants.MaxReminders;
         }
-
         /// <summary>
         /// Sets up the list of contacts to send reminders to - FIXED TO PREVENT MIXING RECURRING AND REMINDER CUSTOMERS
         /// </summary>
@@ -866,84 +894,75 @@ namespace TrackerDotNet.Managers
                 return false;
             }
         }
-        //private List<ReoccuringOrderExtData> FilterAndUpdateRecurringOrders(List<ReoccuringOrderExtData> reoccuringOrders, DeliveryDateCalculator deliveryDateCalculator,
-        //    DateTime windowStart,DateTime windowEnd)
-        //{
-        //    var validOrders = new List<ReoccuringOrderExtData>();
-        //    var reoccuringOrderDal = new ReoccuringOrderDAL();
-
-        //    foreach (var order in reoccuringOrders)
-        //    {
-        //        // Always recalculate next required date using LastDone date and recurrence type
-        //        var calculatedNextDate = reoccuringOrderDal.CalculateNextDateRequired(order);
-
-        //        // Update legacy/broken records if needed
-        //        if (order.NextDateRequired != calculatedNextDate)
-        //        {
-        //            order.NextDateRequired = calculatedNextDate;
-        //            reoccuringOrderDal.UpdateReoccuringOrder(order, order.ReoccuringOrderID);
-        //        }
-
-        //        // Only keep records where next required date is <= windowEnd and not min date
-        //        if (order.NextDateRequired <= windowEnd &&
-        //            order.NextDateRequired != SystemConstants.DatabaseConstants.SystemMinDate)
-        //        {
-        //            validOrders.Add(order);
-        //        }
-        //    }
-        //    return validOrders;
-        //}
-
-        //private bool NeedsRecalc(ReoccuringOrderExtData o, DateTime windowStart, DateTime windowEnd)
-        //{
-        //    // Skip disabled or sentinel
-        //    if (!o.Enabled) return false;
-        //    if (o.NextDateRequired == SystemConstants.DatabaseConstants.SystemMinDate) return true;
-
-        //    // If NextDateRequired is already inside window, accept it (fast path)
-        //    if (o.NextDateRequired >= windowStart && o.NextDateRequired <= windowEnd) return false;
-
-        //    // If date is bizarre (far past or far future), repair
-        //    if (o.NextDateRequired < windowStart.AddMonths(-2)) return true;
-        //    if (o.NextDateRequired > windowEnd.AddMonths(6)) return true;
-
-        //    // If recurrence type is monthly and stored day does not match pattern day
-        //    // (You can refine by pulling live recurrence pattern if needed)
-        //    return false;
-        //}
         /// <summary>
-        /// Gets recurring contacts that need reminders
+        /// Fetch recurring orders limited by window end (raw, un-normalized).
         /// </summary>
-        private List<ContactToRemindWithItems> GetRecurringContactsNeedingReminder(int reminderWindowDays)
+        private List<ReoccuringOrderExtData> LoadRawRecurringOrders(DateTime windowEnd)
         {
-            var reocurringContacts = new List<ContactToRemindWithItems>();
-            var trackerTools = new TrackerTools();
-            DateTime minValue1 = DateTime.MinValue;
-            DateTime minReminderDate = new SysDataTbl().GetMinReminderDate();
-            DateTime windowStart = TimeZoneUtils.Now().Date;
-            DateTime windowEnd = windowStart.AddDays(reminderWindowDays);
             var reoccuringOrderDal = new ReoccuringOrderDAL();
-            var deliveryDateCalculator = new DateCalculator();
-
-            // this should not be needed anymore since it is set on order done
-            //if (!reoccuringOrderDal.SetReoccuringItemsLastDate())
-            //{
-            //    AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "CoffeeCheckupManager: Could not set the recurring last date");
-            //    return reocurringContacts;
-            //}
-
-            // Use SQL whereFilter for efficiency
             string whereFilter = $"NextDateRequired <= #{windowEnd:yyyy-MM-dd}# ";
-            var validOrders = reoccuringOrderDal.GetAll(1, "CustomersTbl.CustomerID", whereFilter);
+            return reoccuringOrderDal.GetAll(1, "CustomersTbl.CustomerID", whereFilter) ?? new List<ReoccuringOrderExtData>();
+        }
 
-            if (validOrders == null || !validOrders.Any())
+        /// <summary>
+        /// Recalculates (Prep/Delivery), clamps past dates, filters into the active window.
+        /// Mirrors prior inline logic – no behavior change.
+        /// </summary>
+        private List<ReoccuringOrderExtData> NormalizeAndFilterRecurringOrders(
+            List<ReoccuringOrderExtData> raw,
+            DateTime windowStart,
+            DateTime windowEnd)
+        {
+            var result = new List<ReoccuringOrderExtData>();
+            var dal = new ReoccuringOrderDAL();
+
+            foreach (var order in raw)
             {
-                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, "CoffeeCheckupManager: No recurring orders found to process");
-                return reocurringContacts;
+                // Recalc next dates
+                var calc = dal.CalculateNextDatesRequired(order);
+                order.PrepDate = calc.PrepDate;
+
+                if (order.NextDateRequired != calc.DeliveryDate)
+                {
+                    order.NextDateRequired = calc.DeliveryDate;
+                    dal.UpdateReoccuringOrder(order, order.ReoccuringOrderID, false);
+                }
+
+                // Clamp if earlier than window start
+                if (order.NextDateRequired < windowStart)
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                        $"RecurringClamp: OrderID={order.ReoccuringOrderID} Cust={order.CustomerID} NextDateRequired was {order.NextDateRequired:yyyy-MM-dd}, clamped to {windowStart:yyyy-MM-dd}");
+                    order.NextDateRequired = windowStart;
+                }
+
+                bool isValid =
+                    order.NextDateRequired != SystemConstants.DatabaseConstants.SystemMinDate &&
+                    order.NextDateRequired >= windowStart &&
+                    order.NextDateRequired <= windowEnd;
+
+                if (isValid)
+                    result.Add(order);
             }
-            // Fix legacy/broken records and filter to actionable window
-            validOrders = deliveryDateCalculator.FilterAndUpdateRecurringOrdersDates(validOrders, windowStart, windowEnd);
-            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: Processing {validOrders.Count} valid recurring order patterns");
+
+            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                $"NormalizeAndFilterRecurringOrders: {result.Count}/{raw.Count} retained in window {windowStart:yyyy-MM-dd}->{windowEnd:yyyy-MM-dd}");
+
+            return result;
+        }
+
+        /// <summary>
+        /// Builds/updates ContactToRemindWithItems objects from normalized recurring orders.
+        /// Handles expiry, conflicts, matrix mapping, closure adjustment.
+        /// </summary>
+        private List<ContactToRemindWithItems> BuildRecurringContacts(
+            List<ReoccuringOrderExtData> validOrders,
+            DateTime windowStart,
+            DateTime windowEnd,
+            DateTime minReminderDate)
+        {
+            var contacts = new List<ContactToRemindWithItems>();
+            var reoccuringOrderDal = new ReoccuringOrderDAL();
 
             foreach (var order in validOrders)
             {
@@ -955,20 +974,62 @@ namespace TrackerDotNet.Managers
                         order.Enabled = false;
                         reoccuringOrderDal.UpdateReoccuringOrder(order, order.ReoccuringOrderID);
                         AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
-                            $"CoffeeCheckupManager: Recurring order {order.ReoccuringOrderID} expired on {order.RequireUntilDate:yyyy-MM-dd} and has been disabled.");
+                            $"BuildRecurringContacts: Disabled expired OrderID={order.ReoccuringOrderID}");
                         continue;
                     }
 
-                    // Conflict check
+                    // Conflicts?
                     if (HasConflictingOrders(order.CustomerID, order.ItemRequiredID, windowStart, windowEnd))
                     {
                         AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
-                            $"CoffeeCheckupManager: Skipping recurring item {order.ReoccuringOrderID} - conflicting orders for customer {order.CustomerID}");
+                            $"BuildRecurringContacts: Conflict skip OrderID={order.ReoccuringOrderID} Cust={order.CustomerID}");
                         continue;
                     }
 
-                    // Build item requirement
-                    var itemRequired = new ItemContactRequires
+                    // Get or create contact
+                    var contact = contacts.FirstOrDefault(c => c.CustomerID == order.CustomerID);
+                    if (contact == null)
+                    {
+                        contact = new ContactToRemindWithItems().GetCustomerDetails(order.CustomerID);
+                        if (contact == null)
+                        {
+                            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                                $"BuildRecurringContacts: Missing contact details Cust={order.CustomerID}");
+                            continue;
+                        }
+                        contacts.Add(contact);
+                    }
+
+                    int cityId = contact.CityID > 0 ? contact.CityID : new CityTblDAL().GetCityIdByCustomerId(order.CustomerID);
+
+                    var closest = CityDeliveryMatrix.ChooseClosest(cityId, order.NextDateRequired);
+                    if (closest.HasValue)
+                    {
+                        var chosenDelivery = closest.Value.delivery;
+                        var chosenPrep = closest.Value.prep;
+
+                        if (chosenDelivery != order.NextDateRequired.Date)
+                        {
+                            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                                $"MatrixAdjust: Cust={order.CustomerID} OrigDel={order.NextDateRequired:yyyy-MM-dd} -> {chosenDelivery:yyyy-MM-dd}");
+                            order.NextDateRequired = chosenDelivery;
+                        }
+                        order.PrepDate = chosenPrep;
+                    }
+
+                    contact.NextDeliveryDate = order.NextDateRequired.Date < minReminderDate
+                        ? minReminderDate
+                        : order.NextDateRequired.Date;
+
+                    contact.NextPrepDate = order.PrepDate < minReminderDate
+                        ? minReminderDate
+                        : order.PrepDate;
+
+                    // Closure adjust (per-contact layer – may later be centralized)
+                    ApplyClosureAdjustment(contact);
+
+                    // Add item line
+                    contact.ItemsContactRequires.Add(new ItemContactRequires
                     {
                         CustomerID = order.CustomerID,
                         AutoFulfill = false,
@@ -977,41 +1038,42 @@ namespace TrackerDotNet.Managers
                         ItemID = order.ItemRequiredID,
                         ItemQty = order.QtyRequired,
                         ItemPackagID = order.PackagingID
-                    };
-
-                    // Get or create contact
-                    var contact = reocurringContacts.FirstOrDefault(c => c.CustomerID == order.CustomerID);
-                    if (contact == null)
-                    {
-                        contact = new ContactToRemindWithItems().GetCustomerDetails(order.CustomerID);
-                        if (contact == null)
-                        {
-                            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
-                                $"CoffeeCheckupManager: Could not load contact details for customer {order.CustomerID}");
-                            continue;
-                        }
-                    }
-
-                    contact.NextDeliveryDate = order.NextDateRequired.Date < minReminderDate ? minReminderDate : order.NextDateRequired.Date;
-                    contact.NextPrepDate = order.PrepDate < minReminderDate ? minReminderDate : order.PrepDate;
-                    var adj = ApplyClosureAdjustment(contact);
-                    contact.ItemsContactRequires.Add(itemRequired);
-
-                    if (!reocurringContacts.Contains(contact))
-                        reocurringContacts.Add(contact);
+                    });
 
                     AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
-                        $"CoffeeCheckupManager: Added/updated recurring customer {contact.CompanyName} (CustID={contact.CustomerID}) - Delivery:{contact.NextDeliveryDate:yyyy-MM-dd}");
+                        $"BuildRecurringContacts: Cust={contact.CustomerID} Delivery={contact.NextDeliveryDate:yyyy-MM-dd}");
                 }
                 catch (Exception ex)
                 {
                     AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
-                        $"CoffeeCheckupManager: Error processing recurring order {order.ReoccuringOrderID}: {ex.Message}");
+                        $"BuildRecurringContacts: Error OrderID={order.ReoccuringOrderID} {ex.Message}");
                 }
             }
 
-            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: Found {reocurringContacts.Count} customers with recurring items due within {reminderWindowDays} days");
-            return reocurringContacts;
+            return contacts;
+        }
+        private List<ContactToRemindWithItems> GetRecurringContactsNeedingReminder(int reminderWindowDays)
+        {
+            var minReminderDate = new SysDataTbl().GetMinReminderDate();
+            var windowStart = TimeZoneUtils.Now().Date;
+            var windowEnd = windowStart.AddDays(reminderWindowDays);
+
+            CityDeliveryMatrix.EnsureBuilt();
+
+            var rawOrders = LoadRawRecurringOrders(windowEnd);
+            if (rawOrders.Count == 0)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                    "GetRecurringContactsNeedingReminder: No recurring orders raw");
+                return new List<ContactToRemindWithItems>();
+            }
+
+            var normalized = NormalizeAndFilterRecurringOrders(rawOrders, windowStart, windowEnd);
+            var contacts = BuildRecurringContacts(normalized, windowStart, windowEnd, minReminderDate);
+
+            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                $"GetRecurringContactsNeedingReminder: Final recurring contacts {contacts.Count}");
+            return contacts;
         }
         // Add near other private helpers
         private bool ApplyClosureAdjustment(ContactToRemindWithItems contact)
@@ -1254,9 +1316,9 @@ namespace TrackerDotNet.Managers
                     {
                         var emailTextData = new SendCheckEmailTextsData
                         {
-                            Header = emailData.Header,
-                            Body = emailData.Body,
-                            Footer = emailData.Footer
+                            Header = UrlTextDecoder.DecodePossiblyUrlEncoded(emailData.Header),
+                            Body = UrlTextDecoder.DecodePossiblyUrlEncoded(emailData.Body),
+                            Footer = UrlTextDecoder.DecodePossiblyUrlEncoded(emailData.Footer)
                         };
 
                         // Handle order creation for non-reminder contacts
@@ -1274,12 +1336,7 @@ namespace TrackerDotNet.Managers
                             }
                             else
                             {
-                                emailTextData.Footer += MessageProvider.Get(MessageKeys.CoffeeCheckup.FooterOrderAdded);
-
-                                string baseUrl = DisableClientManager.GetApplicationUrl();
-                                string orderLink = $"{baseUrl}/Pages/OrderDetail.aspx?CustomerID={contact.CustomerID}&DeliveryDate={contact.NextDeliveryDate:yyyy-MM-dd}";
-                                emailTextData.Footer += string.Format(MessageProvider.Get(MessageKeys.CoffeeCheckup.FooterOrderLink), orderLink);
-
+                                emailTextData.Footer = AppendOrderDetailsToFooter(contact, emailTextData.Footer); 
                                 AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: Order created successfully for {contact.CompanyName}");
                             }
                         }
@@ -1360,6 +1417,39 @@ namespace TrackerDotNet.Managers
                 };
             }
         }
+
+        private static string AppendOrderDetailsToFooter(ContactToRemindWithItems contact, string emailFooter)
+        {
+            emailFooter += MessageProvider.Get(MessageKeys.CoffeeCheckup.FooterOrderAdded);
+
+            string baseUrl = DisableClientManager.GetApplicationUrl() ?? string.Empty;
+
+            // Normalize trailing slash once
+            if (!baseUrl.EndsWith("/"))
+                baseUrl += "/";
+
+            // Build URL robustly
+            var ub = new UriBuilder(baseUrl + "Pages/ViewMyOrder.aspx");
+            var qs = HttpUtility.ParseQueryString(string.Empty);
+            qs["CustomerID"] = contact.CustomerID.ToString();
+            qs["DeliveryDate"] = contact.NextDeliveryDate.ToString("yyyy-MM-dd");
+
+            // Token (customer + delivery date in UTC) – encode only the token value
+            string token = OrderViewTokenHelper.CreateCustomerDeliveryToken(
+                contact.CustomerID,
+                contact.NextDeliveryDate.ToUniversalTime());
+            qs["t"] = token; // UriBuilder will encode when ToString() is called
+
+            ub.Query = qs.ToString();
+            string orderLink = ub.ToString();
+
+            // Inject into footer (MessageProvider template should contain a {0})
+            emailFooter += string.Format(
+                MessageProvider.Get(MessageKeys.CoffeeCheckup.FooterOrderLink),
+                orderLink);
+            return emailFooter;
+        }
+
         // Centralised creation so defaults / future changes happen in one place.
         private OrderTblData CreateBaseOrder(ContactToRemindWithItems contact,
             DateTime roastDate,
@@ -1397,112 +1487,52 @@ namespace TrackerDotNet.Managers
 
             try
             {
-                // Determine if this is a recurring order batch
-                bool isRecurringBatch = pOrderType.Contains("recurring") || pOrderType.Contains("Recurring");
+                bool isRecurringBatch = pOrderType.IndexOf("recurring", StringComparison.OrdinalIgnoreCase) >= 0;
 
-                // Calculate optimal delivery dates if this is recurring
+                // NEW: Trust dates already set on the contact (from recurring resolution / matrix)
                 DateTime optimalRoastDate = pContact.NextPrepDate.Date;
                 DateTime optimalDeliveryDate = pContact.NextDeliveryDate.Date;
 
-                if (isRecurringBatch)
-                {
-                    // Find monthly recurring orders to get the target day of month
-                    var monthlyRecurringItems = pContact.ItemsContactRequires
-                        .Where(item => item.ReoccurOrder && HasMonthlyRecurrence(item.ReoccurID))
-                        .ToList();
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                    $"CreateOrderForContact: Using pre-assigned dates Cust={pContact.CustomerID} Prep={optimalRoastDate:yyyy-MM-dd} Delivery={optimalDeliveryDate:yyyy-MM-dd} (IsRecurringBatch={isRecurringBatch})");
 
-                    if (monthlyRecurringItems.Any())
-                    {
-                        // Get the target day of month from the first monthly recurring item
-                        int targetDayOfMonth = GetTargetDayOfMonth(monthlyRecurringItems.First().ReoccurID);
-
-                        if (targetDayOfMonth > 0)
-                        {
-                            // Calculate optimal delivery date for this target day
-                            var optimalDates = _deliveryCalculator.CalculateOptimalMonthlyDeliveryDates(
-                                pContact.CustomerID,
-                                targetDayOfMonth,
-                                DateTime.Now.AddMonths(-1)); // Use last month as base
-
-                            // Calculate roast date (typically delivery date minus prep days)
-                            optimalRoastDate = optimalDates.PrepDate;             // was _deliveryCalculator.CalculateRoastDateFromDelivery(optimalDeliveryDate);
-                            optimalDeliveryDate = optimalDates.DeliveryDate;
-
-                            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, MessageProvider.Format(
-                                MessageKeys.DeliveryCalculation.CalculatedOptimalDates,
-                                pContact.CompanyName,
-                                targetDayOfMonth,
-                                optimalRoastDate,
-                                optimalDeliveryDate));
-                        }
-                    }
-                }
+                // Build base order object (one object reused per line)
                 OrderTblData pOrderData = CreateBaseOrder(pContact, optimalRoastDate, optimalDeliveryDate, pOrderType);
-                //OrderTblData pOrderData = new OrderTblData
-                //{
-                //    CustomerID = pContact.CustomerID,
-                //    OrderDate = TimeZoneUtils.Now().Date,
-                //    RoastDate = optimalRoastDate,           // ENHANCED: Use calculated date
-                //    RequiredByDate = optimalDeliveryDate,   // ENHANCED: Use calculated date
-                //    ToBeDeliveredBy = pContact.PreferedAgentID < 0 ? 3 : pContact.PreferedAgentID,
-                //    Confirmed = false,
-                //    InvoiceDone = false,
-                //    PurchaseOrder = string.Empty,
-                //    Notes = $"{pOrderType} - Optimal delivery calculated"
-                //};
 
-                // BUG FIX: Check test mode before database operations
                 var testEmailClient = new EmailMailKitCls();
                 bool isTestMode = testEmailClient.IsTestMode;
-                //if (isTestMode)
-                //{
-                //    // In test mode, we skip actual order creation but log the action
-                //    AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: TEST MODE - Skipping order creation for {pContact.CompanyName}");
-                //    return string.Empty; // Success in test mode
-                //}
-                //else
-                //{
-                //    AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: Creating order for {pContact.CompanyName} with type {pOrderType}");
-                //}
 
-                // Still determine order types for email purposes, but don't create actual orders
-                for (int index = 0; index < pContact.ItemsContactRequires.Count; ++index)
+                // Identify flags (recurring / autofulfill) without changing dates
+                for (int i = 0; i < pContact.ItemsContactRequires.Count; i++)
                 {
-                    if (pContact.ItemsContactRequires[index].ReoccurOrder)
+                    if (pContact.ItemsContactRequires[i].ReoccurOrder)
                         hasRecurringItems = true;
-
-                    if (pContact.ItemsContactRequires[index].AutoFulfill)
+                    if (pContact.ItemsContactRequires[i].AutoFulfill)
                         hasAutoFulfillItem = true;
                 }
-
 
                 ReoccuringOrderDAL reoccuringOrderDal = new ReoccuringOrderDAL();
                 OrderTbl orderTbl = new OrderTbl();
                 string errorMessage = string.Empty;
 
-                for (int index = 0; index < pContact.ItemsContactRequires.Count && string.IsNullOrEmpty(errorMessage); ++index)
+                for (int i = 0; i < pContact.ItemsContactRequires.Count && string.IsNullOrEmpty(errorMessage); i++)
                 {
-                    pOrderData.ItemTypeID = pContact.ItemsContactRequires[index].ItemID;
-                    pOrderData.QuantityOrdered = pContact.ItemsContactRequires[index].ItemQty;
-                    pOrderData.PackagingID = pContact.ItemsContactRequires[index].ItemPackagID;
-                    pOrderData.PrepTypeID = pContact.ItemsContactRequires[index].ItemPrepID;
+                    var line = pContact.ItemsContactRequires[i];
+                    pOrderData.ItemTypeID = line.ItemID;
+                    pOrderData.QuantityOrdered = line.ItemQty;
+                    pOrderData.PackagingID = line.ItemPackagID;
+                    pOrderData.PrepTypeID = line.ItemPrepID;
 
                     errorMessage = orderTbl.InsertNewOrderLine(pOrderData);
 
-                    if (pContact.ItemsContactRequires[index].ReoccurOrder)
+                    if (line.ReoccurOrder)
                     {
-                        // This matches the logic from ReoccuringOrderDetails page
-                        DateTime dateToSet = pOrderData.OrderDate; // Use order date, not prep date
+                        // Only update recurrence anchor to today's order date (existing behavior)
+                        DateTime dateToSet = pOrderData.OrderDate;
+                        reoccuringOrderDal.SetReoccuringOrderDates(dateToSet, line.ReoccurID);
 
-                        AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: Updating recurring order {pContact.ItemsContactRequires[index].ReoccurID} last date to {dateToSet:yyyy-MM-dd}");
-
-                        /// update only the next order date so we do not resend.
-                        reoccuringOrderDal.SetReoccuringOrderDates(dateToSet, pContact.ItemsContactRequires[index].ReoccurID);
-                    }
-
-                    if (pContact.ItemsContactRequires[index].AutoFulfill)
-                    {
-                        hasAutoFulfillItem = true;
+                        AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                            $"CreateOrderForContact: Updated recurring order {line.ReoccurID} LastDone={dateToSet:yyyy-MM-dd}");
                     }
                 }
 
@@ -1510,11 +1540,11 @@ namespace TrackerDotNet.Managers
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: Error creating order for {pContact.CompanyName}: {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                    $"CreateOrderForContact: Error creating order for {pContact.CompanyName} (Cust={pContact.CustomerID}): {ex.Message}");
                 return ex.Message;
             }
         }
-
         /// <summary>
         /// Logs reminder attempt to database - CONDITIONAL TEST MODE LOGGING
         /// </summary>
@@ -1525,19 +1555,6 @@ namespace TrackerDotNet.Managers
                 var testEmailClient = new EmailMailKitCls();
                 bool isTestMode = testEmailClient.IsTestMode;
 
-                //AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: LogReminderAttempt for {contact.CompanyName} - TestMode: {isTestMode}, wasSuccessful: {wasSuccessful}");
-
-                // In test mode, we still log because emails are actually being sent (just to test recipients)
-                // If you want to skip logging in test mode, uncomment the next block:
-                /*
-                if (isTestMode)
-                {
-                    AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: TEST MODE - Skipped logging reminder attempt for customer {contact.CustomerID} ({contact.CompanyName})");
-                    return;
-                }
-                */
-
-                // Determine if this customer has recurring or auto-fulfill items
                 bool hasRecurring = contact.ItemsContactRequires.Any(x => x.ReoccurOrder);
                 bool hasAutoFulFill = contact.ItemsContactRequires.Any(x => x.AutoFulfill);
 
@@ -1545,25 +1562,24 @@ namespace TrackerDotNet.Managers
                 {
                     CustomerID = contact.CustomerID,
                     DateSentReminder = TimeZoneUtils.Now().Date,
-                    NextPrepDate = contact.NextCoffee.Date,
+                    NextPrepDate = contact.NextPrepDate.Date,
                     ReminderSent = wasSuccessful,
                     HadAutoFulfilItem = hasAutoFulFill,
                     HadReoccurItems = hasRecurring
                 };
 
                 string logMode = isTestMode ? "[TEST MODE]" : "[PRODUCTION]";
-                //AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: {logMode} Logging reminder for {contact.CompanyName}");
-
                 logEntry.InsertLogItem(logEntry);
 
-                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: {logMode} Successfully logged reminder for {contact.CompanyName} - Recurring: {hasRecurring}, AutoFulFill: {hasAutoFulFill}, Success: {wasSuccessful}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                    $"CoffeeCheckupManager: {logMode} Logged reminder Cust={contact.CustomerID} Prep={contact.NextPrepDate:yyyy-MM-dd} Sent={wasSuccessful} Recurring={hasRecurring} AutoFulfill={hasAutoFulFill}");
             }
             catch (Exception ex)
             {
-                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup, $"CoffeeCheckupManager: Failed to log reminder attempt for customer {contact.CustomerID} ({contact.CompanyName}): {ex.Message}");
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                    $"CoffeeCheckupManager: Failed to log reminder attempt for customer {contact.CustomerID} ({contact.CompanyName}): {ex.Message}");
             }
         }
-
         /// <summary>
         /// Logs individual email failure
         /// </summary>
@@ -1731,10 +1747,7 @@ namespace TrackerDotNet.Managers
                     return sessionDays;
             }
 
-            var setting = ConfigurationManager.AppSettings["CoffeeCheckupReminderWindowDays"];
-            if (!string.IsNullOrEmpty(setting) && int.TryParse(setting, out int parsed) && parsed > 0)
-                days = parsed;
-            return days;
+            return ConfigHelper.GetInt("CoffeeCheckupReminderWindowDays", days);
         }
 
         /// <summary>
@@ -1742,14 +1755,10 @@ namespace TrackerDotNet.Managers
         /// </summary>
         public static int GetMinimumRecurringDays()
         {
-            int days = SystemConstants.CheckupConstants.DefaultMinimumMonthlyRecurringDays; // CONST_DEFAULTMINIMUMMONTHLYRECURRINGDAYS; // default
-
             // Check app settings first
-            var setting = ConfigurationManager.AppSettings["CoffeeCheckupMinMonthlyRecurringDays"];
-            if (!string.IsNullOrEmpty(setting) && int.TryParse(setting, out int parsed) && parsed > 0)
-                days = parsed;
-
-            return days;
+            return ConfigHelper.GetInt("CoffeeCheckupMinMonthlyRecurringDays", SystemConstants.CheckupConstants.DefaultMinimumMonthlyRecurringDays);
         }
+        // Add this handler method anywhere inside the SendCoffeeCheckup partial class (e.g. near other button handlers).
+
     }
 }

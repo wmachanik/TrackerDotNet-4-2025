@@ -581,7 +581,7 @@ namespace TrackerDotNet.Classes
             return dataSet;
         }
 
-        private static readonly bool EnableDetailedLogging = ConfigurationManager.AppSettings["EnableDatabaseDetailedLogging"]?.ToLower() == "true";
+        private static readonly bool EnableDetailedLogging = ConfigHelper.GetBool("EnableDatabaseDetailedLogging",false);
 
         public IDataReader ExecuteSQLGetDataReader(string strSQL)
         {

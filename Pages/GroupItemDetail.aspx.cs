@@ -32,10 +32,10 @@ namespace TrackerDotNet.Pages
         {
             if (this.IsPostBack)
                 return;
-            this.Session["ReturnItemGroupURL"] = this.Request.UrlReferrer == (Uri)null ? (object)"" : (object)this.Request.UrlReferrer.OriginalString.ToString();
-            if (this.Request.QueryString["ItemTypeID"] == null)
+            this.Session[CONST_SESSION_RETURNURL] = this.Request.UrlReferrer == (Uri)null ? (object)"" : (object)this.Request.UrlReferrer.OriginalString.ToString();
+            if (this.Request.QueryString[CONST_QRYSTR_GROUPITEMID] == null)
                 return;
-            ItemTypeTbl itemTypeFromId = new ItemTypeTbl().GetItemTypeFromID(Convert.ToInt32(this.Request.QueryString["ItemTypeID"].ToString()));
+            ItemTypeTbl itemTypeFromId = new ItemTypeTbl().GetItemTypeFromID(Convert.ToInt32(this.Request.QueryString[CONST_QRYSTR_GROUPITEMID].ToString()));
             if (itemTypeFromId.ItemTypeID.Equals(SystemConstants.DatabaseConstants.InvalidID))
                 return;
             this.lblGroupItemID.Visible = true;
@@ -49,7 +49,7 @@ namespace TrackerDotNet.Pages
 
         protected void ReturnToPrevPage()
         {
-            string url = this.Session["ReturnItemGroupURL"].ToString();
+            string url = this.Session[CONST_SESSION_RETURNURL].ToString();
             if (url.Length <= 0)
                 return;
             this.Response.Redirect(url);

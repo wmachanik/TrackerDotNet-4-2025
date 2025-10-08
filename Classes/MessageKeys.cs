@@ -141,7 +141,13 @@ namespace TrackerDotNet.Classes
             public const string ConfirmationPORequired = "Order.ConfirmationPORequired";
             public const string ConfirmationPOReceived = "Order.ConfirmationPOReceived";
         }
-
+        public static class OrderDetail
+        {
+            public const string PublicViewLoginPrompt = "OrderDetail.PublicViewLoginPrompt";
+            public const string RequestChangesButtonText = "OrderDetail.RequestChangesButtonText";
+            public const string RequestChangesMailSubject = "OrderDetail.RequestChangesMailSubject";
+            public const string RequestChangesMailBody = "OrderDetail.RequestChangesMailBody";
+        }
         /// <summary>
         /// Repair-related messages
         /// </summary>

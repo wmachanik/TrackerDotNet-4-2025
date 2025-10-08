@@ -332,16 +332,24 @@ namespace TrackerDotNet.Managers
         /// </summary>
         private string FormatQuantity(double qty, int itemId)
         {
-            string formattedQty = qty.ToString("0.##"); // Max 2 decimal places, no trailing zeros
+            int dp = SystemConstants.DatabaseConstants.NumDecimalPoints; // 4
+            // Round first to ensure consistent midpoint handling
+            double rounded = Math.Round(qty, dp, MidpointRounding.AwayFromZero);
+
+            // Build a flexible format: up to dp decimals, suppress trailing zeros
+            // Example for 4: "0.####"
+            string format = dp > 0 ? ("0." + new string('#', dp)) : "0";
+            string formattedQty = rounded.ToString(format);
+
             string unitOfMeasure = new ItemTypeTbl().GetItemUnitOfMeasure(itemId);
-            
+
             if (!string.IsNullOrEmpty(unitOfMeasure))
             {
-                // Don't pluralize for decimals, only for whole numbers > 1
-                bool isPlural = qty > 1.0 && qty == Math.Floor(qty);
-                formattedQty += " " + (isPlural ? unitOfMeasure + "s" : unitOfMeasure);
+                // Use rounded for plural decision
+                bool isPluralWhole = rounded > 1.0 && Math.Abs(rounded - Math.Floor(rounded)) < 0.0000001;
+                formattedQty += " " + (isPluralWhole ? unitOfMeasure + "s" : unitOfMeasure);
             }
-            
+
             return formattedQty;
         }
         
@@ -403,7 +411,7 @@ namespace TrackerDotNet.Managers
             try
             {
                 var emailSettings = new EmailSettings();
-                string adminEmail = ConfigurationManager.AppSettings["SysEmailFrom"];
+                string adminEmail = ConfigHelper.GetString("SysEmailFrom", SystemConstants.EmailConstants.DefaultAdminEmail);
                 emailSettings.SetRecipient(adminEmail);  // system email is the admin address
 
                 var email = new EmailMailKitCls(emailSettings);

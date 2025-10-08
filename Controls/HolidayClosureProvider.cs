@@ -43,10 +43,12 @@ namespace TrackerDotNet.Controls
         {
             get
             {
-                int d;
-                string key = SystemConstants.HolidayClosureConstants.ImminentWindowDaysSettingKey;
-                if (int.TryParse(ConfigurationManager.AppSettings[key], out d) && d > 0)
+                int d = ConfigHelper.GetInt(SystemConstants.HolidayClosureConstants.ImminentWindowDaysSettingKey,
+                    SystemConstants.HolidayClosureConstants.DefaultImminentWindowDays);
+                if (d > 0)
+                {
                     return d;
+                }
                 return SystemConstants.HolidayClosureConstants.DefaultImminentWindowDays;
             }
         }
