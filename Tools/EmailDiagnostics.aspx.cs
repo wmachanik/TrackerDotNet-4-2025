@@ -1,4 +1,5 @@
-﻿using MailKit.Security;
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
 using MimeKit;
 using System;
 using System.Collections.Concurrent;
@@ -36,10 +37,26 @@ namespace TrackerDotNet.Tools
                 var config = ConfigurationManager.AppSettings;
 
                 txtHost.Text = config["EMailSMTP"] ?? "";
-                txtPort.Text = config["EmailPort"] ?? "";
+                txtPort.Text = config["EMailPort"] ?? "";                // fixed key (was "EmailPort")
                 txtUser.Text = config["EMailLogIn"] ?? "";
-                txtPass.Text = config["EmailPassword"] ?? "";
+                txtPass.Text = config["EMailPassword"] ?? "";            // fixed key (was "EmailPassword")
                 txtFrom.Text = config["SysEmailFrom"] ?? "";
+
+                // Test recipient / CC defaults
+                txtTo.Text = config["EmailTestRecipient"] ?? config["SysEmailFrom"] ?? "";
+                // If the CC box is present on the page, populate it from config
+                if (this.FindControl("txtCc") != null)
+                {
+                    txtCc.Text = config["SysCCEmailAddress"] ?? "";
+                }
+
+                // Test recipient / CC defaults
+                txtTo.Text = config["EmailTestRecipient"] ?? config["SysEmailFrom"] ?? "";
+                // If the CC box is present on the page, populate it from config
+                if (this.FindControl("txtCc") != null)
+                {
+                    txtCc.Text = config["SysCCEmailAddress"] ?? "";
+                }
 
                 chkSSL.Checked = (config["EMailSSLEnabled"] ?? "false").ToLower() == "true";
                 ddlSocketOption.SelectedValue = config["EmailSocketOption"] ?? "Auto";
@@ -57,17 +74,35 @@ namespace TrackerDotNet.Tools
         }
         private EmailSettings GetEmailSettings()
         {
+            // Read UI fields, with sensible fallbacks to appSettings
+            var config = ConfigurationManager.AppSettings;
+            string defaultTo = config["EmailTestRecipient"] ?? config["SysEmailFrom"] ?? "";
+            string defaultCc = config["SysCCEmailAddress"] ?? "";
+
+            string smtpHost = txtHost.Text.Trim();
+            int smtpPort = int.TryParse(txtPort.Text, out var p) ? p : ConfigHelper.GetInt("EMailPort", 25);
+            string smtpUser = txtUser.Text.Trim();
+            string smtpPass = txtPass.Text;
+            bool enableSsl = chkSSL.Checked;
+            string socketOption = ddlSocketOption.SelectedValue;
+            int timeout = int.TryParse(txtTimeout.Text, out var t) ? t : 10000;
+            string from = txtFrom.Text.Trim();
+            string to = string.IsNullOrWhiteSpace(txtTo.Text) ? defaultTo : txtTo.Text.Trim();
+            string cc = this.FindControl("txtCc") != null && !string.IsNullOrWhiteSpace(txtCc.Text)
+                ? txtCc.Text.Trim()
+                : defaultCc;
+
             return new EmailSettings(
-                txtHost.Text.Trim(),
-                int.TryParse(txtPort.Text, out var p) ? p : 25,
-                txtUser.Text.Trim(),
-                txtPass.Text,
-                chkSSL.Checked,
-                ddlSocketOption.SelectedValue,
-                int.TryParse(txtTimeout.Text, out var t) ? t : 10000,
-                txtFrom.Text.Trim(),
-                txtTo.Text.Trim(),
-                null
+                smtpHost,
+                smtpPort,
+                smtpUser,
+                smtpPass,
+                enableSsl,
+                socketOption,
+                timeout,
+                from,
+                to,
+                cc
             );
         }
         protected void btnSend_Click(object sender, EventArgs e)
@@ -390,6 +425,249 @@ namespace TrackerDotNet.Tools
             {
                 lblClearLogStatus.Text = "❌ Error clearing log: " + ex.Message;
             }
+        }
+        protected void btnSendCcTest_Click(object sender, EventArgs e)
+        {
+            lblCcResult.Text = "";
+            lblGlobalStatus.Text = "Sending CC test...";
+
+            string smtpHost = txtHost.Text.Trim();
+            int smtpPort = int.TryParse(txtPort.Text, out var p) ? p : ConfigHelper.GetInt("EMailPort", 587);
+            string smtpUser = txtUser.Text.Trim();
+            string smtpPass = txtPass.Text;
+            string socketOption = ddlSocketOption.SelectedValue ?? "Auto";
+            int timeout = int.TryParse(txtTimeout.Text, out var t) ? t : 10000;
+
+            string from = string.IsNullOrWhiteSpace(txtFrom.Text) ? smtpUser : txtFrom.Text.Trim();
+            string to = txtTo.Text.Trim();
+            string ccRaw = txtCc.Text.Trim();
+            string subject = txtSubject.Text;
+            string body = txtBody.Text;
+
+            try
+            {
+                var msg = new MimeMessage();
+
+                // Use the configured From (or smtp user as fallback)
+                msg.From.Add(MailboxAddress.Parse(from));
+
+                // Add To
+                msg.To.Add(MailboxAddress.Parse(to));
+
+                // Add Cc addresses (support comma or semicolon separated)
+                if (!string.IsNullOrWhiteSpace(ccRaw))
+                {
+                    var ccList = ccRaw.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(a => a.Trim())
+                                      .Where(a => !string.IsNullOrEmpty(a));
+                    foreach (var cc in ccList)
+                    {
+                        try
+                        {
+                            msg.Cc.Add(MailboxAddress.Parse(cc));
+                        }
+                        catch (Exception exCc)
+                        {
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics: Invalid CC address skipped: {cc} - {exCc.Message}");
+                        }
+                    }
+                }
+
+                msg.Subject = subject;
+
+                var builder = new BodyBuilder
+                {
+                    HtmlBody = body
+                };
+                msg.Body = builder.ToMessageBody();
+
+                using (var client = new SmtpClient())
+                {
+                    client.Timeout = timeout;
+                    client.CheckCertificateRevocation = false;
+                    client.ServerCertificateValidationCallback = (s, c, h, eArgs) => true;
+
+                    SecureSocketOptions option = SecureSocketOptions.Auto;
+                    switch (socketOption)
+                    {
+                        case "None": option = SecureSocketOptions.None; break;
+                        case "SslOnConnect": option = SecureSocketOptions.SslOnConnect; break;
+                        case "StartTls": option = SecureSocketOptions.StartTls; break;
+                        case "StartTlsWhenAvailable": option = SecureSocketOptions.StartTlsWhenAvailable; break;
+                    }
+
+                    client.Connect(smtpHost, smtpPort, option);
+
+                    // If SMTP user is provided, authenticate
+                    if (!string.IsNullOrEmpty(smtpUser))
+                        client.Authenticate(smtpUser, smtpPass);
+
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics: Sending CC test. Host={smtpHost}:{smtpPort} From={from} To={to} Cc={ccRaw}");
+
+                    client.Send(msg);
+                    client.Disconnect(true);
+                }
+
+                lblCcResult.ForeColor = System.Drawing.Color.Green;
+                lblCcResult.Text = "✅ CC test sent — check To and CC inboxes (and spam/quarantine).";
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics: CC test sent successfully. To={to} Cc={ccRaw}");
+            }
+            catch (Exception ex)
+            {
+                lblCcResult.ForeColor = System.Drawing.Color.Red;
+                lblCcResult.Text = "❌ Send failed: " + ex.GetType().Name + ": " + ex.Message;
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics: CC test failed: {ex}");
+            }
+            finally
+            {
+                lblGlobalStatus.Text = "CC test completed.";
+            }
+        }
+        /// <summary>
+        /// Send a test using the EmailMailKitCls wrapper and return a short result string.
+        /// </summary>
+        private string SendUsingWrapper()
+        {
+            try
+            {
+                var settings = GetEmailSettings();
+                var email = new EmailMailKitCls(settings);
+
+                // Ensure wrapper uses UI From/To/CC
+                string from = string.IsNullOrWhiteSpace(txtFrom.Text) ? settings.FromAddress : txtFrom.Text.Trim();
+                string to = string.IsNullOrWhiteSpace(txtTo.Text) ? settings.ToAddress : txtTo.Text.Trim();
+
+                // Update settings in the wrapper (SetEmailFromTo will update emailConfig internal values)
+                email.SetEmailFromTo(from, to);
+
+                // Add subject/body
+                email.SetEmailSubject(string.IsNullOrWhiteSpace(txtSubject.Text) ? "Wrapper Test" : txtSubject.Text);
+                email.AddToBody(string.IsNullOrWhiteSpace(txtBody.Text) ? "Wrapper test body" : txtBody.Text);
+
+                // Log exact recipients the wrapper will attempt to send to (includes CC from settings)
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics (Wrapper): From={from} To={to} Cc={settings.CcAddress}");
+
+                bool ok = email.SendEmail();
+                string formatted = email.GetFormattedResultMessage(ok);
+
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics (Wrapper): Result: {formatted}");
+                return $"Wrapper: {formatted}";
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics (Wrapper): Exception: {ex}");
+                return $"Wrapper: ❌ Exception: {ex.GetType().Name}: {ex.Message}";
+            }
+        }
+        /// <summary>
+        /// Send a test using MailKit SmtpClient directly (To + optional Cc) and return a short result string.
+        /// </summary>
+        private string SendUsingSmtpDirect()
+        {
+            string smtpHost = txtHost.Text.Trim();
+            int smtpPort = int.TryParse(txtPort.Text, out var p) ? p : ConfigHelper.GetInt("EMailPort", 587);
+            string smtpUser = txtUser.Text.Trim();
+            string smtpPass = txtPass.Text;
+            string socketOption = ddlSocketOption.SelectedValue ?? "Auto";
+            int timeout = int.TryParse(txtTimeout.Text, out var t) ? t : 10000;
+
+            string from = string.IsNullOrWhiteSpace(txtFrom.Text) ? smtpUser : txtFrom.Text.Trim();
+            string to = txtTo.Text.Trim();
+            string ccRaw = txtCc?.Text?.Trim() ?? "";
+            string subject = string.IsNullOrWhiteSpace(txtSubject.Text) ? "Direct SMTP Test" : txtSubject.Text;
+            string body = string.IsNullOrWhiteSpace(txtBody.Text) ? "Direct SMTP test body" : txtBody.Text;
+
+            try
+            {
+                var msg = new MimeMessage();
+                msg.From.Add(MailboxAddress.Parse(from));
+                msg.To.Add(MailboxAddress.Parse(to));
+
+                if (!string.IsNullOrWhiteSpace(ccRaw))
+                {
+                    var ccList = ccRaw.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(a => a.Trim())
+                                      .Where(a => !string.IsNullOrEmpty(a));
+
+                    foreach (var cc in ccList)
+                    {
+                        try { msg.Cc.Add(MailboxAddress.Parse(cc)); }
+                        catch (Exception exCc)
+                        {
+                            AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics: Invalid CC skipped: {cc} - {exCc.Message}");
+                        }
+                    }
+                }
+
+                msg.Subject = subject;
+                msg.Body = new BodyBuilder { HtmlBody = body }.ToMessageBody();
+
+                using (var client = new SmtpClient())
+                {
+                    client.Timeout = timeout;
+                    client.CheckCertificateRevocation = false;
+                    client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
+                    SecureSocketOptions option = SecureSocketOptions.Auto;
+                    switch (socketOption)
+                    {
+                        case "None": option = SecureSocketOptions.None; break;
+                        case "SslOnConnect": option = SecureSocketOptions.SslOnConnect; break;
+                        case "StartTls": option = SecureSocketOptions.StartTls; break;
+                        case "StartTlsWhenAvailable": option = SecureSocketOptions.StartTlsWhenAvailable; break;
+                    }
+
+                    client.Connect(smtpHost, smtpPort, option);
+
+                    if (!string.IsNullOrEmpty(smtpUser))
+                        client.Authenticate(smtpUser, smtpPass);
+
+                    AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics: Direct SMTP send. Host={smtpHost}:{smtpPort} From={from} To={to} Cc={ccRaw}");
+
+                    client.Send(msg);
+                    client.Disconnect(true);
+                }
+
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics: Direct SMTP send succeeded. To={to} Cc={ccRaw}");
+                return $"Direct SMTP: ✅ Sent to {to}" + (string.IsNullOrWhiteSpace(ccRaw) ? "" : $" (Cc: {ccRaw})");
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Email, $"EmailDiagnostics: Direct SMTP send failed: {ex}");
+                return $"Direct SMTP: ❌ {ex.GetType().Name}: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// New handler: run both tests (wrapper and direct SMTP) and show combined result.
+        /// Add a button to the .aspx with OnClick="btnSendBothTest_Click" to invoke this.
+        /// </summary>
+        protected void btnSendBothTest_Click(object sender, EventArgs e)
+        {
+            lblGlobalStatus.Text = "Running both wrapper and direct SMTP tests...";
+
+            string wrapperResult = SendUsingWrapper();
+            string smtpResult = SendUsingSmtpDirect();
+
+            // Build a readable combined result
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine(wrapperResult.Replace("\n", "<br/>"));
+            sb.AppendLine("<br/>");
+            sb.AppendLine(smtpResult.Replace("\n", "<br/>"));
+
+            // Show in UI (use lblCcResult or lblResult as appropriate)
+            if (lblCcResult != null)
+            {
+                lblCcResult.ForeColor = System.Drawing.Color.Black;
+                lblCcResult.Text = sb.ToString();
+            }
+            else
+            {
+                lblResult.ForeColor = System.Drawing.Color.Black;
+                lblResult.Text = sb.ToString();
+            }
+
+            lblGlobalStatus.Text = "Both tests completed.";
         }
     }
 }

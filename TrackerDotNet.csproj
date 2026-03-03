@@ -537,6 +537,7 @@
     <Compile Include="Pages\DeliverySheet.aspx.designer.cs">
       <DependentUpon>DeliverySheet.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Pages\DisableClient.aspx.cs" />
     <Compile Include="Pages\GroupItemDetail.aspx.cs">
       <DependentUpon>GroupItemDetail.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

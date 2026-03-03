@@ -48,15 +48,14 @@ namespace TrackerDotNet.Pages
             switch (deliveryPersonID)
             {
                 case SystemConstants.DeliveryConstants.CourierDeliveryID:
-                    return "dispatched"; // Courier = dispatched
-                case SystemConstants.DeliveryConstants.ParcelDispatchID:
-                    return "dispatched"; // Courier = dispatched
+                case SystemConstants.DeliveryConstants.ParcelDispatchID: // Prgo
+                    return "dispatched";
                 case SystemConstants.DeliveryConstants.CollectionID:
-                    return "collected"; // Courier = dispatched
+                    return "collected";
                 case SystemConstants.DeliveryConstants.DefaultDeliveryPersonID:
-                    return "done"; // Squad (SQ) = delivered
+                    return "done";
                 default:
-                    return "done"; // Default case, assume delivered
+                    return "done";
             }
         }
 

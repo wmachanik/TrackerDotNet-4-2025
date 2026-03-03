@@ -19,7 +19,7 @@
 
     <div class="container">
         <h2 class="test-h2">Email Configuration Tester</h2>
-        
+
         <ajax:TabContainer ID="TabContainer1" runat="server" ActiveTabIndex="0" CssClass="ajax-tabs">
 
             <!-- 📨 Email Test Tab -->
@@ -180,7 +180,44 @@
                     </asp:UpdatePanel>
                 </ContentTemplate>
             </ajax:TabPanel>
+            <!-- Single Email test -->
+            <ajax:TabPanel ID="TabCcTest" runat="server" HeaderText="📎 CC Test">
+                <ContentTemplate>
+                    <asp:UpdatePanel ID="upCcTest" runat="server" UpdateMode="Conditional">
+                        <ContentTemplate>
+                            <div class="test-css">
+                                <fieldset>
+                                    <legend>CC Delivery Test</legend>
 
+                                    <label for="<%= txtFrom.ClientID %>">From Address:</label>
+                                    <asp:TextBox ID="TextBox1" runat="server" title="Enter the sender's email address" placeholder="sender@domain.com" />
+
+                                    <label for="<%= txtTo.ClientID %>">To Address:</label>
+                                    <asp:TextBox ID="TextBox2" runat="server" title="Enter the recipient's email address" placeholder="recipient@domain.com" />
+
+                                    <label for="<%= txtCc.ClientID %>">CC Address(es):</label>
+                                    <asp:TextBox ID="txtCc" runat="server" title="Enter CC addresses separated by comma or semicolon" placeholder="admin@domain.com" />
+
+                                    <label for="<%= txtSubject.ClientID %>">Subject:</label>
+                                    <asp:TextBox ID="TextBox3" runat="server" title="Enter the email subject" placeholder="CC Test" />
+
+                                    <label for="<%= txtBody.ClientID %>">Body:</label>
+                                    <asp:TextBox ID="TextBox4" runat="server" TextMode="MultiLine" Rows="4" title="Enter the body of the email" placeholder="This is a CC test..." />
+
+                                    <div class="form-actions" style="margin-top: 10px;">
+                                        <asp:Button ID="btnSendCcTest" runat="server" Text="Send CC Test" OnClick="btnSendCcTest_Click" />
+                                        <asp:Button ID="btnSendBothTest" runat="server" Text="Send Both Tests" OnClick="btnSendBothTest_Click" />
+                                    </div>
+
+                                    <div style="margin-top: 8px;">
+                                        <asp:Label ID="lblCcResult" runat="server" ForeColor="Red" />
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </ContentTemplate>
+                    </asp:UpdatePanel>
+                </ContentTemplate>
+            </ajax:TabPanel>
         </ajax:TabContainer>
     </div>
 
