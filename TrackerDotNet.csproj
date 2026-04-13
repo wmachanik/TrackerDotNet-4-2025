@@ -116,11 +116,23 @@
     <Content Include="Administration\ManageUsers.aspx" />
     <Content Include="Administration\ResetPasswordHelper.aspx" />
     <Content Include="Administration\UserInformation.aspx" />
+    <Content Include="App_Data\SQLCommands-CheckNextRoastDates.xml" />
+    <Content Include="App_Data\SQLCommands-DiagnoseCheckup.xml" />
+    <Content Include="App_Data\SQLCommands-DiagnoseMissing6.xml" />
+    <Content Include="App_Data\SQLCommands-DiagnoseMonthlyRecurring.xml" />
+    <Content Include="App_Data\SQLCommands-DiagnoseNextRoastDates.xml" />
+    <Content Include="App_Data\SQLCommands-DiagnoseRidwaanRyan.xml" />
+    <Content Include="App_Data\SQLCommands-FindMissing32.xml" />
     <Content Include="App_Data\SQLCommands-HolidayClosure-01.xml" />
+    <Content Include="App_Data\SQLCommands-NextCoffeeByReset.xml" />
     <Content Include="App_Data\SQLCommands-ShowAwayChangesXML.xml" />
     <Content Include="App_Data\SQLCommands-RepStatusUpdate-01.xml" />
+    <Content Include="App_Data\SQLCommands-VerifyDeliveryDateFix.xml" />
+    <Content Include="App_Data\SQLCommands-WhyNoCheckup-RidwaanRyan.xml" />
     <Content Include="App_Data\SQLCommands001.xml" />
     <Content Include="App_Data\SQLCommands_AwayPeriod.xml" />
+    <Content Include="App_Data\TEST-RidwaanRyan.sql" />
+    <Content Include="CHAT_RESTART_PROMPT.txt" />
     <Content Include="Default.aspx" />
     <Content Include="DisableClient.aspx" />
     <Content Include="Global.asax" />
@@ -231,6 +243,15 @@
     <Content Include="Classes\Web.config" />
     <Content Include="Tools\Generate-MigrationPlan.ps1" />
     <Content Include="Docs\MigrationPlaybook_TrackerDotNet_to_TrackerSQL.md" />
+    <Content Include="CHANGES_LOG.md" />
+    <Content Include="DELIVERY_DATE_FIX_SUMMARY.md" />
+    <Content Include="COMMIT_MESSAGE.md" />
+    <Content Include="DEVELOPMENT_SESSION_NOTES.md" />
+    <Content Include="MONTHLY_RECURRING_END_OF_MONTH_BUG.md" />
+    <Content Include="Deploy-CoffeeCheckupFixes.ps1" />
+    <Content Include="Quick-Deploy.ps1" />
+    <Content Include="DEPLOYMENT_README.md" />
+    <Content Include="Fix-SmartAppControl.ps1" />
     <None Include="Scripts\jquery-1.4.1-vsdoc.js" />
     <Content Include="Scripts\jquery-1.4.1.js" />
     <Content Include="Scripts\jquery-1.4.1.min.js" />
@@ -267,6 +288,7 @@
     <Content Include="smpttester\web.config" />
     <Content Include="Styles\Web.config" />
     <Content Include="Tools\Web.config" />
+    <Content Include="WHY_RIDWAAN_RYAN_NOT_IN_CHECKUP.md" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Account\ChangePassword.aspx.cs">
@@ -830,6 +852,10 @@
     <Content Include="Print.master" />
     <Content Include="Site.Master" />
     <Content Include="Pages\Web.config" />
+    <Content Include="SESSION_SUMMARY.md" />
+    <Content Include="TEST_DEPLOYMENT_SCRIPTS.md" />
+    <Content Include="SCRIPT_UPDATE_SUMMARY.md" />
+    <Content Include="SMART_APP_CONTROL_FIX.md" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

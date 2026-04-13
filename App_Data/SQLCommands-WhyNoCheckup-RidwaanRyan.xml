@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purpose: Explain why Ridwaan and Ryan are not in the checkup list -->
+<!-- Date: 2025-01-21 (Test Date: 2026-03-27) -->
+<!-- Expected Result: Their NextCoffeeBy is outside the 6-10 day window -->
+<root>
+
+  <!-- Step 1: Show the checkup window (6-10 days from now) -->
+  <command type="select">
+    SELECT 
+      Now() AS CurrentTestDate,
+      DateAdd("d", 6, Now()) AS WindowStart_6DaysOut,
+      DateAdd("d", 10, Now()) AS WindowEnd_10DaysOut,
+      'Customers need NextCoffeeBy BETWEEN these dates to appear in checkup' AS Explanation
+  </command>
+
+  <!-- Step 2: Show Ridwaan and Ryan's actual NextCoffeeBy values -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      '---NextCoffeeBy (Checkup System)---' AS Separator1,
+      cu.NextCoffeeBy AS NextCoffeeBy_UsedByCheckup,
+      DateDiff("d", Now(), cu.NextCoffeeBy) AS DaysUntilNextCoffee,
+      IIF(cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) AND cu.NextCoffeeBy &lt;= DateAdd("d", 10, Now()), 
+          '? IN WINDOW - Will appear', 
+          '? OUTSIDE WINDOW - Will NOT appear') AS CheckupWindowStatus,
+      '---NextDateRequired (Recurring System)---' AS Separator2,
+      (SELECT MIN(ro.NextDateRequired) FROM ReoccuringOrderTbl ro WHERE ro.CustomerID = c.CustomerID AND ro.Enabled = True) AS NextDateRequired_RecurringOrders,
+      (SELECT DateDiff("d", Now(), MIN(ro.NextDateRequired)) FROM ReoccuringOrderTbl ro WHERE ro.CustomerID = c.CustomerID AND ro.Enabled = True) AS DaysUntilRecurringOrder,
+      '---Other Flags---' AS Separator3,
+      c.enabled AS CustomerEnabled,
+      c.PredictionDisabled AS PredictionDisabled,
+      c.EmailAddress
+    FROM CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    ORDER BY c.CompanyName
+  </command>
+
+  <!-- Step 3: Show their recurring order details -->
+  <command type="select">
+    SELECT 
+      c.CompanyName,
+      ro.ReoccuranceType,
+      ro.[Value] AS RecurringValue,
+      ro.DateLastDone,
+      ro.NextDateRequired,
+      DateDiff("d", Now(), ro.NextDateRequired) AS DaysUntilNextRequired,
+      ro.Enabled AS RecurringOrderEnabled,
+      IIF(ro.NextDateRequired &lt;= Now(), '?? OVERDUE - Should auto-create order', 
+          IIF(ro.NextDateRequired &lt;= DateAdd("d", 3, Now()), '? UPCOMING - Will auto-create soon',
+              '? FUTURE - Scheduled')) AS RecurringOrderStatus
+    FROM ReoccuringOrderTbl AS ro
+      INNER JOIN CustomersTbl AS c ON ro.CustomerID = c.CustomerID
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    ORDER BY c.CompanyName, ro.NextDateRequired
+  </command>
+
+  <!-- Step 4: Explain the difference between the two systems -->
+  <command type="select">
+    SELECT 
+      c.CompanyName,
+      '?? Recurring Orders (Automatic)' AS SystemType,
+      (SELECT MIN(ro.NextDateRequired) FROM ReoccuringOrderTbl ro WHERE ro.CustomerID = c.CustomerID) AS DateUsed,
+      'Orders auto-create when NextDateRequired arrives. No checkup email needed.' AS Purpose
+    FROM CustomersTbl AS c
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    
+    UNION ALL
+    
+    SELECT 
+      c.CompanyName,
+      '?? Coffee Checkup (Manual Reminder)' AS SystemType,
+      cu.NextCoffeeBy AS DateUsed,
+      'Sends email reminder when customer will run out in 6-10 days. Only for non-recurring customers.' AS Purpose
+    FROM CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    ORDER BY CompanyName, SystemType DESC
+  </command>
+
+  <!-- Step 5: Check if they have recent orders that would exclude them anyway -->
+  <command type="select">
+    SELECT 
+      c.CompanyName,
+      o.RoastDate,
+      DateDiff("d", Now(), o.RoastDate) AS DaysUntilRoast,
+      IIF(o.RoastDate &gt;= Now() AND o.RoastDate &lt;= DateAdd("d", 9, Now()), 
+          '? Would EXCLUDE from checkup (recent order exists)', 
+          '? Would NOT exclude') AS CheckupImpact
+    FROM OrdersTbl AS o
+      INNER JOIN CustomersTbl AS c ON o.CustomerID = c.CustomerID
+    WHERE (c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%')
+      AND o.RoastDate &gt;= DateAdd("d", -7, Now())
+      AND o.RoastDate &lt;= DateAdd("d", 14, Now())
+    ORDER BY c.CompanyName, o.RoastDate
+  </command>
+
+  <!-- Step 6: Show all customers who ARE in the checkup window for comparison -->
+  <command type="select">
+    SELECT TOP 10
+      c.CompanyName,
+      cu.NextCoffeeBy,
+      DateDiff("d", Now(), cu.NextCoffeeBy) AS DaysUntilNextCoffee,
+      '? These ARE in the 6-10 day window' AS Status
+    FROM CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 10, Now())
+      AND c.enabled = True
+      AND c.PredictionDisabled = False
+    ORDER BY cu.NextCoffeeBy
+  </command>
+
+  <!-- Step 7: Summary and recommendations -->
+  <command type="select">
+    SELECT 
+      '?? SUMMARY' AS Section,
+      'Ridwaan and Ryan are NOT in checkup because:' AS Finding,
+      '1. Their NextCoffeeBy dates are OUTSIDE the 6-10 day window' AS Reason1,
+      '2. They have active recurring orders that auto-create orders' AS Reason2,
+      '3. This is EXPECTED and CORRECT behavior' AS Conclusion
+    
+    UNION ALL
+    
+    SELECT 
+      '?? WHAT HAPPENS NEXT' AS Section,
+      'When NextDateRequired arrives:' AS Finding,
+      '1. System auto-creates order for them (no email needed)' AS Reason1,
+      '2. They will get order confirmation, not checkup reminder' AS Reason2,
+      '3. No action required from admin' AS Conclusion
+    
+    UNION ALL
+    
+    SELECT 
+      '?? IF YOU WANT THEM IN CHECKUP' AS Section,
+      'You would need to:' AS Finding,
+      '1. Update their NextCoffeeBy to be 6-10 days from now' AS Reason1,
+      '2. But this conflicts with their recurring order schedule' AS Reason2,
+      '3. NOT RECOMMENDED - let recurring orders handle them' AS Conclusion
+  </command>
+
+</root>

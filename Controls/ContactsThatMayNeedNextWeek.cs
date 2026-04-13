@@ -20,9 +20,25 @@ namespace TrackerDotNet.Controls
         {
             List<ContactsThayMayNeedData> thatMayNeedNextWeek = new List<ContactsThayMayNeedData>();
             TrackerDb trackerDb = new TrackerDb();
-            trackerDb.AddWhereParams((object)TimeZoneUtils.Now().Date, DbType.Date);
+            
+            // FIXED: Use last checkup date instead of Now() to avoid filtering out customers
+            // whose NextDeliveryDate is between last checkup and now
+            DateTime baselineDate = TimeZoneUtils.Now().Date;
+            SentRemindersLogTbl remindersLog = new SentRemindersLogTbl();
+            DateTime lastCheckupDate = remindersLog.GetLastSuccessfulCheckupDate();
+            
+            // For filtering purposes, use the earlier of last checkup date or now
+            // This ensures we don't miss customers who need coffee soon but whose
+            // city delivery date was in the past relative to NOW, but after last checkup
+            DateTime deliveryFilterDate = lastCheckupDate < baselineDate ? lastCheckupDate : baselineDate;
+            
+            AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                $"ContactsThatMayNeedNextWeek: Using deliveryFilterDate={deliveryFilterDate:yyyy-MM-dd} (LastCheckup={lastCheckupDate:yyyy-MM-dd}, Now={baselineDate:yyyy-MM-dd})");
+            
+            trackerDb.AddWhereParams((object)baselineDate, DbType.Date);
             SysDataTbl sysDataTbl = new SysDataTbl();
             trackerDb.AddWhereParams((object)sysDataTbl.GetMinReminderDate().Date, DbType.Date);
+            trackerDb.AddWhereParams((object)deliveryFilterDate, DbType.Date);
 
             // Use string interpolation to inject the window into the SQL
             string sql = $@"
@@ -40,7 +56,8 @@ namespace TrackerDotNet.Controls
                 LEFT OUTER JOIN ItemNoStockItemQry ON CustomersTbl.CoffeePreference = ItemNoStockItemQry.ItemTypeID)
                 WHERE ((LastDateSentReminder IS Null) OR (LastDateSentReminder <> ?)) AND (CustomersTbl.enabled=True)
                 AND (CustomersTbl.PredictionDisabled=False)  AND ((ClientUsageTbl.NextCoffeeBy > ?)
-                AND ((NextRoastDateByCityTbl.NextDeliveryDate<=DateAdd('d', {reminderWindowDays}, ClientUsageTbl.NextCoffeeBy))
+                AND ((NextRoastDateByCityTbl.NextDeliveryDate<=DateAdd('d', {reminderWindowDays}, ClientUsageTbl.NextCoffeeBy)
+                     AND NextRoastDateByCityTbl.NextDeliveryDate >= ?)
                 OR CustomersTbl.AlwaysSendChkUp=True) ) AND
                 (NOT Exists (SELECT  OrdersTbl.CustomerID FROM OrdersTbl
                 WHERE (OrdersTbl.CustomerID=CustomersTbl.CustomerID) AND (OrdersTbl.RoastDate>=Date()

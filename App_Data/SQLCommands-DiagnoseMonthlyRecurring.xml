@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purpose: Diagnose Monthly Recurring Order Date Calculation Issues -->
+<!-- Date: 2025-01-21 -->
+<!-- Scenario: When checkup runs on day 27, orders for day 1 of next month should be included -->
+<root>
+
+  <!-- Step 1: Show all enabled monthly recurring orders -->
+  <command type="select">
+    SELECT 
+      ro.ID AS OrderID,
+      c.CustomerID,
+      c.CompanyName,
+      ro.ReoccuranceType,
+      ro.[Value] AS TargetDayOfMonth,
+      ro.DateLastDone,
+      ro.NextDateRequired,
+      DateDiff("d", Now(), ro.NextDateRequired) AS DaysUntilNext,
+      ro.Enabled
+    FROM ReoccuringOrderTbl AS ro
+      INNER JOIN CustomersTbl AS c ON ro.CustomerID = c.CustomerID
+    WHERE ro.ReoccuranceType = 5
+      AND ro.Enabled = True
+    ORDER BY ro.[Value], c.CompanyName
+  </command>
+
+  <!-- Step 2: Show orders that SHOULD be in the reminder window (next 9 days) -->
+  <command type="select">
+    SELECT 
+      ro.ID AS OrderID,
+      c.CompanyName,
+      ro.[Value] AS TargetDayOfMonth,
+      ro.DateLastDone,
+      ro.NextDateRequired,
+      DateDiff("d", Now(), ro.NextDateRequired) AS DaysUntilNext,
+      IIF(ro.NextDateRequired &lt;= DateAdd("d", 9, Now()), 'YES', 'NO') AS InReminderWindow
+    FROM ReoccuringOrderTbl AS ro
+      INNER JOIN CustomersTbl AS c ON ro.CustomerID = c.CustomerID
+    WHERE ro.ReoccuranceType = 5
+      AND ro.Enabled = True
+      AND ro.NextDateRequired &lt;= DateAdd("d", 9, Now())
+    ORDER BY ro.NextDateRequired
+  </command>
+
+  <!-- Step 3: Show what the next month calculation should be for day 1 orders -->
+  <command type="select">
+    SELECT 
+      'Current Date (Now)' AS Description,
+      Now() AS CalculatedDate,
+      Day(Now()) AS DayOfMonth
+    UNION ALL
+    SELECT 
+      'Next Month Day 1' AS Description,
+      DateSerial(Year(DateAdd("m", 1, Now())), Month(DateAdd("m", 1, Now())), 1) AS CalculatedDate,
+      1 AS DayOfMonth
+    UNION ALL
+    SELECT 
+      'Days Until Next Month Day 1' AS Description,
+      DateSerial(Year(DateAdd("m", 1, Now())), Month(DateAdd("m", 1, Now())), 1) AS CalculatedDate,
+      DateDiff("d", Now(), DateSerial(Year(DateAdd("m", 1, Now())), Month(DateAdd("m", 1, Now())), 1)) AS DayOfMonth
+  </command>
+
+  <!-- Step 4: Check if orders were loaded by LoadRawRecurringOrders -->
+  <command type="select">
+    SELECT 
+      'Total Monthly Recurring Orders' AS Category,
+      COUNT(*) AS OrderCount
+    FROM ReoccuringOrderTbl
+    WHERE ReoccuranceType = 5
+      AND Enabled = True
+    UNION ALL
+    SELECT 
+      'Orders with NextDateRequired within 9 days' AS Category,
+      COUNT(*) AS OrderCount
+    FROM ReoccuringOrderTbl
+    WHERE ReoccuranceType = 5
+      AND Enabled = True
+      AND NextDateRequired &lt;= DateAdd("d", 9, Now())
+    UNION ALL
+    SELECT 
+      'Orders with NextDateRequired in the past' AS Category,
+      COUNT(*) AS OrderCount
+    FROM ReoccuringOrderTbl
+    WHERE ReoccuranceType = 5
+      AND Enabled = True
+      AND NextDateRequired &lt; Now()
+  </command>
+
+  <!-- Step 5: Show specific problem cases - Day 1 orders when running on day 27+ -->
+  <command type="select">
+    SELECT 
+      ro.ID,
+      c.CompanyName,
+      ro.[Value] AS TargetDay,
+      ro.DateLastDone,
+      ro.NextDateRequired,
+      DateDiff("d", ro.DateLastDone, Now()) AS DaysSinceLastDone,
+      DateDiff("d", Now(), ro.NextDateRequired) AS DaysUntilNext,
+      IIF(Day(Now()) &gt;= 27 AND ro.[Value] = 1, 'PROBLEM CASE', 'OK') AS Status
+    FROM ReoccuringOrderTbl AS ro
+      INNER JOIN CustomersTbl AS c ON ro.CustomerID = c.CustomerID
+    WHERE ro.ReoccuranceType = 5
+      AND ro.Enabled = True
+      AND ro.[Value] &lt;= 5
+    ORDER BY ro.[Value], c.CompanyName
+  </command>
+
+</root>

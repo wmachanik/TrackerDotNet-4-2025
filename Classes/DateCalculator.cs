@@ -171,6 +171,7 @@ namespace TrackerDotNet.Classes
         ///   day (clamped to month length). If that day is already past this month, we clamp forward to today (so we don't schedule in the past).
         /// - Otherwise (normal cycle), take lastOrderDate + 1 month and build the target day. If that computed date is still not in the 
         ///   future (<= today), keep advancing by whole months until we are strictly >= today.
+        /// - FIXED: Changed skip logic to check actual day interval instead of comparing day numbers
         /// </summary>
         private DateTime CalculateNextMonthlyOccurrence(int targetDayOfMonth, DateTime lastOrderDate)
         {
@@ -196,13 +197,33 @@ namespace TrackerDotNet.Classes
             DateTime cycleMonth = lastOrderDate.AddMonths(1);
             DateTime nextOccurrence = BuildMonthlyTargetDate(cycleMonth, targetDayOfMonth);
 
-            // If the target day in that month is earlier than the day-of-month of the last order
-            // (e.g. last=29 Sep, target day=1 → gives 1 Oct only 2 days later),
-            // skip ahead one more month to enforce a full-cycle gap (result: 1 Nov).
-            if (targetDayOfMonth < lastOrderDate.Day)
+            // FIXED: Check if we're still in the same month as last order (edge case)
+            // Only apply the 20-day minimum if next occurrence is in the SAME month as last order
+            // This prevents legitimate next-month orders from being incorrectly skipped
+            int daysSinceLastOrder = (nextOccurrence - lastOrderDate).Days;
+            int minMonthlyInterval = SystemConstants.CheckupConstants.DefaultMinimumMonthlyRecurringDays; // 20 days default
+            
+            // Only apply minimum interval check if nextOccurrence is in the same month as lastOrderDate
+            // This catches cases where targetDayOfMonth is earlier in month than lastOrderDate.Day
+            bool isSameMonthAndYear = (nextOccurrence.Year == lastOrderDate.Year && 
+                                       nextOccurrence.Month == lastOrderDate.Month);
+            
+            if (isSameMonthAndYear && daysSinceLastOrder < minMonthlyInterval)
             {
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
+                    $"Monthly recurrence: Same month and interval too short ({daysSinceLastOrder} days). Skipping to next month. " +
+                    $"Last: {lastOrderDate:yyyy-MM-dd}, Calculated: {nextOccurrence:yyyy-MM-dd}");
+                    
                 cycleMonth = cycleMonth.AddMonths(1);
                 nextOccurrence = BuildMonthlyTargetDate(cycleMonth, targetDayOfMonth);
+            }
+            else if (!isSameMonthAndYear && daysSinceLastOrder < minMonthlyInterval)
+            {
+                // Already moved to next month, but interval is short (e.g., March 23 -> April 1 = 9 days)
+                // This is VALID - it's a legitimate next-month occurrence, don't skip it
+                AppLogger.WriteLog(SystemConstants.LogTypes.Orders,
+                    $"Monthly recurrence: Next month occurrence accepted despite short interval ({daysSinceLastOrder} days). " +
+                    $"Last: {lastOrderDate:yyyy-MM-dd}, Next: {nextOccurrence:yyyy-MM-dd}");
             }
 
             // Still ensure we never return a past date relative to today

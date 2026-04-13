@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purpose: Find ALL customers with updated NextCoffeeBy and why they're not showing in SendCoffeeCheckup -->
+<!-- Date: 2025-01-21 -->
+<root>
+
+  <!-- Step 1: Show ALL customers with NextCoffeeBy = 7 days from today -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.enabled,
+      c.PredictionDisabled,
+      cu.NextCoffeeBy,
+      DateDiff("d", Now(), cu.NextCoffeeBy) AS DaysUntilNextCoffee
+    FROM CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+    ORDER BY c.CompanyName
+  </command>
+
+  <!-- Step 2: Count by enabled/disabled status -->
+  <command type="select">
+    SELECT 
+      'Total Updated (7 days out)' AS Category,
+      COUNT(*) AS CustomerCount
+    FROM ClientUsageTbl
+    WHERE NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+    UNION ALL
+    SELECT 
+      'Enabled Customers' AS Category,
+      COUNT(*) AS CustomerCount
+    FROM CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+      AND c.enabled = True
+    UNION ALL
+    SELECT 
+      'Disabled Customers' AS Category,
+      COUNT(*) AS CustomerCount
+    FROM CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+      AND c.enabled = False
+    UNION ALL
+    SELECT 
+      'PredictionDisabled' AS Category,
+      COUNT(*) AS CustomerCount
+    FROM CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+      AND c.PredictionDisabled = True
+  </command>
+
+  <!-- Step 3: Check for customers with recurring orders -->
+  <command type="select">
+    SELECT 
+      'With Active Recurring Orders' AS Category,
+      COUNT(DISTINCT c.CustomerID) AS CustomerCount
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      INNER JOIN ReoccuringOrderTbl AS ro ON c.CustomerID = ro.CustomerID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+      AND ro.Enabled = True
+  </command>
+
+  <!-- Step 4: Check for customers without email addresses -->
+  <command type="select">
+    SELECT 
+      'No Email Address' AS Category,
+      COUNT(*) AS CustomerCount
+    FROM CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+      AND (c.EmailAddress IS NULL OR c.EmailAddress = '')
+      AND (c.AltEmailAddress IS NULL OR c.AltEmailAddress = '')
+  </command>
+
+  <!-- Step 5: Check for customers with existing orders in next 9 days -->
+  <command type="select">
+    SELECT 
+      'With Orders in Next 9 Days' AS Category,
+      COUNT(DISTINCT c.CustomerID) AS CustomerCount
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      INNER JOIN OrdersTbl AS o ON c.CustomerID = o.CustomerID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+      AND o.RoastDate &gt;= Now()
+      AND o.RoastDate &lt;= DateAdd("d", 9, Now())
+  </command>
+
+  <!-- Step 6: Check for NULL or invalid NextDeliveryDate -->
+  <command type="select">
+    SELECT 
+      'NULL NextDeliveryDate' AS Category,
+      COUNT(*) AS CustomerCount
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+      AND nr.NextDeliveryDate IS NULL
+    UNION ALL
+    SELECT 
+      'NextDeliveryDate in Past' AS Category,
+      COUNT(*) AS CustomerCount
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+      AND nr.NextDeliveryDate &lt; Now()
+    UNION ALL
+    SELECT 
+      'NextDeliveryDate Outside Window' AS Category,
+      COUNT(*) AS CustomerCount
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+      AND nr.NextDeliveryDate &gt; DateAdd("d", 9, cu.NextCoffeeBy)
+  </command>
+
+  <!-- Step 7: Complete breakdown of why customers are excluded -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      IIF(c.enabled = True, 'YES', 'NO') AS IsEnabled,
+      IIF(c.PredictionDisabled = True, 'YES', 'NO') AS IsPredictionDisabled,
+      IIF((c.EmailAddress IS NOT NULL AND c.EmailAddress &lt;&gt; '') OR (c.AltEmailAddress IS NOT NULL AND c.AltEmailAddress &lt;&gt; ''), 'YES', 'NO') AS HasEmail,
+      IIF(EXISTS(SELECT 1 FROM ReoccuringOrderTbl ro WHERE ro.CustomerID = c.CustomerID AND ro.Enabled = True), 'YES', 'NO') AS HasRecurringOrders,
+      IIF(EXISTS(SELECT 1 FROM OrdersTbl o WHERE o.CustomerID = c.CustomerID AND o.RoastDate &gt;= Now() AND o.RoastDate &lt;= DateAdd("d", 9, Now())), 'YES', 'NO') AS HasRecentOrders,
+      IIF(nr.NextDeliveryDate IS NULL, 'NULL', IIF(nr.NextDeliveryDate &lt; Now(), 'PAST', IIF(nr.NextDeliveryDate &gt; DateAdd("d", 9, cu.NextCoffeeBy), 'OUTSIDE', 'OK'))) AS DeliveryDateStatus,
+      cu.NextCoffeeBy,
+      nr.NextDeliveryDate
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+    ORDER BY c.CompanyName
+  </command>
+
+  <!-- Step 8: Show ONLY eligible customers (should match SendCoffeeCheckup list) -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.EmailAddress,
+      cu.NextCoffeeBy,
+      nr.NextDeliveryDate
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+      AND c.enabled = True
+      AND c.PredictionDisabled = False
+      AND ((c.EmailAddress IS NOT NULL AND c.EmailAddress &lt;&gt; '') OR (c.AltEmailAddress IS NOT NULL AND c.AltEmailAddress &lt;&gt; ''))
+      AND NOT EXISTS(SELECT 1 FROM ReoccuringOrderTbl ro WHERE ro.CustomerID = c.CustomerID AND ro.Enabled = True)
+      AND NOT EXISTS(SELECT 1 FROM OrdersTbl o WHERE o.CustomerID = c.CustomerID AND o.RoastDate &gt;= Now() AND o.RoastDate &lt;= DateAdd("d", 9, Now()))
+      AND nr.NextDeliveryDate IS NOT NULL
+      AND nr.NextDeliveryDate &gt;= Now()
+      AND nr.NextDeliveryDate &lt;= DateAdd("d", 9, cu.NextCoffeeBy)
+    ORDER BY c.CompanyName
+  </command>
+
+</root>

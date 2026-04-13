@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purpose: Reset NextCoffeeBy dates that are overdue but within the last 90 days -->
+<!-- Date: 2025-01-21 -->
+<!-- Author: System Admin -->
+<!-- Description: Finds ClientUsageTbl records where NextCoffeeBy is overdue but happened within the last 90 days, then updates them to be 7 days from today -->
+<root>
+
+  <!-- Step 1: SELECT records with NextCoffeeBy between 90 days ago and today (overdue but recent) -->
+  <!-- This shows which customers will be affected before the update -->
+  <command type="select">
+    SELECT 
+      CustomerID, 
+      NextCoffeeBy, 
+      LastCupCount, 
+      DailyConsumption,
+      DateDiff("d", NextCoffeeBy, Now()) AS DaysOverdue
+    FROM ClientUsageTbl 
+    WHERE NextCoffeeBy &gt;= DateAdd("d", -90, Now())
+      AND NextCoffeeBy &lt; Now()
+    ORDER BY NextCoffeeBy
+  </command>
+
+  <!-- Step 2: Count how many records will be updated -->
+  <command type="select">
+    SELECT COUNT(*) AS RecordsToUpdate
+    FROM ClientUsageTbl 
+    WHERE NextCoffeeBy &gt;= DateAdd("d", -90, Now())
+      AND NextCoffeeBy &lt; Now()
+  </command>
+
+  <!-- Step 3: UPDATE NextCoffeeBy to Today + 7 days for recent overdue records -->
+  <!-- This sets the date so coffee checkup system will find them -->
+  <command type="update">
+    UPDATE ClientUsageTbl 
+    SET NextCoffeeBy = DateAdd("d", 7, Now())
+    WHERE NextCoffeeBy &gt;= DateAdd("d", -90, Now())
+      AND NextCoffeeBy &lt; Now()
+  </command>
+
+  <!-- Step 4: Verify the updates - show the newly updated records -->
+  <command type="select">
+    SELECT 
+      CustomerID, 
+      NextCoffeeBy, 
+      LastCupCount, 
+      DailyConsumption,
+      DateDiff("d", Now(), NextCoffeeBy) AS DaysUntilCheckup
+    FROM ClientUsageTbl 
+    WHERE NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND NextCoffeeBy &lt;= DateAdd("d", 8, Now())
+    ORDER BY CustomerID
+  </command>
+
+  <!-- Step 5: Show summary breakdown by date ranges -->
+  <command type="select">
+    SELECT 
+      'Total Records' AS Category,
+      COUNT(*) AS RecordCount
+    FROM ClientUsageTbl
+    UNION ALL
+    SELECT 
+      'Overdue (0-90 days)' AS Category,
+      COUNT(*) AS RecordCount
+    FROM ClientUsageTbl
+    WHERE NextCoffeeBy &gt;= DateAdd("d", -90, Now()) AND NextCoffeeBy &lt; Now()
+    UNION ALL
+    SELECT 
+      'Very Old (90+ days overdue)' AS Category,
+      COUNT(*) AS RecordCount
+    FROM ClientUsageTbl
+    WHERE NextCoffeeBy &lt; DateAdd("d", -90, Now())
+    UNION ALL
+    SELECT 
+      'Future Dates' AS Category,
+      COUNT(*) AS RecordCount
+    FROM ClientUsageTbl
+    WHERE NextCoffeeBy &gt;= Now()
+  </command>
+
+</root>

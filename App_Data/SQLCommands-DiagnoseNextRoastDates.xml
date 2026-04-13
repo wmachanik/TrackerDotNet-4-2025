@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purpose: Update NextRoastDateByCityTbl to current dates -->
+<!-- Date: 2025-01-21 -->
+<!-- Issue: NextDeliveryDate values are in the past, preventing customers from appearing in checkup -->
+<!-- Solution: This would normally be done by clicking "Set Next Roast Dates" in the application -->
+<root>
+
+  <!-- Step 1: Check current NextRoastDateByCityTbl dates -->
+  <command type="select">
+    SELECT 
+      ct.CityID,
+      ct.CityName,
+      nr.PreperationDate,
+      nr.DeliveryDate,
+      nr.NextPreperationDate,
+      nr.NextDeliveryDate,
+      DateDiff("d", Now(), nr.NextDeliveryDate) AS DaysUntilNextDelivery,
+      DateDiff("d", nr.NextDeliveryDate, Now()) AS DaysSinceNextDelivery
+    FROM CityTbl AS ct
+      INNER JOIN NextRoastDateByCityTbl AS nr ON ct.CityID = nr.CityID
+    ORDER BY ct.CityName
+  </command>
+
+  <!-- Step 2: Show which cities have past delivery dates -->
+  <command type="select">
+    SELECT 
+      ct.CityID,
+      ct.CityName,
+      nr.NextDeliveryDate,
+      IIF(nr.NextDeliveryDate &lt; Now(), 'PAST - NEEDS UPDATE', 'FUTURE - OK') AS Status
+    FROM CityTbl AS ct
+      INNER JOIN NextRoastDateByCityTbl AS nr ON ct.CityID = nr.CityID
+    WHERE nr.NextDeliveryDate &lt; Now()
+    ORDER BY ct.CityName
+  </command>
+
+  <!-- Step 3: Count how many customers are affected by past delivery dates -->
+  <command type="select">
+    SELECT 
+      'Customers with Past NextDeliveryDate' AS Category,
+      COUNT(*) AS CustomerCount
+    FROM CustomersTbl AS c
+      INNER JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE nr.NextDeliveryDate &lt; Now()
+  </command>
+
+  <!-- 
+    NOTE: The actual UPDATE of NextRoastDateByCityTbl should be done through the application
+    by clicking "Set Next Roast Dates" button, which calls TrackerTools.SetNextRoastDateByCity()
+    
+    This ensures proper calculation based on delivery rules and schedules.
+    
+    DO NOT manually UPDATE this table unless you understand the delivery schedule logic.
+  -->
+
+</root>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purpose: Find why 6 customers aren't appearing even though they pass the basic conditions -->
+<!-- Date: 2025-01-21 -->
+<root>
+
+  <!-- Check email addresses for the 6 missing customers -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.enabled,
+      c.EmailAddress,
+      c.AltEmailAddress,
+      IIF(c.EmailAddress IS NULL OR c.EmailAddress = '', 'NO', 'YES') AS HasPrimaryEmail,
+      IIF(c.AltEmailAddress IS NULL OR c.AltEmailAddress = '', 'NO', 'YES') AS HasAltEmail,
+      IIF((c.EmailAddress IS NOT NULL AND c.EmailAddress &lt;&gt; '') OR (c.AltEmailAddress IS NOT NULL AND c.AltEmailAddress &lt;&gt; ''), 'YES', 'NO') AS HasAnyEmail
+    FROM CustomersTbl AS c
+    WHERE c.CustomerID IN (489, 325, 571, 776, 3609)
+    ORDER BY c.CompanyName
+  </command>
+
+  <!-- Check if they have recurring orders -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      COUNT(ro.ReoccuringOrderID) AS ActiveRecurringOrders
+    FROM CustomersTbl AS c
+      LEFT JOIN ReoccuringOrderTbl AS ro ON c.CustomerID = ro.CustomerID AND ro.Enabled = True
+    WHERE c.CustomerID IN (489, 325, 571, 776, 3609)
+    GROUP BY c.CustomerID, c.CompanyName
+    ORDER BY c.CompanyName
+  </command>
+
+  <!-- Check all their flags and settings -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.enabled AS IsEnabled,
+      c.PredictionDisabled,
+      c.AlwaysSendChkUp,
+      c.autofulfill,
+      c.ReminderCount,
+      cu.NextCoffeeBy,
+      nr.NextDeliveryDate
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE c.CustomerID IN (489, 325, 571, 776, 3609)
+    ORDER BY c.CompanyName
+  </command>
+
+  <!-- Check if they are in the internal customer exclusion list -->
+  <command type="select">
+    SELECT 
+      InternalCustomerIds,
+      IIF(InternalCustomerIds LIKE '%489%', 'YES', 'NO') AS IncludesGregJohnson,
+      IIF(InternalCustomerIds LIKE '%325%', 'YES', 'NO') AS IncludesHeinrich,
+      IIF(InternalCustomerIds LIKE '%571%', 'YES', 'NO') AS IncludesMaya,
+      IIF(InternalCustomerIds LIKE '%776%', 'YES', 'NO') AS IncludesRidwaan,
+      IIF(InternalCustomerIds LIKE '%3609%', 'YES', 'NO') AS IncludesUCT
+    FROM SysDataTbl
+    WHERE ID = 1
+  </command>
+
+  <!-- Show complete details for these 6 customers -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.enabled,
+      c.EmailAddress,
+      c.AltEmailAddress,
+      c.ReminderCount,
+      cu.NextCoffeeBy,
+      nr.NextDeliveryDate,
+      (SELECT COUNT(*) FROM ReoccuringOrderTbl ro WHERE ro.CustomerID = c.CustomerID AND ro.Enabled = True) AS RecurringOrders,
+      (SELECT COUNT(*) FROM OrdersTbl o WHERE o.CustomerID = c.CustomerID AND o.RoastDate &gt;= Now() AND o.RoastDate &lt;= DateAdd("d", 9, Now())) AS RecentOrders
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE c.CustomerID IN (489, 325, 571, 776, 3609)
+    ORDER BY c.CompanyName
+  </command>
+
+</root>

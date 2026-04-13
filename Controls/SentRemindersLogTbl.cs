@@ -243,6 +243,57 @@ namespace TrackerDotNet.Controls
         /// </summary>
         /// <param name="targetDate">Date to count entries for</param>
         /// <returns>Number of entries for that date</returns>
+        /// <summary>
+        /// Gets the most recent date when checkup reminders were successfully sent.
+        /// Falls back to MinReminderDate if no reminders have been sent yet.
+        /// This is used to determine the baseline date for NextDeliveryDate filtering.
+        /// </summary>
+        /// <returns>Last successful checkup date or MinReminderDate</returns>
+        public DateTime GetLastSuccessfulCheckupDate()
+        {
+            DateTime lastCheckupDate = DateTime.MinValue;
+
+            try
+            {
+                TrackerDb trackerDb = new TrackerDb();
+                string sql = "SELECT MAX(DateSentReminder) AS LastCheckupDate FROM SentRemindersLogTbl WHERE ReminderSent = True";
+                IDataReader dataReader = trackerDb.ExecuteSQLGetDataReader(sql);
+
+                if (dataReader != null)
+                {
+                    if (dataReader.Read() && dataReader["LastCheckupDate"] != DBNull.Value)
+                    {
+                        lastCheckupDate = Convert.ToDateTime(dataReader["LastCheckupDate"]).Date;
+                    }
+                    dataReader.Close();
+                }
+                trackerDb.Close();
+
+                // If no checkup has been run yet, fall back to MinReminderDate from SysDataTbl
+                if (lastCheckupDate == DateTime.MinValue)
+                {
+                    SysDataTbl sysData = new SysDataTbl();
+                    lastCheckupDate = sysData.GetMinReminderDate();
+                    AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                        $"SentRemindersLogTbl: No previous checkup found, using MinReminderDate: {lastCheckupDate:yyyy-MM-dd}");
+                }
+                else
+                {
+                    AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                        $"SentRemindersLogTbl: Last successful checkup date: {lastCheckupDate:yyyy-MM-dd}");
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.WriteLog(SystemConstants.LogTypes.SendCheckup,
+                    $"SentRemindersLogTbl: Error getting last checkup date: {ex.Message}. Using MinReminderDate.");
+                SysDataTbl sysData = new SysDataTbl();
+                lastCheckupDate = sysData.GetMinReminderDate();
+            }
+
+            return lastCheckupDate;
+        }
+
         public int GetEntriesCountForDate(DateTime targetDate)
         {
             int count = 0;

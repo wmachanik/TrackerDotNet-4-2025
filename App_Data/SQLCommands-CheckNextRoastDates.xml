@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purpose: Check and understand NextRoastDateByCityTbl current state -->
+<!-- This will help determine why all delivery dates are in the past -->
+<root>
+
+  <!-- Step 1: Show current NextRoastDateByCityTbl entries -->
+  <command type="select">
+    SELECT 
+      nr.CityID,
+      ct.CityName,
+      nr.PreperationDate,
+      nr.DeliveryDate,
+      nr.NextPreperationDate,
+      nr.NextDeliveryDate,
+      DateDiff("d", Now(), nr.NextDeliveryDate) AS DaysUntilDelivery,
+      IIF(nr.NextDeliveryDate &lt; Now(), 'PAST', 'FUTURE') AS Status
+    FROM NextRoastDateByCityTbl AS nr
+      INNER JOIN CityTbl AS ct ON nr.CityID = ct.CityID
+    ORDER BY nr.NextDeliveryDate
+  </command>
+
+  <!-- Step 2: Count customers per city affected by past dates -->
+  <command type="select">
+    SELECT 
+      ct.CityName,
+      nr.NextDeliveryDate,
+      COUNT(c.CustomerID) AS AffectedCustomers,
+      DateDiff("d", Now(), nr.NextDeliveryDate) AS DaysUntilDelivery
+    FROM (NextRoastDateByCityTbl AS nr
+      INNER JOIN CityTbl AS ct ON nr.CityID = ct.CityID)
+      LEFT JOIN CustomersTbl AS c ON c.City = nr.CityID
+    WHERE c.enabled = True
+    GROUP BY ct.CityName, nr.NextDeliveryDate
+    ORDER BY nr.NextDeliveryDate
+  </command>
+
+  <!-- Step 3: Find the EXPECTED next delivery dates (2-3 weeks from now) -->
+  <command type="select">
+    SELECT 
+      'Expected Delivery Window' AS Description,
+      DateAdd("d", 14, Now()) AS Start2Weeks,
+      DateAdd("d", 21, Now()) AS End3Weeks
+  </command>
+
+  <!-- Step 4: Show which cities need their NextDeliveryDate updated to future dates -->
+  <command type="select">
+    SELECT 
+      nr.CityID,
+      ct.CityName,
+      nr.NextDeliveryDate AS CurrentNextDelivery,
+      DateDiff("d", Now(), nr.NextDeliveryDate) AS DaysFromNow,
+      'NEEDS UPDATE TO FUTURE DATE (2-3 weeks ahead)' AS Recommendation
+    FROM NextRoastDateByCityTbl AS nr
+      INNER JOIN CityTbl AS ct ON nr.CityID = ct.CityID
+    WHERE nr.NextDeliveryDate &lt; DateAdd("d", 14, Now())
+    ORDER BY ct.CityName
+  </command>
+
+</root>

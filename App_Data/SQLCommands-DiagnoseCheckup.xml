@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purpose: Diagnose why customers with updated NextCoffeeBy aren't showing in SendCoffeeCheckup -->
+<!-- Date: 2025-01-21 -->
+<!-- Author: System Admin -->
+<!-- Description: Checks all conditions used by the coffee checkup query to find eligible customers -->
+<root>
+
+  <!-- Step 1: Get MinReminderDate from SysDataTbl (this is the baseline date used in the query) -->
+  <command type="select">
+    SELECT MinReminderDate, 
+           DateDiff("d", MinReminderDate, Now()) AS DaysSinceMinReminder
+    FROM SysDataTbl 
+    WHERE ID = 1
+  </command>
+
+  <!-- Step 2: Show customers with NextCoffeeBy in the last 7-14 days (recently updated range) -->
+  <!-- This checks the first condition: NextCoffeeBy > MinReminderDate -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.enabled,
+      c.PredictionDisabled,
+      c.AlwaysSendChkUp,
+      c.LastDateSentReminder,
+      cu.NextCoffeeBy,
+      DateDiff("d", Now(), cu.NextCoffeeBy) AS DaysUntilNextCoffee,
+      nr.NextDeliveryDate,
+      DateDiff("d", Now(), nr.NextDeliveryDate) AS DaysUntilDelivery,
+      DateDiff("d", cu.NextCoffeeBy, nr.NextDeliveryDate) AS DeliveryVsCoffeeGap
+    FROM (CustomersTbl AS c 
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 10, Now())
+    ORDER BY c.CompanyName
+  </command>
+
+  <!-- Step 3: Check which of those customers meet ALL eligibility conditions -->
+  <!-- This mimics the exact logic from ContactsThatMayNeedNextWeek -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.enabled AS IsEnabled,
+      c.PredictionDisabled AS IsPredictionDisabled,
+      cu.NextCoffeeBy,
+      nr.NextDeliveryDate,
+      DateAdd("d", 9, cu.NextCoffeeBy) AS CoffeeByPlus9Days,
+      IIF(nr.NextDeliveryDate &lt;= DateAdd("d", 9, cu.NextCoffeeBy), 'YES', 'NO') AS DeliveryInWindow,
+      IIF((c.LastDateSentReminder IS NULL) OR (c.LastDateSentReminder &lt;&gt; Now()), 'YES', 'NO') AS NotSentToday,
+      IIF(cu.NextCoffeeBy &gt; (SELECT MinReminderDate FROM SysDataTbl WHERE ID=1), 'YES', 'NO') AS AfterMinReminder,
+      IIF(EXISTS(SELECT 1 FROM OrdersTbl o WHERE o.CustomerID=c.CustomerID AND o.RoastDate &gt;= Now() AND o.RoastDate &lt;= DateAdd("d", 9, Now())), 'YES', 'NO') AS HasRecentOrder
+    FROM (CustomersTbl AS c 
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 10, Now())
+    ORDER BY c.CompanyName
+  </command>
+
+  <!-- Step 4: Show customers that SHOULD appear (meeting all conditions) -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.EmailAddress,
+      c.ReminderCount,
+      cu.NextCoffeeBy,
+      nr.NextDeliveryDate,
+      nr.PreperationDate
+    FROM ((CustomersTbl AS c 
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID)
+    WHERE ((c.LastDateSentReminder IS NULL) OR (c.LastDateSentReminder &lt;&gt; Now()))
+      AND (c.enabled = True)
+      AND (c.PredictionDisabled = False)
+      AND (cu.NextCoffeeBy &gt; (SELECT MinReminderDate FROM SysDataTbl WHERE ID=1))
+      AND ((nr.NextDeliveryDate &lt;= DateAdd("d", 9, cu.NextCoffeeBy)) OR c.AlwaysSendChkUp = True)
+      AND (NOT EXISTS(
+        SELECT o.CustomerID FROM OrdersTbl AS o 
+        WHERE o.CustomerID = c.CustomerID 
+          AND o.RoastDate &gt;= Now() 
+          AND o.RoastDate &lt;= DateAdd("d", 9, Now())
+      ))
+      AND cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 10, Now())
+    ORDER BY c.CompanyName
+  </command>
+
+  <!-- Step 5: Check NextRoastDateByCityTbl status for all cities -->
+  <command type="select">
+    SELECT 
+      ct.CityID,
+      ct.CityName,
+      nr.PreperationDate,
+      nr.DeliveryDate,
+      nr.NextPreperationDate,
+      nr.NextDeliveryDate,
+      DateDiff("d", nr.DeliveryDate, Now()) AS DaysSinceLastUpdate
+    FROM CityTbl AS ct
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON ct.CityID = nr.CityID
+    ORDER BY ct.CityName
+  </command>
+
+  <!-- Step 6: Show any customers with NULL or very old NextRoastDateByCityTbl entries -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.City AS CityID,
+      ct.CityName,
+      nr.NextDeliveryDate,
+      cu.NextCoffeeBy
+    FROM ((CustomersTbl AS c 
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN CityTbl AS ct ON c.City = ct.CityID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 10, Now())
+      AND (nr.NextDeliveryDate IS NULL OR nr.NextDeliveryDate &lt; Now())
+    ORDER BY c.CompanyName
+  </command>
+
+  <!-- Step 7: Summary of potential issues -->
+  <command type="select">
+    SELECT 
+      'Updated NextCoffeeBy (7-10 days out)' AS CheckCategory,
+      COUNT(*) AS CustomerCount
+    FROM ClientUsageTbl
+    WHERE NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND NextCoffeeBy &lt;= DateAdd("d", 10, Now())
+    UNION ALL
+    SELECT 
+      'With NULL/Old NextDeliveryDate' AS CheckCategory,
+      COUNT(*) AS CustomerCount
+    FROM (CustomersTbl AS c 
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 10, Now())
+      AND (nr.NextDeliveryDate IS NULL OR nr.NextDeliveryDate &lt; Now())
+    UNION ALL
+    SELECT 
+      'Disabled or PredictionDisabled' AS CheckCategory,
+      COUNT(*) AS CustomerCount
+    FROM CustomersTbl AS c 
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 10, Now())
+      AND (c.enabled = False OR c.PredictionDisabled = True)
+    UNION ALL
+    SELECT 
+      'With existing orders in next 9 days' AS CheckCategory,
+      COUNT(DISTINCT c.CustomerID) AS CustomerCount
+    FROM (CustomersTbl AS c 
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      INNER JOIN OrdersTbl AS o ON c.CustomerID = o.CustomerID
+    WHERE cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) 
+      AND cu.NextCoffeeBy &lt;= DateAdd("d", 10, Now())
+      AND o.RoastDate &gt;= Now() 
+      AND o.RoastDate &lt;= DateAdd("d", 9, Now())
+  </command>
+
+</root>

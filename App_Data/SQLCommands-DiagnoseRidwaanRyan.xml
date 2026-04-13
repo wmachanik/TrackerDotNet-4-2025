@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purpose: Diagnose why Ridwaan and Ryan are not in the checkup list -->
+<!-- Date: 2025-01-21 (Test Date: 2026-03-27) -->
+<root>
+
+  <!-- Step 1: Check Ridwaan's customer record -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.enabled,
+      c.PredictionDisabled,
+      c.AlwaysSendChkUp,
+      c.LastDateSentReminder,
+      c.EmailAddress,
+      c.AltEmailAddress,
+      c.ReminderCount,
+      cu.NextCoffeeBy,
+      DateDiff("d", Now(), cu.NextCoffeeBy) AS DaysUntilNextCoffee,
+      nr.NextDeliveryDate,
+      DateDiff("d", Now(), nr.NextDeliveryDate) AS DaysUntilDelivery,
+      IIF(c.enabled = True, 'YES', 'NO') AS IsEnabled,
+      IIF(c.PredictionDisabled = True, 'YES', 'NO') AS IsPredictionDisabled,
+      IIF((c.EmailAddress IS NOT NULL AND c.EmailAddress &lt;&gt; '') OR (c.AltEmailAddress IS NOT NULL AND c.AltEmailAddress &lt;&gt; ''), 'YES', 'NO') AS HasEmail
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%'
+  </command>
+
+  <!-- Step 2: Check Ryan's customer record -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      c.enabled,
+      c.PredictionDisabled,
+      c.AlwaysSendChkUp,
+      c.LastDateSentReminder,
+      c.EmailAddress,
+      c.AltEmailAddress,
+      c.ReminderCount,
+      cu.NextCoffeeBy,
+      DateDiff("d", Now(), cu.NextCoffeeBy) AS DaysUntilNextCoffee,
+      nr.NextDeliveryDate,
+      DateDiff("d", Now(), nr.NextDeliveryDate) AS DaysUntilDelivery,
+      IIF(c.enabled = True, 'YES', 'NO') AS IsEnabled,
+      IIF(c.PredictionDisabled = True, 'YES', 'NO') AS IsPredictionDisabled,
+      IIF((c.EmailAddress IS NOT NULL AND c.EmailAddress &lt;&gt; '') OR (c.AltEmailAddress IS NOT NULL AND c.AltEmailAddress &lt;&gt; ''), 'YES', 'NO') AS HasEmail
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+  </command>
+
+  <!-- Step 3: Check their recurring orders -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      ro.ID AS RecurringOrderID,
+      ro.ReoccuranceType,
+      ro.[Value],
+      ro.DateLastDone,
+      ro.NextDateRequired,
+      DateDiff("d", Now(), ro.NextDateRequired) AS DaysUntilNextRequired,
+      ro.Enabled AS RecurringOrderEnabled,
+      IIF(ro.NextDateRequired &lt;= DateAdd("d", 9, Now()), 'YES - IN WINDOW', 'NO - OUTSIDE WINDOW') AS InCheckupWindow
+    FROM ReoccuringOrderTbl AS ro
+      INNER JOIN CustomersTbl AS c ON ro.CustomerID = c.CustomerID
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    ORDER BY c.CompanyName, ro.NextDateRequired
+  </command>
+
+  <!-- Step 4: Check if they have recent orders that would exclude them -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      o.RoastDate,
+      DateDiff("d", Now(), o.RoastDate) AS DaysUntilRoast,
+      IIF(o.RoastDate &gt;= Now() AND o.RoastDate &lt;= DateAdd("d", 9, Now()), 'YES - WOULD EXCLUDE', 'NO') AS WouldExclude
+    FROM OrdersTbl AS o
+      INNER JOIN CustomersTbl AS c ON o.CustomerID = c.CustomerID
+    WHERE (c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%')
+      AND o.RoastDate &gt;= DateAdd("d", -30, Now())
+      AND o.RoastDate &lt;= DateAdd("d", 30, Now())
+    ORDER BY c.CompanyName, o.RoastDate
+  </command>
+
+  <!-- Step 5: Test each filter condition for Ridwaan and Ryan -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      '1. LastDateSentReminder check' AS FilterCondition,
+      IIF((c.LastDateSentReminder IS NULL) OR (c.LastDateSentReminder &lt;&gt; Now()), 'PASS', 'FAIL') AS Result,
+      c.LastDateSentReminder AS CurrentValue
+    FROM CustomersTbl AS c
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    
+    UNION ALL
+    
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      '2. enabled = True' AS FilterCondition,
+      IIF(c.enabled = True, 'PASS', 'FAIL') AS Result,
+      IIF(c.enabled = True, 'TRUE', 'FALSE') AS CurrentValue
+    FROM CustomersTbl AS c
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    
+    UNION ALL
+    
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      '3. PredictionDisabled = False' AS FilterCondition,
+      IIF(c.PredictionDisabled = False, 'PASS', 'FAIL') AS Result,
+      IIF(c.PredictionDisabled = True, 'TRUE (FAILING)', 'FALSE (OK)') AS CurrentValue
+    FROM CustomersTbl AS c
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    
+    UNION ALL
+    
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      '4. NextCoffeeBy > MinReminderDate' AS FilterCondition,
+      IIF(cu.NextCoffeeBy &gt; (SELECT MinReminderDate FROM SysDataTbl WHERE ID=1), 'PASS', 'FAIL') AS Result,
+      Format(cu.NextCoffeeBy, 'yyyy-MM-dd') AS CurrentValue
+    FROM CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    
+    UNION ALL
+    
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      '5. NextCoffeeBy in window (6-10 days)' AS FilterCondition,
+      IIF(cu.NextCoffeeBy &gt;= DateAdd("d", 6, Now()) AND cu.NextCoffeeBy &lt;= DateAdd("d", 10, Now()), 'PASS', 'FAIL - OUTSIDE WINDOW') AS Result,
+      'Days until: ' &amp; CStr(DateDiff("d", Now(), cu.NextCoffeeBy)) AS CurrentValue
+    FROM CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    
+    UNION ALL
+    
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      '6. Has Email Address' AS FilterCondition,
+      IIF((c.EmailAddress IS NOT NULL AND c.EmailAddress &lt;&gt; '') OR (c.AltEmailAddress IS NOT NULL AND c.AltEmailAddress &lt;&gt; ''), 'PASS', 'FAIL') AS Result,
+      c.EmailAddress AS CurrentValue
+    FROM CustomersTbl AS c
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+    
+    ORDER BY CustomerID, FilterCondition
+  </command>
+
+  <!-- Step 6: Check delivery date filtering -->
+  <command type="select">
+    SELECT 
+      c.CustomerID,
+      c.CompanyName,
+      cu.NextCoffeeBy,
+      nr.NextDeliveryDate,
+      DateAdd("d", 9, cu.NextCoffeeBy) AS CoffeeByPlus9Days,
+      IIF(nr.NextDeliveryDate &lt;= DateAdd("d", 9, cu.NextCoffeeBy), 'YES', 'NO') AS DeliveryInWindow,
+      IIF(nr.NextDeliveryDate &gt;= (SELECT MAX(DateSentReminder) FROM SentRemindersLogTbl WHERE ReminderSent = True), 'YES', 'NO - FILTERED OUT') AS PassesDeliveryDateFilter,
+      IIF(c.AlwaysSendChkUp = True, 'YES - OVERRIDES', 'NO') AS AlwaysSendCheckup
+    FROM (CustomersTbl AS c
+      INNER JOIN ClientUsageTbl AS cu ON c.CustomerID = cu.CustomerID)
+      LEFT JOIN NextRoastDateByCityTbl AS nr ON c.City = nr.CityID
+    WHERE c.CompanyName LIKE '%Ridwaan%' OR c.CompanyName LIKE '%Akhalwaya%' OR c.CompanyName LIKE '%Ryan%' OR c.CompanyName LIKE '%Vermooten%'
+  </command>
+
+</root>

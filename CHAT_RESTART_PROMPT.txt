@@ -1,0 +1,72 @@
+﻿# Chat Restart Prompt - TrackerDotNet Coffee Checkup Fix
+
+Copy and paste this prompt when starting a new chat session:
+
+---
+
+I'm working on a .NET Framework 4.8 ASP.NET WebForms project called **TrackerDotNet** - a coffee roastery order tracking system.
+
+## Recent Work Completed
+
+I've just completed two major fixes:
+
+1. **Monthly Recurring Order Date Calculation** - Fixed logic that was pushing orders 2 months out instead of next month
+2. **Coffee Checkup Delivery Date Filtering** - Fixed critical bug where checkup returned 0 customers due to stale delivery date filtering
+
+## Key Reference Files
+
+**Please review these files for complete context:**
+- `DEVELOPMENT_SESSION_NOTES.md` - Quick reference with all changes, concepts, and diagnostics
+- `CHANGES_LOG.md` - Detailed change log with before/after code
+- `DELIVERY_DATE_FIX_SUMMARY.md` - Comprehensive explanation of delivery date fix
+
+## Technical Context
+
+**Modified Files:**
+- `Classes\DateCalculator.cs` - Fixed monthly recurring date calculation
+- `Controls\SentRemindersLogTbl.cs` - Added `GetLastSuccessfulCheckupDate()`
+- `Controls\ContactsThatMayNeedNextWeek.cs` - Fixed delivery date filtering
+
+**Test Configuration (Web.config):**
+- `TestNow.Value = 2026-03-27` (test date)
+- `CoffeeCheckupMinMonthlyRecurringDays = 20`
+- `CoffeeCheckupReminderWindowDays = 9`
+
+## Key Concepts You Should Know
+
+1. **Two Separate Systems:**
+   - **Checkup System:** Uses `NextCoffeeBy` (consumption-based, 6-10 day window)
+   - **Recurring Orders:** Uses `NextDateRequired` (schedule-based, auto-creates orders)
+
+2. **Delivery Date Filtering:**
+   - `NextRoastDateByCityTbl` contains city delivery dates (can be stale)
+   - Now uses **last checkup date** instead of `Now()` for filtering
+   - Prevents filtering out customers with stale but valid delivery dates
+
+3. **Monthly Recurring Logic:**
+   - Uses actual day intervals instead of day number comparison
+   - 20-day minimum threshold prevents unreasonably short cycles
+
+## Current Status
+
+- Build: ✅ Successful
+- Impact: 0 → 143+ customers now correctly identified for checkup
+- Branch: `version/2.1.3.0`
+- Ready for: Production validation
+
+## What I Need Help With
+
+[State your current task or question here]
+
+---
+
+## Quick Diagnostic Queries Available
+
+- `App_Data\SQLCommands-VerifyDeliveryDateFix.xml` - Verify fix is working
+- `App_Data\SQLCommands-DiagnoseCheckup.xml` - Main checkup diagnostic
+- `App_Data\SQLCommands-DiagnoseMonthlyRecurring.xml` - Monthly orders analysis
+
+---
+
+**Note:** Review `DEVELOPMENT_SESSION_NOTES.md` for complete technical details, testing instructions, and rollback procedures.
+
